@@ -1,0 +1,97 @@
+@use "sass:color";
+@use "sass:map";
+@use "sass:math";
+@use "colors" as *;
+
+// Percentage is the share of white (tint) or black (shade) in the result.
+$tint-steps: (
+    50: 92%,
+    100: 82%,
+    200: 66%,
+    300: 46%,
+    400: 24%
+);
+$shade-steps: (
+    600: 14%,
+    700: 30%,
+    800: 48%,
+    900: 66%
+);
+
+@function tint($c, $amount) {
+    @return color.mix($white, $c, $amount);
+}
+
+@function shade($c, $amount) {
+    @return color.mix($black, $c, $amount);
+}
+
+// 500 is the base color itself.
+@function ladder($c, $step) {
+    @if map.has-key($tint-steps, $step) {
+        @return tint($c, map.get($tint-steps, $step));
+    }
+
+    @if map.has-key($shade-steps, $step) {
+        @return shade($c, map.get($shade-steps, $step));
+    }
+
+    @return $c;
+}
+
+@function state-hover($c) {
+    @return shade($c, 8%);
+}
+
+@function state-active($c) {
+    @return shade($c, 16%);
+}
+
+@function state-disabled($c) {
+    @return color.mix($paper, $c, 45%);
+}
+
+@function alpha-of($c, $a) {
+    @return color.change($c, $alpha: $a);
+}
+
+@function complement($c) {
+    @return color.adjust($c, $hue: 180deg);
+}
+
+// WCAG 2.x relative luminance and contrast ratio.
+@function channel-linear($value) {
+    $s: math.div($value, 255);
+
+    @if $s <=0.03928 {
+        @return math.div($s, 12.92);
+    }
+
+    @return math.pow(math.div($s + 0.055, 1.055), 2.4);
+}
+
+@function luminance($c) {
+    @return 0.2126 * channel-linear(color.red($c))+0.7152 * channel-linear(color.green($c))+0.0722 * channel-linear(color.blue($c));
+}
+
+@function contrast-ratio($a, $b) {
+    $l1: luminance($a);
+    $l2: luminance($b);
+    @return math.div(math.max($l1, $l2) + 0.05, math.min($l1, $l2) + 0.05);
+}
+
+@function readable-on($bg, $light: $paper, $dark: $ink) {
+    @if contrast-ratio($bg, $dark) >= contrast-ratio($bg, $light) {
+        @return $dark;
+    }
+
+    @return $light;
+}
+
+@function ensure-contrast($fg, $bg, $target: 4.5) {
+    @if contrast-ratio($fg, $bg) >= $target {
+        @return $fg;
+    }
+
+    @return readable-on($bg);
+}
