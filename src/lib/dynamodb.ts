@@ -1,5 +1,4 @@
 import { DynamoDBClient, ListTablesCommand } from '@aws-sdk/client-dynamodb';
-
 import {
     DeleteCommand,
     DynamoDBDocumentClient,
@@ -7,8 +6,14 @@ import {
     PutCommand,
     QueryCommand,
 } from '@aws-sdk/lib-dynamodb';
-
-import type { DeleteCommandInput, GetCommandInput, QueryCommandInput } from '@aws-sdk/lib-dynamodb';
+import type {
+    DeleteCommandInput,
+    GetCommandInput,
+    GetCommandOutput,
+    PutCommandInput,
+    QueryCommandInput,
+    QueryCommandOutput,
+} from '@aws-sdk/lib-dynamodb';
 
 // DynamoDB client configuration
 // Vercel reserves the AWS_* variable names, so this project uses DYNAMODB_* names
@@ -36,16 +41,16 @@ export const docClient = DynamoDBDocumentClient.from(dynamoClient, {
 
 export const tableName = process.env.DYNAMODB_TABLE_NAME ?? 'music-copilot';
 
-// Get one item by its key
-export async function getItem<T extends Record<string, unknown>>(
+// Get one item by its key, or null when it does not exist
+export async function getItem(
     key: GetCommandInput['Key'],
-): Promise<T | null> {
+): Promise<GetCommandOutput['Item'] | null> {
     const result = await docClient.send(new GetCommand({ TableName: tableName, Key: key }));
-    return (result.Item as T | undefined) ?? null;
+    return result.Item ?? null;
 }
 
 // Create or replace an item
-export async function putItem(item: Record<string, unknown>): Promise<void> {
+export async function putItem(item: PutCommandInput['Item']): Promise<void> {
     await docClient.send(new PutCommand({ TableName: tableName, Item: item }));
 }
 
@@ -55,11 +60,11 @@ export async function deleteItem(key: DeleteCommandInput['Key']): Promise<void> 
 }
 
 // Query items with a key condition expression
-export async function queryItems<T extends Record<string, unknown>>(
+export async function queryItems(
     input: Omit<QueryCommandInput, 'TableName'>,
-): Promise<T[]> {
+): Promise<NonNullable<QueryCommandOutput['Items']>> {
     const result = await docClient.send(new QueryCommand({ TableName: tableName, ...input }));
-    return (result.Items as T[] | undefined) ?? [];
+    return result.Items ?? [];
 }
 
 // Verify the DynamoDB connection
