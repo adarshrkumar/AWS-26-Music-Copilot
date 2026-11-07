@@ -18,80 +18,80 @@ $shade-steps: (
     900: 66%
 );
 
-@function tint($c, $amount) {
-    @return color.mix($white, $c, $amount);
+@function tint($base-color, $amount) {
+    @return color.mix($text-inverse, $base-color, $amount);
 }
 
-@function shade($c, $amount) {
-    @return color.mix($black, $c, $amount);
+@function shade($base-color, $amount) {
+    @return color.mix($black, $base-color, $amount);
 }
 
 // 500 is the base color itself.
-@function ladder($c, $step) {
+@function ladder($base-color, $step) {
     @if map.has-key($tint-steps, $step) {
-        @return tint($c, map.get($tint-steps, $step));
+        @return tint($base-color, map.get($tint-steps, $step));
     }
 
     @if map.has-key($shade-steps, $step) {
-        @return shade($c, map.get($shade-steps, $step));
+        @return shade($base-color, map.get($shade-steps, $step));
     }
 
-    @return $c;
+    @return $base-color;
 }
 
-@function state-hover($c) {
-    @return shade($c, 8%);
+@function state-hover($base-color) {
+    @return shade($base-color, 8%);
 }
 
-@function state-active($c) {
-    @return shade($c, 16%);
+@function state-active($base-color) {
+    @return shade($base-color, 16%);
 }
 
-@function state-disabled($c) {
-    @return color.mix($paper, $c, 45%);
+@function state-disabled($base-color) {
+    @return color.mix($bg-primary, $base-color, 45%);
 }
 
-@function alpha-of($c, $a) {
-    @return color.change($c, $alpha: $a);
+@function alpha-of($base-color, $opacity) {
+    @return color.change($base-color, $alpha: $opacity);
 }
 
-@function complement($c) {
-    @return color.adjust($c, $hue: 180deg);
+@function complement($base-color) {
+    @return color.adjust($base-color, $hue: 180deg);
 }
 
 // WCAG 2.x relative luminance and contrast ratio.
 @function channel-linear($value) {
-    $s: math.div($value, 255);
+    $channel-fraction: math.div($value, 255);
 
-    @if $s <=0.03928 {
-        @return math.div($s, 12.92);
+    @if $channel-fraction <=0.03928 {
+        @return math.div($channel-fraction, 12.92);
     }
 
-    @return math.pow(math.div($s + 0.055, 1.055), 2.4);
+    @return math.pow(math.div($channel-fraction + 0.055, 1.055), 2.4);
 }
 
-@function luminance($c) {
-    @return 0.2126 * channel-linear(color.red($c))+0.7152 * channel-linear(color.green($c))+0.0722 * channel-linear(color.blue($c));
+@function luminance($base-color) {
+    @return 0.2126 * channel-linear(color.red($base-color))+0.7152 * channel-linear(color.green($base-color))+0.0722 * channel-linear(color.blue($base-color));
 }
 
-@function contrast-ratio($a, $b) {
-    $l1: luminance($a);
-    $l2: luminance($b);
-    @return math.div(math.max($l1, $l2) + 0.05, math.min($l1, $l2) + 0.05);
+@function contrast-ratio($first-color, $second-color) {
+    $first-luminance: luminance($first-color);
+    $second-luminance: luminance($second-color);
+    @return math.div(math.max($first-luminance, $second-luminance) + 0.05, math.min($first-luminance, $second-luminance) + 0.05);
 }
 
-@function readable-on($bg, $light: $paper, $dark: $ink) {
-    @if contrast-ratio($bg, $dark) >= contrast-ratio($bg, $light) {
+@function readable-on($background, $light: $bg-primary, $dark: $text-primary) {
+    @if contrast-ratio($background, $dark) >= contrast-ratio($background, $light) {
         @return $dark;
     }
 
     @return $light;
 }
 
-@function ensure-contrast($fg, $bg, $target: 4.5) {
-    @if contrast-ratio($fg, $bg) >= $target {
-        @return $fg;
+@function ensure-contrast($foreground, $background, $target: 4.5) {
+    @if contrast-ratio($foreground, $background) >= $target {
+        @return $foreground;
     }
 
-    @return readable-on($bg);
+    @return readable-on($background);
 }
