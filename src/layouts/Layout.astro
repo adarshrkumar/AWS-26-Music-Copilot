@@ -33,7 +33,7 @@ const newPageTitle = (pageArray && pageArray.length > 0 && firstElement)
         : pageArray
     : null;
 
-const title = newPageTitle ? `${newPageTitle.join(' | ')} | ${siteConfig.appName}` : siteConfig.appName;
+const title = newPageTitle ? [...newPageTitle, siteConfig.appName].join(' | ') : siteConfig.appName;
 ---
 
 <!doctype html>
