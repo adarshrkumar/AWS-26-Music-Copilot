@@ -61,7 +61,7 @@ export interface ExaSearchOptions {
 // Exa search result
 export interface ExaResult {
     url: string;
-    title: string;
+    title: string | null;
     publishedDate?: string;
     author?: string;
     score?: number;
@@ -100,7 +100,7 @@ export async function searchWeb(
             summary: options.contents?.summary,
         });
 
-        return response.results.map((result: any) => ({
+        return response.results.map((result: ExaResult) => ({
             url: result.url,
             title: result.title,
             publishedDate: result.publishedDate,
@@ -113,7 +113,7 @@ export async function searchWeb(
         }));
     } catch (error) {
         console.error('Exa search error:', error);
-        throw new Error('Failed to perform search');
+        throw new Error('Failed to perform search', { cause: error });
     }
 }
 
@@ -144,7 +144,7 @@ export async function findSimilar(
             summary: options.contents?.summary,
         });
 
-        return response.results.map((result: any) => ({
+        return response.results.map((result: ExaResult) => ({
             url: result.url,
             title: result.title,
             publishedDate: result.publishedDate,
@@ -157,7 +157,7 @@ export async function findSimilar(
         }));
     } catch (error) {
         console.error('Exa find similar error:', error);
-        throw new Error('Failed to find similar content');
+        throw new Error('Failed to find similar content', { cause: error });
     }
 }
 
@@ -180,7 +180,7 @@ export async function getContents(
             summary: options.summary,
         });
 
-        return response.results.map((result: any) => ({
+        return response.results.map((result: ExaResult) => ({
             url: result.url,
             title: result.title,
             publishedDate: result.publishedDate,
@@ -192,7 +192,7 @@ export async function getContents(
         }));
     } catch (error) {
         console.error('Exa get contents error:', error);
-        throw new Error('Failed to get contents');
+        throw new Error('Failed to get contents', { cause: error });
     }
 }
 
