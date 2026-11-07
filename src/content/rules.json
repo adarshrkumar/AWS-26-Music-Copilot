@@ -1,0 +1,22 @@
+[
+    {
+        "name": "Explain",
+        "body": "Every suggestion shows its reason in one or two sentences, drawn from the theory engine."
+    },
+    {
+        "name": "Key",
+        "body": "A chord outside your key is labeled borrowed or outside. It is never corrected."
+    },
+    {
+        "name": "Note",
+        "body": "A note outside the current scale is marked, but never removed."
+    },
+    {
+        "name": "Accept",
+        "body": "A suggestion changes your song only after you accept it."
+    },
+    {
+        "name": "Count",
+        "body": "A progression holds up to sixteen bars. Longer pieces are split into sections."
+    }
+]

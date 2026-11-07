@@ -1,4 +1,3 @@
-// Exa Search Integration
 // Provides AI-powered search capabilities using Exa
 // Documentation: https://docs.exa.ai
 

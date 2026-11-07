@@ -1,8 +1,11 @@
-@use '../variables/globals' as *;
+@use '../variables/color-functions' as *;
+@use '../variables/colors' as *;
+@use '../variables/effects' as *;
 @use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
 @use 'sass:map';
 
-// Form component styles
 // Usage (preferred): <input class="form-input" data-state="error" data-size="lg" />
 // Usage (alternative): <input class="form-input error lg" />
 

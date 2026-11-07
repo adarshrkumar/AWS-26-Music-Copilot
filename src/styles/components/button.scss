@@ -1,8 +1,9 @@
-@use '../variables/globals' as *;
+@use '../variables/colors' as *;
 @use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
 @use 'sass:color';
 
-// Button component styles
 // Usage (preferred): <button class="btn" data-variant="primary" data-size="lg">Click me</button>
 // Usage (alternative): <button class="btn primary lg">Class chaining</button>
 
