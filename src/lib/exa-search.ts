@@ -90,17 +90,7 @@ export async function searchWeb(
             summary: options.contents?.summary || undefined,
         });
 
-        return response.results.map((result: ExaResult) => ({
-            url: result.url,
-            title: result.title,
-            publishedDate: result.publishedDate,
-            author: result.author,
-            score: result.score,
-            id: result.id,
-            text: result.text,
-            highlights: result.highlights,
-            summary: result.summary,
-        }));
+        return response.results.map((result: ExaResult) => ({ ...result }));
     } catch (error) {
         console.error('Exa search error:', error);
         throw new Error('Failed to perform search', { cause: error });
