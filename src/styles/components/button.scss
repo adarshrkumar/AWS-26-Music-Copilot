@@ -10,15 +10,15 @@
     @include button-base;
 
     // Variant modifiers using data attributes (preferred for state/variants)
-    &[data-variant='primary'] {
+    &[data-variant="primary"] {
         @include button-primary;
     }
 
-    &[data-variant='secondary'] {
+    &[data-variant="secondary"] {
         @include button-secondary;
     }
 
-    &[data-variant='danger'] {
+    &[data-variant="danger"] {
         background-color: $error-color;
         color: $text-inverse;
 
@@ -27,7 +27,7 @@
         }
     }
 
-    &[data-variant='success'] {
+    &[data-variant="success"] {
         background-color: $success-color;
         color: $text-inverse;
 
@@ -37,18 +37,18 @@
     }
 
     // Size modifiers using data attributes
-    &[data-size='small'] {
+    &[data-size="small"] {
         padding: $spacing-extra-small $spacing-small;
         font-size: $font-size-small;
     }
 
-    &[data-size='large'] {
+    &[data-size="large"] {
         padding: $spacing-medium $spacing-extra-large;
         font-size: $font-size-large;
     }
 
     // State modifiers using data attributes
-    &[data-state='loading'] {
+    &[data-state="loading"] {
         position: relative;
         color: transparent;
         pointer-events: none;
@@ -69,16 +69,16 @@
         }
     }
 
-    &[data-state='active'] {
+    &[data-state="active"] {
         box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     // Layout modifiers using data attributes
-    &[data-width='full'] {
+    &[data-width="full"] {
         width: 100%;
     }
 
-    &[data-has-icon='true'] {
+    &[data-has-icon="true"] {
         display: inline-flex;
         align-items: center;
         gap: $spacing-small;

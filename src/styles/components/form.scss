@@ -21,7 +21,7 @@
         color: $text-primary;
 
         // Use data attributes for required state
-        &[data-required='true']::after {
+        &[data-required="true"]::after {
             content: ' *';
             color: $error-color;
         }
@@ -39,7 +39,7 @@
         @include input-base;
 
         // State modifiers using data attributes (preferred)
-        &[data-state='error'] {
+        &[data-state="error"] {
             border-color: $error-color;
 
             &:focus {
@@ -47,7 +47,7 @@
             }
         }
 
-        &[data-state='success'] {
+        &[data-state="success"] {
             border-color: $success-color;
 
             &:focus {
@@ -55,7 +55,7 @@
             }
         }
 
-        &[data-state='warning'] {
+        &[data-state="warning"] {
             border-color: $warning-color;
 
             &:focus {
@@ -64,12 +64,12 @@
         }
 
         // Size modifiers using data attributes
-        &[data-size='small'] {
+        &[data-size="small"] {
             padding: $spacing-extra-small $spacing-small;
             font-size: $font-size-small;
         }
 
-        &[data-size='large'] {
+        &[data-size="large"] {
             padding: $spacing-medium $spacing-large;
             font-size: $font-size-large;
         }
@@ -115,11 +115,11 @@
         min-height: 120px;
         resize: vertical;
 
-        &[data-resize='none'] {
+        &[data-resize="none"] {
             resize: none;
         }
 
-        &[data-resize='horizontal'] {
+        &[data-resize="horizontal"] {
             resize: horizontal;
         }
 
@@ -143,15 +143,15 @@
         font-size: $font-size-small;
         color: $text-secondary;
 
-        &[data-state='error'] {
+        &[data-state="error"] {
             color: $error-color;
         }
 
-        &[data-state='success'] {
+        &[data-state="success"] {
             color: $success-color;
         }
 
-        &[data-state='warning'] {
+        &[data-state="warning"] {
             color: $warning-color;
         }
     }
@@ -182,7 +182,7 @@
             color: $text-primary;
         }
 
-        &[data-state='disabled'] {
+        &[data-state="disabled"] {
             opacity: 0.5;
             cursor: not-allowed;
 
@@ -209,7 +209,7 @@
         margin-top: $spacing-extra-large;
         gap: $spacing-medium;
 
-        &[data-layout='stack'] {
+        &[data-layout="stack"] {
             flex-direction: column;
 
             button {
@@ -217,15 +217,15 @@
             }
         }
 
-        &[data-align='center'] {
+        &[data-align="center"] {
             justify-content: center;
         }
 
-        &[data-align='start'] {
+        &[data-align="start"] {
             justify-content: flex-start;
         }
 
-        &[data-align='end'] {
+        &[data-align="end"] {
             justify-content: flex-end;
         }
 
