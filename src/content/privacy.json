@@ -1,0 +1,18 @@
+[
+    {
+        "title": "On your device",
+        "body": "Songs stay on your device by default and sync only when you choose an account."
+    },
+    {
+        "title": "Not training data",
+        "body": "Your melodies and progressions are not used to train models without a separate opt-in."
+    },
+    {
+        "title": "Yours to share",
+        "body": "Nothing is shared with other users unless you export it. Teachers see counts, not melodies."
+    },
+    {
+        "title": "Yours to delete",
+        "body": "Songs are kept until you delete them. Deleting an account removes synced copies within thirty days."
+    }
+]

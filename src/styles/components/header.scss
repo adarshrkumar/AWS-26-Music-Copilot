@@ -1,0 +1,98 @@
+@use '../variables/colors' as *;
+@use '../variables/effects' as *;
+@use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
+@use 'sass:map';
+
+.skip-link {
+    position: absolute;
+    top: space(2);
+    left: space(2);
+    padding: padding(control);
+    color: $text-inverse;
+    background: $primary-color;
+    border-radius: radius(pill);
+    font-weight: font-weight(bold);
+    z-index: map.get($z-index, banner);
+    transform: translateY(-200%);
+
+    &:focus-visible {
+        color: $text-inverse;
+        outline: $focus-ring-width solid $secondary-color;
+        outline-offset: $focus-ring-offset;
+        transform: none;
+    }
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    background: $bg-primary;
+    border-bottom: 2px $border-style $text-primary;
+    z-index: map.get($z-index, sticky);
+
+    &__inner {
+        padding-block: space(3);
+        flex-wrap: wrap;
+        gap: space(3) space(6);
+
+        @include flex-between;
+    }
+
+    &__brand {
+        color: $text-primary;
+        align-items: center;
+        gap: space(3);
+        text-decoration: none;
+        display: inline-flex;
+
+        &:hover {
+            color: $text-primary;
+        }
+    }
+
+    &__badge {
+        width: $control-height;
+        height: $control-height;
+        color: $text-inverse;
+        background: $primary-color;
+        border-radius: radius(pill);
+        font-size: font-size(lg);
+        line-height: 1;
+
+        @include flex-center;
+    }
+
+    &__name {
+        font-family: $font-display;
+        font-size: font-size(lg);
+        font-weight: font-weight(bold);
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        flex-wrap: wrap;
+        gap: space(1) space(2);
+        display: flex;
+    }
+
+    &__link {
+        padding: padding(chip);
+        min-height: $control-height;
+        color: $text-primary;
+        border-radius: radius(pill);
+        align-items: center;
+        font-family: $font-body;
+        font-weight: font-weight(semi);
+        text-decoration: none;
+        display: inline-flex;
+
+        &:hover {
+            color: $primary-color;
+            background: $bg-secondary;
+        }
+    }
+}
