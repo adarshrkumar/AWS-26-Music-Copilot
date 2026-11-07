@@ -2,7 +2,7 @@
 // Provides AI-powered search capabilities using Exa
 // Documentation: https://docs.exa.ai
 
-import Exa from 'exa-js';
+import Exa, { type RegularSearchOptions } from 'exa-js';
 
 // Initialize Exa client
 // Requires EXA_API_KEY environment variable
@@ -26,7 +26,7 @@ export interface ExaSearchOptions {
     useAutoprompt?: boolean;
 
     // Category of content to search
-    category?: 'company' | 'research paper' | 'news' | 'github' | 'tweet' | 'movie' | 'song' | 'personal site' | 'pdf' | 'linkedin profile' | 'financial report';
+    category?: RegularSearchOptions['category'];
 
     // Start crawl date (YYYY-MM-DD)
     startCrawlDate?: string;
@@ -48,9 +48,9 @@ export interface ExaSearchOptions {
 
     // Whether to include page content
     contents?: {
-        text?: boolean | { maxCharacters?: number };
-        highlights?: boolean | { numSentences?: number; highlightsPerUrl?: number };
-        summary?: boolean | { query?: string };
+        text?: true | { maxCharacters?: number };
+        highlights?: true | { numSentences?: number; highlightsPerUrl?: number };
+        summary?: true | { query?: string };
     };
 }
 
@@ -82,15 +82,10 @@ export async function searchWeb(
 
         const response = await exa.searchAndContents(query, {
             ...options,
-            numResults: options.numResults || 10,
-            type: options.type || 'auto',
-            useAutoprompt: options.useAutoprompt || false,
-            text: options.contents?.text || undefined,
-            highlights: options.contents?.highlights || undefined,
-            summary: options.contents?.summary || undefined,
+            ...options.contents,
         });
 
-        return response.results.map((result: ExaResult) => ({ ...result }));
+        return response.results;
     } catch (error) {
         console.error('Exa search error:', error);
         throw new Error('Failed to perform search', { cause: error });
@@ -111,30 +106,11 @@ export async function findSimilar(
         const exa = getExaClient();
 
         const response = await exa.findSimilarAndContents(url, {
-            numResults: options.numResults || 10,
-            category: options.category,
-            startCrawlDate: options.startCrawlDate,
-            endCrawlDate: options.endCrawlDate,
-            startPublishedDate: options.startPublishedDate,
-            endPublishedDate: options.endPublishedDate,
-            includeDomains: options.includeDomains,
-            excludeDomains: options.excludeDomains,
-            text: options.contents?.text || undefined,
-            highlights: options.contents?.highlights || undefined,
-            summary: options.contents?.summary || undefined,
+            ...options,
+            ...options.contents,
         });
 
-        return response.results.map((result: ExaResult) => ({
-            url: result.url,
-            title: result.title,
-            publishedDate: result.publishedDate,
-            author: result.author,
-            score: result.score,
-            id: result.id,
-            text: result.text,
-            highlights: result.highlights,
-            summary: result.summary,
-        }));
+        return response.results;
     } catch (error) {
         console.error('Exa find similar error:', error);
         throw new Error('Failed to find similar content', { cause: error });
@@ -154,22 +130,9 @@ export async function getContents(
     try {
         const exa = getExaClient();
 
-        const response = await exa.getContents(urls, {
-            text: options.text || undefined,
-            highlights: options.highlights || undefined,
-            summary: options.summary || undefined,
-        });
+        const response = await exa.getContents(urls, options);
 
-        return response.results.map((result: ExaResult) => ({
-            url: result.url,
-            title: result.title,
-            publishedDate: result.publishedDate,
-            author: result.author,
-            id: result.id,
-            text: result.text,
-            highlights: result.highlights,
-            summary: result.summary,
-        }));
+        return response.results;
     } catch (error) {
         console.error('Exa get contents error:', error);
         throw new Error('Failed to get contents', { cause: error });
