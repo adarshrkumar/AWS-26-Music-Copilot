@@ -246,15 +246,26 @@ body {
         min-height: $row-min-height;
         background: $bg-secondary;
         border: $border-width $border-style $border-color;
-        border-left: $border-width-accent $border-style $primary-color;
         border-radius: radius(md);
         grid-template-columns: 1fr;
         align-items: center;
         gap: space(2) space(6);
         display: grid;
+        position: relative;
+        overflow: clip;
 
         @include tablet {
             grid-template-columns: 120px 1fr;
+        }
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: $border-width-accent;
+            height: 100%;
+            background-color: $primary-color;
         }
     }
 
