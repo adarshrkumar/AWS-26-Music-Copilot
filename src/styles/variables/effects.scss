@@ -19,9 +19,9 @@ $shadow-rest: 0 1px 3px rgba($black, .35);
 
 $focus-ring-width: 3px;
 $focus-ring-offset: 2px;
-$focus-ring: 0 0 0 $focus-ring-width rgba($primary, .45);
+$focus-ring: 0 0 0 $focus-ring-width rgba($primary-color, .45);
 
-@mixin focus-ring($color: $primary) {
+@mixin focus-ring($color: $primary-color) {
     &:focus-visible {
         outline: $focus-ring-width solid $color;
         outline-offset: $focus-ring-offset;
@@ -29,7 +29,7 @@ $focus-ring: 0 0 0 $focus-ring-width rgba($primary, .45);
 }
 
 // Reads --mx and --my, set from JavaScript.
-$bg-glow: radial-gradient(420px circle at var(--mx) var(--my), rgba($primary, .08), transparent 60%);
+$bg-glow: radial-gradient(420px circle at var(--mx) var(--my), rgba($primary-color, .08), transparent 60%);
 
-$grad-progress: linear-gradient(90deg, $primary, $accent);
-$grad-escalate: linear-gradient(90deg, rgba($accent, .25), rgba($block, .18));
+$grad-progress: linear-gradient(90deg, $primary-color, $secondary-color);
+$grad-escalate: linear-gradient(90deg, rgba($secondary-color, .25), rgba($error-color, .18));
