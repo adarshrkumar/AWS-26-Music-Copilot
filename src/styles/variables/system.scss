@@ -1,0 +1,208 @@
+@use "sass:map";
+@use "colors" as *;
+@use "color-functions" as *;
+@use "tokens" as *;
+@use "effects" as *;
+
+$font-display: "Rubik", system-ui, sans-serif;
+$font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+$font-mono: "Source Sans 3", system-ui, sans-serif;
+
+$font-size: (
+    xs: 12px,
+    sm: 14px,
+    base: 16px,
+    md: 18px,
+    lg: 22px,
+    xl: 30px,
+    2xl: 40px
+);
+
+$font-weight: (
+    regular: 400,
+    semi: 600,
+    bold: 700
+);
+
+$leading: (
+    tight: 1.1,
+    snug: 1.25,
+    body: 1.6
+);
+
+@function font-size($key) {
+    @return map.get($font-size, $key);
+}
+
+@function font-weight($key) {
+    @return map.get($font-weight, $key);
+}
+
+@mixin display-heading($size: 2xl) {
+    font-family: $font-display;
+    font-weight: font-weight(bold);
+    font-size: font-size($size);
+    line-height: map.get($leading, tight);
+    text-wrap: balance;
+}
+
+// Max-width queries.
+$breakpoints: (
+    sm: 400px,
+    md: 640px,
+    lg: 760px,
+    xl: 900px
+);
+
+@mixin below($key) {
+    @media (max-width: map.get($breakpoints, $key)) {
+        @content;
+    }
+}
+
+$z: (
+    base: 1,
+    sticky: 50,
+    banner: 60,
+    progress: 70
+);
+
+$duration: (
+    fast: 0.15s,
+    base: 0.2s,
+    slow: 0.3s
+);
+
+$ease: (
+    out: cubic-bezier(0.2, 0.9, 0.3, 1),
+    smooth: cubic-bezier(0.2, 0.8, 0.2, 1)
+);
+
+@mixin reduced-motion {
+    @media (prefers-reduced-motion: reduce) {
+        @content;
+    }
+}
+
+.bar {
+    background: $card;
+    border: $border-width-accent $border-style $ink;
+    border-radius: radius(lg);
+    padding: padding(row);
+    display: grid;
+    gap: 10px;
+}
+
+.sign {
+    display: inline-block;
+    background: $ink;
+    color: $paper;
+    font: font-weight(bold) #{font-size(xs)} / 1 $font-display;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-radius: radius(pill);
+    padding: 7px 12px;
+}
+
+.chord {
+    font: font-weight(bold) #{font-size(md)} / 1 $font-display;
+    background: $card;
+    color: $ink;
+    border: $border-width-accent $border-style $ink;
+    border-radius: radius(pill);
+    padding: padding(control);
+    min-height: sizing(control-height);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+        outline: 3px solid $primary;
+        outline-offset: 2px;
+    }
+
+    &[aria-pressed="true"] {
+        background: $primary;
+        color: $white;
+    }
+}
+
+.note-in {
+    color: $accent;
+    font-weight: font-weight(bold);
+
+    &::before {
+        content: "✓ ";
+    }
+}
+
+.note-out {
+    color: $warn;
+    font-weight: font-weight(bold);
+
+    &::before {
+        content: "! ";
+    }
+}
+
+.suggestion {
+    background: $paper;
+    border: $border-width $border-style $line;
+    border-left: $border-width-accent $border-style $primary;
+    border-radius: radius(md);
+    padding: padding(callout);
+    font: font-weight(regular) #{font-size(base)} / 1.5 $font-body;
+    color: $ink;
+}
+
+.staff-block {
+    background: $paper;
+    border: $border-width-accent $border-style $ink;
+    border-radius: radius(lg);
+    padding: padding(callout);
+    font: font-weight(semi) #{font-size(base)} / 1.5 $font-body;
+}
+
+.btn {
+    font: font-weight(bold) #{font-size(base)} / 1 $font-body;
+    background: $primary;
+    color: $white;
+    border: 0;
+    border-radius: radius(pill);
+    padding: padding(control);
+    min-height: sizing(control-height);
+    cursor: pointer;
+    transition: background .15s ease, transform .15s ease;
+
+    &:hover {
+        background: state-hover($primary);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        background: state-active($primary);
+    }
+
+    &:disabled {
+        background: state-disabled($primary);
+        cursor: not-allowed;
+    }
+
+    &:focus-visible {
+        outline: 3px solid $accent;
+        outline-offset: 2px;
+    }
+}
+
+.indicative-note {
+    font: font-weight(regular) #{font-size(sm)} / 1.5 $font-body;
+    color: $mute;
+}
+
+.note-blocked {
+    background: $paper;
+    color: $block;
+    border: $border-width $border-style $block;
+    border-radius: radius(lg);
+    padding: padding(callout);
+    font-weight: font-weight(semi);
+}
