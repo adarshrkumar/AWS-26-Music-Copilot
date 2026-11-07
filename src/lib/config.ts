@@ -21,4 +21,4 @@ export const siteConfig = {
     docsUrl: 'https://github.com/adarshrkumar/The-ATSDC-Stack',
     // GitHub repository URL
     githubUrl: 'https://github.com/adarshrkumar/The-ATSDC-Stack',
-} as const;
+};
