@@ -19,19 +19,18 @@
         "isolatedModules": true,
         "allowJs": true,
         "types": ["astro/client", "node"],
-        "baseUrl": ".",
         "paths": {
             "@/*": [
-                "src/*"
+                "./src/*"
             ],
             "@db/*": [
-                "src/db/*"
+                "./src/db/*"
             ],
             "@styles/*": [
-                "src/styles/*"
+                "./src/styles/*"
             ],
             "@components/*": [
-                "src/components/*"
+                "./src/components/*"
             ]
         }
     },
