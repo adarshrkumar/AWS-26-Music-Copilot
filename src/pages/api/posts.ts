@@ -1,5 +1,4 @@
 import { z } from 'zod';
-
 import { db } from '@/db/initialize';
 import { posts } from '@/db/schema';
 import {
