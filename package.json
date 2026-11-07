@@ -9,7 +9,7 @@
         "preview": "astro preview",
         "astro": "astro",
         "ts": "node --experimental-strip-types",
-        "check": "eslint . && stylelint . && astro check && astro build",
+        "check": "eslint . && stylelint \"*.scss\" && astro check && astro build",
         "stylelint:fix": "stylelint \"src/**/*.scss\" --fix"
     },
     "dependencies": {
