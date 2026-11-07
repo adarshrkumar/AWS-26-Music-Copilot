@@ -20,10 +20,8 @@ const {
 
 const pageArray = Array.isArray(pageTitle) ? pageTitle : [pageTitle];
 
-const firstElement = pageArray?.[0];
-
-const newPageTitle = firstElement
-    ? [siteConfig.appName.toLowerCase(), 'index', 'home'].includes(firstElement.toLowerCase())
+const newPageTitle = pageArray[0]
+    ? [siteConfig.appName.toLowerCase(), 'index', 'home'].includes(pageArray[0].toLowerCase())
         ? pageArray.slice(1)
         : pageArray
     : null;
