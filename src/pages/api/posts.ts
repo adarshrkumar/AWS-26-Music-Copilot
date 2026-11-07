@@ -20,7 +20,7 @@ import type { APIRoute } from 'astro';
  */
 
 // GET /api/posts - List posts with pagination and filtering
-export const GET: APIRoute = async ({ request, url }) => {
+export const GET: APIRoute = async ({ url }) => {
     try {
         // Parse and validate query parameters
         const queryParams = {
@@ -266,7 +266,7 @@ export const PUT: APIRoute = async ({ request }) => {
 };
 
 // DELETE /api/posts - Delete a post
-export const DELETE: APIRoute = async ({ request, url }) => {
+export const DELETE: APIRoute = async ({ url }) => {
     try {
         const id = url.searchParams.get('id');
 
