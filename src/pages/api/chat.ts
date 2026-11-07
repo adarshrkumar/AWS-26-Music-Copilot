@@ -40,19 +40,15 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         // Parse and validate request body
-        const body = await request.json();
-        const validatedData = requestSchema.parse(body);
+        const validatedData = requestSchema.parse(await request.json());
 
         // Stream the response using Vercel AI SDK with AI Gateway
-        const result = streamText({
+        return streamText({
             model: createGateway({ apiKey: import.meta.env.AI_GATEWAY_API_KEY || process.env.AI_GATEWAY_API_KEY })(validatedData.model), // Model string routed through the gateway (e.g., 'openai/gpt-4o')
             messages: validatedData.messages,
             temperature: validatedData.temperature,
             maxOutputTokens: validatedData.maxTokens,
-        });
-
-        // Return the stream response
-        return result.toUIMessageStreamResponse();
+        }).toUIMessageStreamResponse();
     } catch (error) {
         // Handle Zod validation errors
         if (error instanceof z.ZodError) {

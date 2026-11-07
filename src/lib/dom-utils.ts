@@ -81,11 +81,9 @@ export function extractHeadings(html: string) {
 
     $('h1, h2, h3, h4, h5, h6').each((_, element) => {
         const $el = $(element);
-        const tagName = $el.prop('tagName')?.toLowerCase();
-        const level = parseInt(tagName?.replace('h', '') || '1');
 
         headings.push({
-            level,
+            level: parseInt($el.prop('tagName')?.toLowerCase().replace('h', '') || '1'),
             text: $el.text().trim(),
             id: $el.attr('id'),
         });
@@ -101,8 +99,7 @@ export function extractHeadings(html: string) {
  * @returns Array of TOC items
  */
 export function generateTableOfContents(html: string, maxLevel: number = 3) {
-    const headings = extractHeadings(html);
-    return headings
+    return extractHeadings(html)
         .filter(h => h.level <= maxLevel)
         .map(h => ({
             ...h,
@@ -162,11 +159,7 @@ export function addHeadingIds(html: string): string {
     $('h1, h2, h3, h4, h5, h6').each((_, element) => {
         const $el = $(element);
 
-        if (!$el.attr('id')) {
-            const text = $el.text().trim();
-            const id = text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-            $el.attr('id', id);
-        }
+        if (!$el.attr('id')) $el.attr('id', $el.text().trim().toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''));
     });
 
     return $.html();
@@ -203,9 +196,7 @@ export function addExternalLinkTargets(html: string, domain?: string): string {
  * @returns Reading time in minutes
  */
 export function calculateReadingTime(html: string, wordsPerMinute: number = 200): number {
-    const text = extractTextContent(html);
-    const wordCount = text.split(/\s+/).length;
-    return Math.ceil(wordCount / wordsPerMinute);
+    return Math.ceil(extractTextContent(html).split(/\s+/).length / wordsPerMinute);
 }
 
 /**
@@ -217,8 +208,7 @@ export function wrapTables(html: string): string {
     const $ = cheerio.load(html);
 
     $('table').each((_, element) => {
-        const $el = $(element);
-        $el.wrap('<div class="table-wrapper" style="overflow-x: auto;"></div>');
+        $(element).wrap('<div class="table-wrapper" style="overflow-x: auto;"></div>');
     });
 
     return $.html();

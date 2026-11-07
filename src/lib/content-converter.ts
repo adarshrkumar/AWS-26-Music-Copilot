@@ -32,8 +32,7 @@ const turndownService = new TurndownService({
  */
 export async function markdownToHtml(markdown: string): Promise<string> {
     try {
-        const html = await marked.parse(markdown);
-        return html;
+        return await marked.parse(markdown);
     } catch (error) {
         console.error('Error converting markdown to HTML:', error);
         throw new Error('Failed to convert markdown to HTML', { cause: error });
@@ -47,8 +46,7 @@ export async function markdownToHtml(markdown: string): Promise<string> {
  */
 export function markdownToHtmlSync(markdown: string): string {
     try {
-        const html = marked.parse(markdown, { async: false });
-        return html;
+        return marked.parse(markdown, { async: false });
     } catch (error) {
         console.error('Error converting markdown to HTML:', error);
         throw new Error('Failed to convert markdown to HTML', { cause: error });
@@ -62,8 +60,7 @@ export function markdownToHtmlSync(markdown: string): string {
  */
 export function htmlToMarkdown(html: string): string {
     try {
-        const markdown = turndownService.turndown(html);
-        return markdown;
+        return turndownService.turndown(html);
     } catch (error) {
         console.error('Error converting HTML to markdown:', error);
         throw new Error('Failed to convert HTML to markdown', { cause: error });
@@ -79,13 +76,12 @@ export function htmlToMarkdown(html: string): string {
 export async function sanitizeMarkdown(markdown: string): Promise<string> {
     try {
         // Basic sanitization - remove script tags and dangerous attributes
-        const sanitized = markdown
-            .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-            .replace(/on\w+="[^"]*"/g, '')
-            .replace(/on\w+='[^']*'/g, '');
-
-        const html = await marked.parse(sanitized);
-        return html;
+        return await marked.parse(
+            markdown
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/on\w+="[^"]*"/g, '')
+                .replace(/on\w+='[^']*'/g, '')
+        );
     } catch (error) {
         console.error('Error sanitizing markdown:', error);
         throw new Error('Failed to sanitize markdown', { cause: error });
@@ -99,8 +95,7 @@ export async function sanitizeMarkdown(markdown: string): Promise<string> {
  */
 export function markdownToPlainText(markdown: string): string {
     try {
-        const html = marked.parse(markdown, { async: false });
-        const text = html
+        return marked.parse(markdown, { async: false })
             .replace(/<[^>]*>/g, '') // Remove HTML tags
             .replace(/&nbsp;/g, ' ') // Replace &nbsp;
             .replace(/&amp;/g, '&') // Replace &amp;
@@ -108,7 +103,6 @@ export function markdownToPlainText(markdown: string): string {
             .replace(/&gt;/g, '>') // Replace &gt;
             .replace(/&quot;/g, '"') // Replace &quot;
             .trim();
-        return text;
     } catch (error) {
         console.error('Error extracting plain text:', error);
         throw new Error('Failed to extract plain text', { cause: error });

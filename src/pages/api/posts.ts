@@ -1,6 +1,7 @@
+import { nanoid } from 'nanoid';
 import { z } from 'zod';
-import { db } from '@/db/initialize';
-import { posts } from '@/db/schema';
+import { deleteItem, getItem, putItem, queryItems } from '@/db';
+import type { Post } from '@/db/schema';
 import {
     createPostSchema,
     updatePostSchema,
@@ -9,54 +10,41 @@ import {
     type UpdatePostInput,
 } from '@/db/validations';
 
-import { eq, desc, and, ilike, or } from 'drizzle-orm';
-
 import type { APIRoute } from 'astro';
 
-// Demonstrates CRUD operations with Drizzle ORM, Zod validation, and NanoID
+// Demonstrates CRUD operations with DynamoDB, Zod validation, and NanoID
+
+async function getPost(id: string): Promise<Post | null> {
+    return (await getItem({ pk: 'POST', sk: id })) as Post | null;
+}
 
 // GET /api/posts - List posts with pagination and filtering
 export const GET: APIRoute = async ({ url }) => {
     try {
-        // Parse and validate query parameters
-        const queryParams = {
+        const validated = postQuerySchema.parse({
             page: url.searchParams.get('page'),
             limit: url.searchParams.get('limit'),
             published: url.searchParams.get('published'),
             featured: url.searchParams.get('featured'),
             authorId: url.searchParams.get('authorId'),
             search: url.searchParams.get('search'),
-        };
-
-        const validated = postQuerySchema.parse(queryParams);
+        });
         const offset = (validated.page - 1) * validated.limit;
+        const search = validated.search?.toLowerCase();
 
-        // Build query conditions
-        const conditions = [];
-
-        if (validated.published !== undefined) conditions.push(eq(posts.published, validated.published));
-
-        if (validated.featured !== undefined) conditions.push(eq(posts.featured, validated.featured));
-
-        if (validated.authorId) conditions.push(eq(posts.authorId, validated.authorId));
-
-        if (validated.search) {
-            conditions.push(
-                or(
-                    ilike(posts.title, `%${validated.search}%`),
-                    ilike(posts.content, `%${validated.search}%`)
-                )!
-            );
-        }
-
-        // Fetch posts with filtering and pagination
-        const results = await db
-            .select()
-            .from(posts)
-            .where(conditions.length > 0 ? and(...conditions) : undefined)
-            .orderBy(desc(posts.createdAt))
-            .limit(validated.limit)
-            .offset(offset);
+        // DynamoDB has no ILIKE or ORDER BY on non-key attributes, so filtering, search and sorting happen here
+        const results = ((await queryItems({
+            KeyConditionExpression: 'pk = :pk',
+            ExpressionAttributeValues: { ':pk': 'POST' },
+        })) as Post[])
+            .filter(post =>
+                (validated.published === undefined || post.published === validated.published)
+                && (validated.featured === undefined || post.featured === validated.featured)
+                && (!validated.authorId || post.authorId === validated.authorId)
+                && (!search || post.title.toLowerCase().includes(search) || post.content.toLowerCase().includes(search))
+            )
+            .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+            .slice(offset, offset + validated.limit);
 
         return new Response(
             JSON.stringify({
@@ -108,19 +96,21 @@ export const GET: APIRoute = async ({ url }) => {
 // POST /api/posts - Create a new post
 export const POST: APIRoute = async ({ request }) => {
     try {
-        const body = await request.json();
+        const validated: CreatePostInput = createPostSchema.parse(await request.json());
 
-        // Validate request body with Zod
-        const validated: CreatePostInput = createPostSchema.parse(body);
+        const id = nanoid();
+        const now = new Date().toISOString();
+        const newPost: Post = {
+            ...validated,
+            pk: 'POST',
+            sk: id,
+            id,
+            createdAt: now,
+            updatedAt: now,
+            publishedAt: validated.published ? now : null,
+        };
 
-        // Insert post into database (NanoID is auto-generated)
-        const [newPost] = await db
-            .insert(posts)
-            .values({
-                ...validated,
-                publishedAt: validated.published ? new Date() : null,
-            })
-            .returning();
+        await putItem(newPost);
 
         return new Response(
             JSON.stringify({
@@ -168,11 +158,7 @@ export const POST: APIRoute = async ({ request }) => {
 // PUT /api/posts - Update an existing post
 export const PUT: APIRoute = async ({ request }) => {
     try {
-        const body = await request.json();
-
-        // Validate request body with Zod
-        const validated: UpdatePostInput = updatePostSchema.parse(body);
-        const { id, ...updateData } = validated;
+        const { id, ...updateData }: UpdatePostInput = updatePostSchema.parse(await request.json());
 
         if (!id) {
             return new Response(
@@ -188,23 +174,9 @@ export const PUT: APIRoute = async ({ request }) => {
             );
         }
 
-        // Update post in database
-        const [updatedPost] = await db
-            .update(posts)
-            .set({
-                ...updateData,
-                updatedAt: new Date(),
-                publishedAt:
-                    updateData.published !== undefined
-                        ? updateData.published
-                            ? new Date()
-                            : null
-                        : undefined,
-            })
-            .where(eq(posts.id, id))
-            .returning();
+        const existingPost = await getPost(id);
 
-        if (!updatedPost) {
+        if (!existingPost) {
             return new Response(
                 JSON.stringify({
                     error: 'Post not found',
@@ -217,6 +189,21 @@ export const PUT: APIRoute = async ({ request }) => {
                 }
             );
         }
+
+        const now = new Date().toISOString();
+        const updatedPost: Post = {
+            ...existingPost,
+            ...updateData,
+            updatedAt: now,
+            publishedAt:
+                updateData.published !== undefined
+                    ? updateData.published
+                        ? now
+                        : null
+                    : existingPost.publishedAt,
+        };
+
+        await putItem(updatedPost);
 
         return new Response(
             JSON.stringify({
@@ -295,13 +282,7 @@ export const DELETE: APIRoute = async ({ url }) => {
             );
         }
 
-        // Delete post from database
-        const [deletedPost] = await db
-            .delete(posts)
-            .where(eq(posts.id, id))
-            .returning();
-
-        if (!deletedPost) {
+        if (!(await getPost(id))) {
             return new Response(
                 JSON.stringify({
                     error: 'Post not found',
@@ -314,6 +295,8 @@ export const DELETE: APIRoute = async ({ url }) => {
                 }
             );
         }
+
+        await deleteItem({ pk: 'POST', sk: id });
 
         return new Response(
             JSON.stringify({

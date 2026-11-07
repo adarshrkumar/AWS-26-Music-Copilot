@@ -77,14 +77,10 @@ export async function searchWeb(
     options: ExaSearchOptions = {}
 ): Promise<ExaResult[]> {
     try {
-        const exa = getExaClient();
-
-        const response = await exa.searchAndContents(query, {
+        return (await getExaClient().searchAndContents(query, {
             ...options,
             ...options.contents,
-        });
-
-        return response.results;
+        })).results;
     } catch (error) {
         console.error('Exa search error:', error);
         throw new Error('Failed to perform search', { cause: error });
@@ -102,14 +98,10 @@ export async function findSimilar(
     options: Omit<ExaSearchOptions, 'type' | 'useAutoprompt'> = {}
 ): Promise<ExaResult[]> {
     try {
-        const exa = getExaClient();
-
-        const response = await exa.findSimilarAndContents(url, {
+        return (await getExaClient().findSimilarAndContents(url, {
             ...options,
             ...options.contents,
-        });
-
-        return response.results;
+        })).results;
     } catch (error) {
         console.error('Exa find similar error:', error);
         throw new Error('Failed to find similar content', { cause: error });
@@ -127,11 +119,7 @@ export async function getContents(
     options: ExaSearchOptions['contents'] = {}
 ): Promise<ExaResult[]> {
     try {
-        const exa = getExaClient();
-
-        const response = await exa.getContents(urls, options);
-
-        return response.results;
+        return (await getExaClient().getContents(urls, options)).results;
     } catch (error) {
         console.error('Exa get contents error:', error);
         throw new Error('Failed to get contents', { cause: error });
@@ -145,14 +133,13 @@ export async function getContents(
  * @returns Array of news results
  */
 export async function searchNews(query: string, daysBack: number = 7): Promise<ExaResult[]> {
-    const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysBack);
 
     return searchWeb(query, {
         category: 'news',
         startPublishedDate: startDate.toISOString().split('T')[0],
-        endPublishedDate: endDate.toISOString().split('T')[0],
+        endPublishedDate: new Date().toISOString().split('T')[0],
         numResults: 10,
         contents: {
             text: { maxCharacters: 1000 },

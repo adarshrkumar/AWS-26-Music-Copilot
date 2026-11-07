@@ -21,15 +21,10 @@ const {
 const pageArray = Array.isArray(pageTitle) ? pageTitle : [pageTitle];
 
 const firstElement = pageArray?.[0];
-const shouldSkipFirst =
-    firstElement === '' ||
-    firstElement === siteConfig.appName ||
-    firstElement?.toLowerCase() === 'index' ||
-    firstElement?.toLowerCase() === 'home';
 
-const newPageTitle = (pageArray && pageArray.length > 0 && firstElement)
-    ? shouldSkipFirst
-        ? pageArray.filter((_, i) => i !== 0)
+const newPageTitle = firstElement
+    ? [siteConfig.appName.toLowerCase(), 'index', 'home'].includes(firstElement.toLowerCase())
+        ? pageArray.slice(1)
         : pageArray
     : null;
 
