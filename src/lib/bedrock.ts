@@ -5,9 +5,7 @@ import {
 } from '@aws-sdk/client-bedrock-runtime';
 import type { Message } from '@aws-sdk/client-bedrock-runtime';
 
-// AWS Bedrock client
-// Credentials are resolved from env vars (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY)
-// or the default AWS provider chain. A Bedrock API key (AWS_BEARER_TOKEN_BEDROCK) also works.
+// Credentials are resolved from env vars (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY) or the default AWS provider chain. A Bedrock API key (AWS_BEARER_TOKEN_BEDROCK) also works.
 
 const region = process.env.AWS_REGION || import.meta.env.AWS_REGION || 'us-east-1';
 
@@ -23,8 +21,9 @@ export type ChatMessage = {
     content: string;
 };
 
-const toBedrockMessages = (messages: ChatMessage[]): Message[] =>
-    messages.map(m => ({ role: m.role, content: [{ text: m.content }] }));
+function toBedrockMessages(messages: ChatMessage[]): Message[] {
+    return messages.map(m => ({ role: m.role, content: [{ text: m.content }] }));
+}
 
 type InvokeOptions = {
     system?: string;
@@ -33,51 +32,47 @@ type InvokeOptions = {
     temperature?: number;
 };
 
-// Single request/response call
-export const invokeModel = async (
+export async function invokeModel(
     messages: ChatMessage[],
     options: InvokeOptions = {},
-): Promise<string> => {
-    const response = await bedrockClient.send(
-        new ConverseCommand({
-            modelId: options.modelId ?? DEFAULT_MODEL_ID,
-            messages: toBedrockMessages(messages),
-            system: options.system ? [{ text: options.system }] : undefined,
-            inferenceConfig: {
-                maxTokens: options.maxTokens ?? 1024,
-                temperature: options.temperature ?? 0.7,
-            },
-        }),
-    );
-
+): Promise<string> {
     return (
-        response.output?.message?.content
+        (
+            await bedrockClient.send(
+                new ConverseCommand({
+                    modelId: options.modelId ?? DEFAULT_MODEL_ID,
+                    messages: toBedrockMessages(messages),
+                    system: options.system ? [{ text: options.system }] : undefined,
+                    inferenceConfig: {
+                        maxTokens: options.maxTokens ?? 1024,
+                        temperature: options.temperature ?? 0.7,
+                    },
+                }),
+            )
+        ).output?.message?.content
             ?.map(block => block.text ?? '')
             .join('') ?? ''
     );
-};
+}
 
-// Streaming call: yields text chunks as they arrive
 export async function* streamModel(
     messages: ChatMessage[],
     options: InvokeOptions = {},
 ): AsyncGenerator<string> {
-    const response = await bedrockClient.send(
-        new ConverseStreamCommand({
-            modelId: options.modelId ?? DEFAULT_MODEL_ID,
-            messages: toBedrockMessages(messages),
-            system: options.system ? [{ text: options.system }] : undefined,
-            inferenceConfig: {
-                maxTokens: options.maxTokens ?? 1024,
-                temperature: options.temperature ?? 0.7,
-            },
-        }),
-    );
-
-    for await (const event of response.stream ?? []) {
+    for await (const event of (
+        await bedrockClient.send(
+            new ConverseStreamCommand({
+                modelId: options.modelId ?? DEFAULT_MODEL_ID,
+                messages: toBedrockMessages(messages),
+                system: options.system ? [{ text: options.system }] : undefined,
+                inferenceConfig: {
+                    maxTokens: options.maxTokens ?? 1024,
+                    temperature: options.temperature ?? 0.7,
+                },
+            }),
+        )
+    ).stream ?? []) {
         const text = event.contentBlockDelta?.delta?.text;
-        if (text) {
-            yield text;
-        }
+        if (text) yield text;
     }
 }
