@@ -3,14 +3,12 @@ import { z } from 'zod';
 
 import type { APIRoute } from 'astro';
 
-/**
- * Vercel AI SDK Chat API Route
- * Uses AI Gateway pattern - no provider-specific packages needed!
- * Just pass model strings like 'openai/gpt-4o' or 'anthropic/claude-3-5-sonnet-20241022'
- *
- * Environment variables required:
- * - OPENAI_API_KEY: Your OpenAI API key (or other provider keys)
- */
+// Vercel AI SDK Chat API Route
+// Uses AI Gateway pattern - no provider-specific packages needed!
+// Just pass model strings like 'openai/gpt-4o' or 'anthropic/claude-3-5-sonnet-20241022'
+//
+// Environment variables required:
+// - OPENAI_API_KEY: Your OpenAI API key (or other provider keys)
 
 // Validate request schema
 const requestSchema = z.object({

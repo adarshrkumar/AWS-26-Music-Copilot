@@ -1,7 +1,5 @@
-/**
- * DOM Manipulation Utilities
- * Provides functions for manipulating HTML content using Cheerio
- */
+// DOM Manipulation Utilities
+// Provides functions for manipulating HTML content using Cheerio
 
 import * as cheerio from 'cheerio';
 

@@ -1,15 +1,11 @@
-/**
- * Exa Search Integration
- * Provides AI-powered search capabilities using Exa
- * Documentation: https://docs.exa.ai
- */
+// Exa Search Integration
+// Provides AI-powered search capabilities using Exa
+// Documentation: https://docs.exa.ai
 
 import Exa from 'exa-js';
 
-/**
- * Initialize Exa client
- * Requires EXA_API_KEY environment variable
- */
+// Initialize Exa client
+// Requires EXA_API_KEY environment variable
 function getExaClient(): Exa {
     const apiKey = import.meta.env.EXA_API_KEY || process.env.EXA_API_KEY;
 

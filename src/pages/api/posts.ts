@@ -13,10 +13,8 @@ import { eq, desc, and, ilike, or } from 'drizzle-orm';
 
 import type { APIRoute } from 'astro';
 
-/**
- * Posts API Routes
- * Demonstrates CRUD operations with Drizzle ORM, Zod validation, and NanoID
- */
+// Posts API Routes
+// Demonstrates CRUD operations with Drizzle ORM, Zod validation, and NanoID
 
 // GET /api/posts - List posts with pagination and filtering
 export const GET: APIRoute = async ({ url }) => {

@@ -2,10 +2,8 @@ import { nanoid } from 'nanoid';
 
 import { pgTable, text, timestamp, boolean, varchar } from 'drizzle-orm/pg-core';
 
-/**
- * Posts table schema
- * Uses NanoID for primary keys for better URL-safe unique identifiers
- */
+// Posts table schema
+// Uses NanoID for primary keys for better URL-safe unique identifiers
 export const posts = pgTable('posts', {
     // Primary key using NanoID (21 characters, URL-safe)
     id: varchar('id', { length: 21 })
@@ -36,10 +34,8 @@ export const posts = pgTable('posts', {
     publishedAt: timestamp('published_at', { withTimezone: true }),
 });
 
-/**
- * Comments table schema
- * Demonstrates relationship with posts using NanoID
- */
+// Comments table schema
+// Demonstrates relationship with posts using NanoID
 export const comments = pgTable('comments', {
     id: varchar('id', { length: 21 })
         .primaryKey()

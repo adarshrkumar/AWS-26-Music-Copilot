@@ -1,9 +1,7 @@
 import { z } from 'zod';
 
-/**
- * Zod validation schemas for database models
- * Provides runtime type safety and validation for user inputs
- */
+// Zod validation schemas for database models
+// Provides runtime type safety and validation for user inputs
 
 // Slug validation helper
 const slugSchema = z

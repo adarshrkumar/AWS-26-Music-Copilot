@@ -1,7 +1,5 @@
-/**
- * Site Configuration
- * Central configuration for the application that will be rendered on screen
- */
+// Site Configuration
+// Central configuration for the application that will be rendered on screen
 
 // The core stack identifier - change this in ONE place to update everywhere
 const STACK_SHORT_NAME = 'ATSDC';

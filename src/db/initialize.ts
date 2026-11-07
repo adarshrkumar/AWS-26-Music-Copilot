@@ -5,10 +5,8 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 import { posts } from './schema';
 
-/**
- * Database client configuration
- * Uses Neon serverless for production-ready connection pooling
- */
+// Database client configuration
+// Uses Neon serverless for production-ready connection pooling
 
 // Create Drizzle instance with schema
 const sql = neon(process.env.DATABASE_URL!);
@@ -17,10 +15,8 @@ export const db = drizzle(sql, { schema });
 // Export schema for convenience
 export { schema };
 
-/**
- * Database initialization utilities
- * Handles table creation, migrations, and initial setup
- */
+// Database initialization utilities
+// Handles table creation, migrations, and initial setup
 
 // Check if the database tables exist by attempting a simple query
 export async function checkTablesExist(): Promise<boolean> {
@@ -33,10 +29,8 @@ export async function checkTablesExist(): Promise<boolean> {
     }
 }
 
-/**
- * Initialize the database by creating tables if they don't exist
- * Note: In production, use Drizzle migrations instead
- */
+// Initialize the database by creating tables if they don't exist
+// Note: In production, use Drizzle migrations instead
 export async function initializeDatabase(): Promise<void> {
     try {
         const tablesExist = await checkTablesExist();
