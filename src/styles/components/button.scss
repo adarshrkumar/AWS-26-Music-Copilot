@@ -1,6 +1,6 @@
-@use 'sass:color';
 @use '../variables/globals' as *;
 @use '../variables/mixins' as *;
+@use 'sass:color';
 
 // Button component styles
 // Usage (preferred): <button class="btn" data-variant="primary" data-size="lg">Click me</button>

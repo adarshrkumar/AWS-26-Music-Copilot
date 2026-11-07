@@ -1,7 +1,7 @@
+@use 'colors' as *;
 @use 'sass:color';
 @use 'sass:map';
 @use 'sass:math';
-@use 'colors' as *;
 
 // Percentage is the share of white (tint) or black (shade) in the result.
 $tint-steps: (

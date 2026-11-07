@@ -1,6 +1,6 @@
-@use 'sass:map';
 @use '../variables/globals' as *;
 @use '../variables/mixins' as *;
+@use 'sass:map';
 
 // Form component styles
 // Usage (preferred): <input class="form-input" data-state="error" data-size="lg" />

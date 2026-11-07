@@ -1,5 +1,5 @@
-@use 'sass:map';
 @use './globals' as *;
+@use 'sass:map';
 
 // NOTE: All mixins below use variables from globals.scss which are now powered by OpenProps design tokens
 // This provides consistent spacing, typography, shadows, and other design primitives throughout the app
