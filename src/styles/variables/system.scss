@@ -60,7 +60,7 @@ $breakpoints: (
     }
 }
 
-$z: (
+$z-index: (
     base: 1,
     sticky: 50,
     banner: 60,
@@ -85,8 +85,8 @@ $ease: (
 }
 
 .bar {
-    background: $card;
-    border: $border-width-accent $border-style $ink;
+    background: $bg-secondary;
+    border: $border-width-accent $border-style $text-primary;
     border-radius: radius(lg);
     padding: padding(row);
     display: grid;
@@ -95,8 +95,8 @@ $ease: (
 
 .sign {
     display: inline-block;
-    background: $ink;
-    color: $paper;
+    background: $text-primary;
+    color: $bg-primary;
     font: font-weight(bold) #{font-size(xs)} / 1 $font-display;
     letter-spacing: .06em;
     text-transform: uppercase;
@@ -106,9 +106,9 @@ $ease: (
 
 .chord {
     font: font-weight(bold) #{font-size(md)} / 1 $font-display;
-    background: $card;
-    color: $ink;
-    border: $border-width-accent $border-style $ink;
+    background: $bg-secondary;
+    color: $text-primary;
+    border: $border-width-accent $border-style $text-primary;
     border-radius: radius(pill);
     padding: padding(control);
     min-height: sizing(control-height);
@@ -116,47 +116,47 @@ $ease: (
 
     &:hover,
     &:focus-visible {
-        outline: 3px solid $primary;
+        outline: 3px solid $primary-color;
         outline-offset: 2px;
     }
 
     &[aria-pressed="true"] {
-        background: $primary;
-        color: $white;
+        background: $primary-color;
+        color: $text-inverse;
     }
 }
 
 .note-in {
-    color: $accent;
+    color: $secondary-color;
     font-weight: font-weight(bold);
 
     &::before {
-        content: "✓ ";
+        content: '✓ ';
     }
 }
 
 .note-out {
-    color: $warn;
+    color: $warning-color;
     font-weight: font-weight(bold);
 
     &::before {
-        content: "! ";
+        content: '! ';
     }
 }
 
 .suggestion {
-    background: $paper;
-    border: $border-width $border-style $line;
-    border-left: $border-width-accent $border-style $primary;
+    background: $bg-primary;
+    border: $border-width $border-style $border-color;
+    border-left: $border-width-accent $border-style $primary-color;
     border-radius: radius(md);
     padding: padding(callout);
     font: font-weight(regular) #{font-size(base)} / 1.5 $font-body;
-    color: $ink;
+    color: $text-primary;
 }
 
 .staff-block {
-    background: $paper;
-    border: $border-width-accent $border-style $ink;
+    background: $bg-primary;
+    border: $border-width-accent $border-style $text-primary;
     border-radius: radius(lg);
     padding: padding(callout);
     font: font-weight(semi) #{font-size(base)} / 1.5 $font-body;
@@ -164,8 +164,8 @@ $ease: (
 
 .btn {
     font: font-weight(bold) #{font-size(base)} / 1 $font-body;
-    background: $primary;
-    color: $white;
+    background: $primary-color;
+    color: $text-inverse;
     border: 0;
     border-radius: radius(pill);
     padding: padding(control);
@@ -174,34 +174,34 @@ $ease: (
     transition: background .15s ease, transform .15s ease;
 
     &:hover {
-        background: state-hover($primary);
+        background: state-hover($primary-color);
         transform: translateY(-1px);
     }
 
     &:active {
-        background: state-active($primary);
+        background: state-active($primary-color);
     }
 
     &:disabled {
-        background: state-disabled($primary);
+        background: state-disabled($primary-color);
         cursor: not-allowed;
     }
 
     &:focus-visible {
-        outline: 3px solid $accent;
+        outline: 3px solid $secondary-color;
         outline-offset: 2px;
     }
 }
 
 .indicative-note {
     font: font-weight(regular) #{font-size(sm)} / 1.5 $font-body;
-    color: $mute;
+    color: $text-secondary;
 }
 
 .note-blocked {
-    background: $paper;
-    color: $block;
-    border: $border-width $border-style $block;
+    background: $bg-primary;
+    color: $error-color;
+    border: $border-width $border-style $error-color;
     border-radius: radius(lg);
     padding: padding(callout);
     font-weight: font-weight(semi);
