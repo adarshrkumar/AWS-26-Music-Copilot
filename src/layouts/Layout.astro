@@ -9,6 +9,8 @@
 
 import { siteConfig } from '@/lib/config';
 
+import '@/styles/global.scss';
+
 interface Props {
     pageTitle?: string | string[];
     description?: string;
@@ -53,9 +55,6 @@ const title = newPageTitle ? `${newPageTitle.join(' | ')} | ${siteConfig.stackNa
         <link rel="manifest" href="/manifest.webmanifest" />
 
         <title>{title}</title>
-
-        <!-- Global styles imported from external SCSS file -->
-        <link rel="stylesheet" href="/src/styles/global.scss" />
     </head>
     <body>
         <slot />

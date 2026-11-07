@@ -10,7 +10,7 @@
 :root {
     // CSS custom properties for runtime theming
     --color-primary: #{$primary-color};
-    --color-primary-hover: #{$primary-hover};
+    --color-primary-hover: #{state-hover($primary-color)};
     --color-secondary: #{$secondary-color};
     --color-accent: #{$accent-color};
     --color-text-primary: #{$text-primary};
@@ -59,7 +59,7 @@ a {
     transition: color $transition-fast;
 
     &:hover {
-        color: $primary-hover;
+        color: state-hover($primary-color);
     }
 
     @include focus-visible;
