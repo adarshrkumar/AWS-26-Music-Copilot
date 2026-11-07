@@ -1,12 +1,12 @@
-@use "sass:map";
-@use "colors" as *;
-@use "color-functions" as *;
-@use "tokens" as *;
-@use "effects" as *;
+@use 'sass:map';
+@use 'colors' as *;
+@use 'color-functions' as *;
+@use 'tokens' as *;
+@use 'effects' as *;
 
-$font-display: "Rubik", system-ui, sans-serif;
-$font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
-$font-mono: "Source Sans 3", system-ui, sans-serif;
+$font-display: 'Rubik', system-ui, sans-serif;
+$font-body: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
+$font-mono: 'Source Sans 3', system-ui, sans-serif;
 
 $font-size: (
     xs: 12px,
