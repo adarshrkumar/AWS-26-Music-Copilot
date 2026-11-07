@@ -279,3 +279,5 @@ PWA settings in `astro.config.mjs`:
 ✅ CORRECT
 // Site header with the brand badge and section links. Styles live in src/styles/components/header.scss.
 ```
+
+**CRITICAL: No useless comments.** Do not add comments that restate the code, label sections (`// Header`, `<!-- Hero -->`), name a variable's obvious purpose (`// Docs URL`), or describe file conventions already in this file. Only comment when the code cannot explain a non-obvious reason on its own.
