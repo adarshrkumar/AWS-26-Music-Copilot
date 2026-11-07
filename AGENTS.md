@@ -268,3 +268,14 @@ PWA settings in `astro.config.mjs`:
 ### Code Style Guidelines
 
 **CRITICAL: Always use 4 spaces for indentation, never tabs.**
+
+**CRITICAL: Never hard-wrap comments.** This applies to every language and file type (TypeScript, Astro, SCSS, JavaScript, HTML, Markdown and config files). Write each comment as one line, however long. Do not break a comment across several lines to fit a column width.
+
+```text
+❌ WRONG
+// Site header with the brand badge and section links.
+// Styles live in src/styles/components/header.scss.
+
+✅ CORRECT
+// Site header with the brand badge and section links. Styles live in src/styles/components/header.scss.
+```
