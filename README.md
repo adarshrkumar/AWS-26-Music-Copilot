@@ -1,30 +1,33 @@
-# ATSDC Stack Application
+# Music Copilot
 
-This is the main Astro application for the ATSDC Stack.
+Music Copilot is a songwriting environment that explains music theory while you write. Build a chord progression, set a key, a tempo and a bar count, and see the scales, arpeggios and guide tones that fit each chord, with the reason for every suggestion shown beside it. Tabs and sheet music stay in one place.
 
-## 🚀 Quick Start
+Copilot explains and suggests, and the songwriter decides. Nothing is written into a song without your action.
+
+The full product spec is in [`music-copilot-spec.md`](music-copilot-spec.md), and a shorter version is in [`music-copilot-summary.md`](music-copilot-summary.md).
+
+## Status
+
+This repository is the starter scaffold. The theory engine, the progression editor and the tabs and sheet music editor are not built yet. It currently includes a home page, a streaming AI chat endpoint, an example posts API, the database setup and the Music Copilot design system.
+
+## Quick Start
 
 ### Prerequisites
 
-- Node.js >= 18.0.0
-- PostgreSQL database (Vercel Postgres, Neon, or local)
-- API keys for BetterAuth, OpenAI, and optionally Exa
+- Node.js 20 or newer
+- PostgreSQL database (Neon or local)
+- A Vercel AI Gateway API key, and optionally an Exa API key
+
+The project folder path must not contain spaces, because some native dependencies fail to build in paths with spaces.
 
 ### Installation
 
 ```bash
-# Install dependencies
 npm install
-
-# Copy environment template
 cp .env.example .env
-
-# Configure your .env file with your credentials
 ```
 
-### Environment Variables
-
-Create a `.env` file with the following variables:
+Then fill in your `.env`:
 
 ```env
 # Database
@@ -45,167 +48,114 @@ EXA_API_KEY="..."
 
 ```bash
 # Push schema to database
-npm run db:push
+npx drizzle-kit push
 
-# Or generate migrations
-npm run db:generate
-npm run db:migrate
-
-# Open Drizzle Studio (database GUI)
-npm run db:studio
+# Or generate and run migrations
+npx drizzle-kit generate
+npx drizzle-kit migrate
 ```
 
 ### Development
 
 ```bash
-# Start dev server
 npm run dev
 ```
 
-Visit `http://localhost:4321`
+Visit `http://localhost:4321`.
 
-## 📝 Available Scripts
+## Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
+- `npm run dev` - Start the development server
+- `npm run build` - Type-check and build for production
+- `npm run preview` - Preview the production build
+- `npm run check` - Run ESLint, stylelint, Astro type checking and a production build
+- `npm run stylelint:fix` - Auto-fix SCSS lint issues
 - `npm run astro` - Run Astro CLI commands
-- `npm run db:generate` - Generate database migrations
-- `npm run db:migrate` - Run database migrations
-- `npm run db:push` - Push schema changes to database
-- `npm run db:studio` - Open Drizzle Studio
 
-## 📁 Project Structure
+## Tech Stack
+
+- [Astro](https://docs.astro.build) 5 with SSR, deployed with the Vercel adapter
+- [Drizzle ORM](https://orm.drizzle.team) with PostgreSQL (Neon)
+- [Zod](https://zod.dev) for validation
+- [Vercel AI SDK](https://ai-sdk.dev/docs) through the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway)
+- [Better Auth](https://www.better-auth.com/docs) (installed, not wired up yet)
+- [Exa](https://docs.exa.ai) for search
+- SCSS with the Music Copilot design system and [OpenProps](https://open-props.style)
+- PWA support via `vite-plugin-pwa`
+
+## Project Structure
 
 ```text
 src/
-├── components/         # Reusable Astro components
-├── db/                 # Database schema and client
-│   ├── initialize.ts   # Database initialization
-│   ├── schema.ts       # Drizzle ORM schemas
-│   └── validations.ts  # Zod validation schemas
-├── layouts/            # Page layouts
+├── components/
+│   └── Card.astro
+├── db/
+│   ├── initialize.ts         # Drizzle client and database helpers
+│   ├── schema.ts             # Drizzle schemas
+│   └── validations.ts        # Zod validation schemas
+├── layouts/
 │   └── Layout.astro
-├── lib/                # Utility libraries
-│   ├── config.ts       # App configuration
-│   ├── content-converter.ts # Markdown/HTML conversion
-│   ├── dom-utils.ts    # DOM manipulation
-│   └── exa-search.ts   # AI-powered search
-├── pages/              # Routes and pages
-│   ├── api/            # API endpoints
-│   │   ├── chat.ts     # AI chat endpoint
-│   │   └── posts.ts    # Posts CRUD
-│   └── index.astro     # Home page
-└── styles/             # SCSS stylesheets
-    ├── variables/      # SCSS variables and mixins
-    ├── components/     # Component styles
-    ├── pages/          # Page styles
-    ├── reset.scss      # CSS reset
-    └── global.scss     # Global styles
+├── lib/
+│   ├── config.ts             # Site configuration
+│   ├── content-converter.ts  # Markdown and HTML conversion
+│   ├── dom-utils.ts          # Cheerio HTML helpers
+│   └── exa-search.ts         # Exa search helpers
+├── pages/
+│   ├── api/
+│   │   ├── chat.ts           # Streaming AI chat endpoint
+│   │   └── posts.ts          # Example posts CRUD
+│   └── index.astro           # Home page
+└── styles/
+    ├── variables/            # Design system, forwarded by globals.scss, plus mixins
+    ├── components/           # Component styles
+    ├── pages/                # Page styles
+    ├── globals.scss          # Global styles
+    ├── reset.scss            # CSS reset
+    └── property-order.json   # Property order enforced by stylelint
 ```
 
-## 🎨 SCSS Architecture
+## Styles
 
-This app uses a strict SCSS architecture:
-
-- **No inline `<style>` tags** in `.astro` files
-- **All styles in external SCSS files** for better maintainability
-- **Data attributes for modifiers** (preferred over BEM)
-- **Semantic class names** (no utility classes)
-
-Example:
+- No `<style>` tags in `.astro` files. Every style lives in an external SCSS file.
+- Data attributes for modifiers, such as `data-variant="primary"`.
+- The design system in `src/styles/variables/` follows the sheet-music style guide in [`music-copilot-design-system/style-guide.md`](music-copilot-design-system/style-guide.md).
 
 ```astro
 ---
 import '@/styles/components/button.scss';
 ---
-<button class="btn" data-variant="primary" data-size="lg">
-    Click Me
+<button class="btn" data-variant="primary" data-size="large">
+    Save progression
 </button>
 ```
 
-## 🗄️ Database
+## AI
 
-### Schema Definition
+`src/pages/api/chat.ts` streams responses through the Vercel AI Gateway, so any gateway model string works, such as `openai/gpt-4o` or `anthropic/claude-3-5-sonnet-20241022`.
 
-Define your database schema in `src/db/schema.ts` using Drizzle ORM:
+In the finished app, the theory engine is rule-based. The language model only writes explanation text from the engine's output, and never adds notes or chords to a song without the songwriter's action.
 
-```typescript
-export const posts = pgTable('posts', {
-    id: varchar('id', { length: 21 })
-        .primaryKey()
-        .$defaultFn(() => nanoid()),
-    title: varchar('title', { length: 255 }).notNull(),
-    content: text('content').notNull(),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-```
-
-### Validation
-
-Define Zod schemas in `src/db/validations.ts`:
+## Utilities
 
 ```typescript
-export const createPostSchema = z.object({
-    title: z.string().min(1).max(255),
-    content: z.string().min(1),
-});
+import { htmlToMarkdown, markdownToHtml } from '@/lib/content-converter';
+import { extractHeadings, extractLinks } from '@/lib/dom-utils';
+import { searchWeb } from '@/lib/exa-search';
+
+const markdown = htmlToMarkdown('<h1>Hello</h1>');
+const html = await markdownToHtml('# Hello');
+const links = extractLinks(html);
+const results = await searchWeb('ii V I progression guide tones');
 ```
 
-## 🔐 Authentication
-
-Authentication is handled by BetterAuth. Configure in `src/lib/auth.ts`:
-
-```typescript
-import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { db } from '@/db/initialize';
-
-export const auth = betterAuth({
-    database: drizzleAdapter(db, { provider: 'pg' }),
-    emailAndPassword: { enabled: true },
-});
-```
-
-## 🤖 AI Features
-
-### Vercel AI SDK
-
-Chat endpoint example in `src/pages/api/chat.ts`:
-
-```typescript
-import { OpenAI } from 'ai';
-
-export const POST: APIRoute = async ({ request }) => {
-    // AI chat implementation
-};
-```
-
-### Exa Search
-
-AI-powered search utilities in `src/lib/exa-search.ts`.
-
-## 📱 Progressive Web App
-
-This app includes PWA support with offline capabilities:
-
-- Service worker auto-generated
-- Installable on mobile/desktop
-- Offline caching configured in `astro.config.mjs`
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
+## Deployment
 
 ```bash
-# Install Vercel CLI
 npm i -g vercel
-
-# Deploy
 vercel
 ```
 
-Make sure to set these environment variables in your Vercel project settings:
+Set these environment variables in your Vercel project settings:
 
 - `DATABASE_URL`
 - `BETTER_AUTH_SECRET`
@@ -213,43 +163,6 @@ Make sure to set these environment variables in your Vercel project settings:
 - `AI_GATEWAY_API_KEY`
 - `EXA_API_KEY` (optional)
 
-## 📚 Documentation
-
-- [Astro Documentation](https://docs.astro.build)
-- [Drizzle ORM](https://orm.drizzle.team)
-- [BetterAuth](https://betterauth.dev/docs)
-- [Vercel AI SDK](https://sdk.vercel.ai/docs)
-- [Zod](https://zod.dev)
-- [Exa Search](https://docs.exa.ai)
-
-## 🛠️ Utilities
-
-### Content Conversion
-
-```typescript
-import { htmlToMarkdown, markdownToHtml } from '@/lib/content-converter';
-
-const markdown = htmlToMarkdown('<h1>Hello</h1>');
-const html = markdownToHtml('# Hello');
-```
-
-### DOM Manipulation
-
-```typescript
-import { extractText, findLinks } from '@/lib/dom-utils';
-
-const text = extractText(htmlString);
-const links = findLinks(htmlString);
-```
-
-### AI Search
-
-```typescript
-import { searchWithExa } from '@/lib/exa-search';
-
-const results = await searchWithExa('your query');
-```
-
-## 📄 License
+## License
 
 MIT
