@@ -2,15 +2,18 @@
 // Provides functions for converting between HTML and Markdown using marked and turndown
 
 import { marked } from 'marked';
+import { gfmHeadingId } from 'marked-gfm-heading-id';
 import TurndownService from 'turndown';
 
 // Configure marked for markdown to HTML conversion
 marked.setOptions({
     gfm: true,       // GitHub Flavored Markdown
     breaks: true,    // Convert \n to <br>
-    headerIds: true, // Add IDs to headings
     mangle: false,   // Don't escape email addresses
 });
+
+// Add IDs to headings
+marked.use(gfmHeadingId());
 
 // Configure turndown for HTML to markdown conversion
 const turndownService = new TurndownService({
