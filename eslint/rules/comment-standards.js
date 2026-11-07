@@ -27,9 +27,33 @@ export default {
 
                     if (comment.type !== 'Block') return;
 
-                    if (comment.loc.start.line === comment.loc.end.line) return;
-
                     if (jsDocTags.test(comment.value)) return;
+
+                    if (comment.value.startsWith('*')) {
+                        context.report({
+                            node: node,
+                            loc: comment.loc,
+                            message: '/** */ comments without JSDoc tags should use single-line comment syntax (//) instead',
+                            fix(fixer) {
+                                if (context.sourceCode.lines[comment.loc.end.line - 1].slice(comment.loc.end.column).trim() !== '') return null;
+                                if (comment.loc.start.line !== comment.loc.end.line && context.sourceCode.lines[comment.loc.start.line - 1].slice(0, comment.loc.start.column).trim() !== '') return null;
+
+                                return fixer.replaceText(
+                                    comment,
+                                    comment.value
+                                        .replace(/^\*+/, '')
+                                        .split('\n')
+                                        .map(line => line.trim().replace(/^\*\s?/, '').trim())
+                                        .join('\n')
+                                        .trim()
+                                        .split('\n')
+                                        .map(line => `// ${line}`.trimEnd())
+                                        .join(`\n${context.sourceCode.lines[comment.loc.start.line - 1].slice(0, comment.loc.start.column)}`)
+                                );
+                            }
+                        });
+                        return;
+                    }
 
                     const lines = comment.value.split('\n').map(line => line.trim());
 
@@ -43,8 +67,10 @@ export default {
                     context.report({
                         node: node,
                         loc: comment.loc,
-                        message: 'Multi-line block comments should use single-line comment syntax (//) instead',
+                        message: 'Block comments should use single-line comment syntax (//) instead',
                         fix(fixer) {
+                            if (context.sourceCode.lines[comment.loc.end.line - 1].slice(comment.loc.end.column).trim() !== '') return null;
+
                             return fixer.replaceText(comment, `// ${cleanedLines.join(' ').trim()}`);
                         }
                     });
