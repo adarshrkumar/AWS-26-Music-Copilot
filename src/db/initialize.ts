@@ -3,7 +3,7 @@ import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
 import * as schema from './schema';
-import { posts, comments } from './schema';
+import { posts } from './schema';
 
 /**
  * Database client configuration

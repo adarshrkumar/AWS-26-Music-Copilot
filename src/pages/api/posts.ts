@@ -1,4 +1,4 @@
-import type { APIRoute } from 'astro';
+import { z } from 'zod';
 
 import { db } from '@/db/initialize';
 import { posts } from '@/db/schema';
@@ -12,7 +12,7 @@ import {
 
 import { eq, desc, and, ilike, or } from 'drizzle-orm';
 
-import { z } from 'zod';
+import type { APIRoute } from 'astro';
 
 /**
  * Posts API Routes
