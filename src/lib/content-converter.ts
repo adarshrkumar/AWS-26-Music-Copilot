@@ -6,22 +6,22 @@ import TurndownService from 'turndown';
 
 // Configure marked for markdown to HTML conversion
 marked.setOptions({
-    gfm: true, // GitHub Flavored Markdown
-    breaks: true, // Convert \n to <br>
+    gfm: true,       // GitHub Flavored Markdown
+    breaks: true,    // Convert \n to <br>
     headerIds: true, // Add IDs to headings
-    mangle: false, // Don't escape email addresses
+    mangle: false,   // Don't escape email addresses
 });
 
 // Configure turndown for HTML to markdown conversion
 const turndownService = new TurndownService({
-    headingStyle: 'atx', // Use # for headings
-    hr: '---', // Use --- for horizontal rules
-    bulletListMarker: '-', // Use - for bullet lists
+    headingStyle: 'atx',      // Use # for headings
+    hr: '---',                // Use --- for horizontal rules
+    bulletListMarker: '-',    // Use - for bullet lists
     codeBlockStyle: 'fenced', // Use ``` for code blocks
-    fence: '```', // Code fence marker
-    emDelimiter: '*', // Use * for emphasis
-    strongDelimiter: '**', // Use ** for strong
-    linkStyle: 'inlined', // Use [text](url) for links
+    fence: '```',             // Code fence marker
+    emDelimiter: '*',         // Use * for emphasis
+    strongDelimiter: '**',    // Use ** for strong
+    linkStyle: 'inlined',     // Use [text](url) for links
 });
 
 /**
