@@ -91,9 +91,9 @@ export async function searchWeb(
             endPublishedDate: options.endPublishedDate,
             includeDomains: options.includeDomains,
             excludeDomains: options.excludeDomains,
-            text: options.contents?.text,
-            highlights: options.contents?.highlights,
-            summary: options.contents?.summary,
+            text: options.contents?.text || undefined,
+            highlights: options.contents?.highlights || undefined,
+            summary: options.contents?.summary || undefined,
         });
 
         return response.results.map((result: ExaResult) => ({
@@ -135,9 +135,9 @@ export async function findSimilar(
             endPublishedDate: options.endPublishedDate,
             includeDomains: options.includeDomains,
             excludeDomains: options.excludeDomains,
-            text: options.contents?.text,
-            highlights: options.contents?.highlights,
-            summary: options.contents?.summary,
+            text: options.contents?.text || undefined,
+            highlights: options.contents?.highlights || undefined,
+            summary: options.contents?.summary || undefined,
         });
 
         return response.results.map((result: ExaResult) => ({
@@ -171,9 +171,9 @@ export async function getContents(
         const exa = getExaClient();
 
         const response = await exa.getContents(urls, {
-            text: options.text,
-            highlights: options.highlights,
-            summary: options.summary,
+            text: options.text || undefined,
+            highlights: options.highlights || undefined,
+            summary: options.summary || undefined,
         });
 
         return response.results.map((result: ExaResult) => ({
