@@ -1,14 +1,14 @@
-import { streamText } from 'ai';
+import { createGateway, streamText } from 'ai';
 import { z } from 'zod';
 
 import type { APIRoute } from 'astro';
 
 // Vercel AI SDK Chat API Route
-// Uses AI Gateway pattern - no provider-specific packages needed!
+// Uses the Vercel AI Gateway - no provider-specific packages needed!
 // Just pass model strings like 'openai/gpt-4o' or 'anthropic/claude-3-5-sonnet-20241022'
 //
 // Environment variables required:
-// - OPENAI_API_KEY: Your OpenAI API key (or other provider keys)
+// - AI_GATEWAY_API_KEY: Your Vercel AI Gateway API key
 
 // Validate request schema
 const requestSchema = z.object({
@@ -26,10 +26,10 @@ const requestSchema = z.object({
 export const POST: APIRoute = async ({ request }) => {
     try {
         // Validate API key
-        if (!import.meta.env.OPENAI_API_KEY && !process.env.OPENAI_API_KEY) {
+        if (!import.meta.env.AI_GATEWAY_API_KEY && !process.env.AI_GATEWAY_API_KEY) {
             return new Response(
                 JSON.stringify({
-                    error: 'OPENAI_API_KEY is not configured',
+                    error: 'AI_GATEWAY_API_KEY is not configured',
                 }),
                 {
                     status: 500,
@@ -46,11 +46,10 @@ export const POST: APIRoute = async ({ request }) => {
 
         // Stream the response using Vercel AI SDK with AI Gateway
         const result = streamText({
-            model: validatedData.model, // Use model string directly (e.g., 'openai/gpt-4o')
+            model: createGateway({ apiKey: import.meta.env.AI_GATEWAY_API_KEY || process.env.AI_GATEWAY_API_KEY })(validatedData.model), // Model string routed through the gateway (e.g., 'openai/gpt-4o')
             messages: validatedData.messages,
             temperature: validatedData.temperature,
             maxOutputTokens: validatedData.maxTokens,
-            apiKey: import.meta.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY,
         });
 
         // Return the stream response
