@@ -13,7 +13,7 @@
     &__title {
         @include heading-1;
         margin-inline: auto;
-        margin-bottom: $spacing-medium;
+        margin-bottom: space(5);
         background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -34,7 +34,7 @@
     &__features {
         display: grid;
         grid-template-columns: 1fr;
-        gap: $spacing-large;
+        gap: space(6);
         margin-bottom: $spacing-3x-large;
 
         @include tablet {
@@ -49,8 +49,8 @@
     &__feature {
         h3 {
             font-size: $font-size-extra-large;
-            font-weight: $font-weight-semibold;
-            margin-bottom: $spacing-small;
+            font-weight: font-weight(semi);
+            margin-bottom: space(4);
             color: $text-primary;
         }
 
@@ -74,7 +74,7 @@
 
     &__cta-buttons {
         @include flex-center;
-        gap: $spacing-large;
+        gap: space(6);
         flex-wrap: wrap;
     }
 }

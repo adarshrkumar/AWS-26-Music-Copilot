@@ -19,9 +19,9 @@
 
     &__title {
         font-size: $font-size-extra-large;
-        font-weight: $font-weight-semibold;
+        font-weight: font-weight(semi);
         color: $text-primary;
-        margin-bottom: $spacing-medium;
+        margin-bottom: space(5);
     }
 
     &__content {
@@ -93,11 +93,11 @@
 
     // Layout modifiers using data attributes
     &[data-padding="compact"] {
-        padding: $spacing-medium;
+        padding: space(5);
     }
 
     &[data-padding="comfortable"] {
-        padding: $spacing-2x-large;
+        padding: space(12);
     }
 
     &[data-hover="lift"] {

@@ -1,3 +1,4 @@
+@use 'sass:map';
 @use '../variables/globals' as *;
 @use '../variables/mixins' as *;
 
@@ -10,13 +11,13 @@
     max-width: 600px;
 
     &-group {
-        margin-bottom: $spacing-large;
+        margin-bottom: space(6);
     }
 
     &-label {
         display: block;
-        margin-bottom: $spacing-extra-small;
-        font-size: $font-size-small;
+        margin-bottom: space(2);
+        font-size: font-size(base);
         font-weight: $font-weight-medium;
         color: $text-primary;
 
@@ -65,12 +66,12 @@
 
         // Size modifiers using data attributes
         &[data-size="small"] {
-            padding: $spacing-extra-small $spacing-small;
-            font-size: $font-size-small;
+            padding: space(2) space(4);
+            font-size: font-size(base);
         }
 
         &[data-size="large"] {
-            padding: $spacing-medium $spacing-large;
+            padding: space(5) space(6);
             font-size: $font-size-large;
         }
 
@@ -101,12 +102,12 @@
 
         // Size class chaining alternatives
         &.small {
-            padding: $spacing-extra-small $spacing-small;
-            font-size: $font-size-small;
+            padding: space(2) space(4);
+            font-size: font-size(base);
         }
 
         &.large {
-            padding: $spacing-medium $spacing-large;
+            padding: space(5) space(6);
             font-size: $font-size-large;
         }
     }
@@ -132,15 +133,15 @@
         cursor: pointer;
         appearance: none;
         background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"%3E%3Cpath stroke="%236b7280" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/%3E%3C/svg%3E');
-        background-position: right $spacing-small center;
+        background-position: right space(4) center;
         background-repeat: no-repeat;
         background-size: 1.5rem 1.5rem;
-        padding-right: $spacing-2x-large;
+        padding-right: space(12);
     }
 
     &-helper {
-        margin-top: $spacing-extra-small;
-        font-size: $font-size-small;
+        margin-top: space(2);
+        font-size: font-size(base);
         color: $text-secondary;
 
         &[data-state="error"] {
@@ -157,8 +158,8 @@
     }
 
     &-error {
-        margin-top: $spacing-extra-small;
-        font-size: $font-size-small;
+        margin-top: space(2);
+        font-size: font-size(base);
         color: $error-color;
     }
 
@@ -166,8 +167,8 @@
     &-radio {
         display: flex;
         align-items: center;
-        gap: $spacing-small;
-        margin-bottom: $spacing-small;
+        gap: space(4);
+        margin-bottom: space(4);
 
         input {
             width: 1.125rem;
@@ -207,7 +208,7 @@
     &-actions {
         @include flex-between;
         margin-top: $spacing-extra-large;
-        gap: $spacing-medium;
+        gap: space(5);
 
         &[data-layout="stack"] {
             flex-direction: column;
@@ -229,7 +230,7 @@
             justify-content: flex-end;
         }
 
-        @media (max-width: $breakpoint-tablet) {
+        @media (max-width: map.get($breakpoints, md)) {
             flex-direction: column;
 
             button {

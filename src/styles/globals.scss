@@ -34,21 +34,21 @@ body {
 // Typography
 h1 {
     @include heading-1;
-    margin-bottom: $spacing-large;
+    margin-bottom: space(6);
 }
 
 h2 {
     @include heading-2;
-    margin-bottom: $spacing-medium;
+    margin-bottom: space(5);
 }
 
 h3 {
     @include heading-3;
-    margin-bottom: $spacing-medium;
+    margin-bottom: space(5);
 }
 
 p {
-    margin-bottom: $spacing-medium;
+    margin-bottom: space(5);
     line-height: $line-height-relaxed;
     color: $text-secondary;
 }
@@ -91,24 +91,24 @@ a {
 }
 
 // Spacing utilities
-.mt-small { margin-top: $spacing-small; }
-.mt-medium { margin-top: $spacing-medium; }
-.mt-large { margin-top: $spacing-large; }
+.mt-small { margin-top: space(4); }
+.mt-medium { margin-top: space(5); }
+.mt-large { margin-top: space(6); }
 .mt-extra-large { margin-top: $spacing-extra-large; }
 
-.mb-small { margin-bottom: $spacing-small; }
-.mb-medium { margin-bottom: $spacing-medium; }
-.mb-large { margin-bottom: $spacing-large; }
+.mb-small { margin-bottom: space(4); }
+.mb-medium { margin-bottom: space(5); }
+.mb-large { margin-bottom: space(6); }
 .mb-extra-large { margin-bottom: $spacing-extra-large; }
 
-.pt-small { padding-top: $spacing-small; }
-.pt-medium { padding-top: $spacing-medium; }
-.pt-large { padding-top: $spacing-large; }
+.pt-small { padding-top: space(4); }
+.pt-medium { padding-top: space(5); }
+.pt-large { padding-top: space(6); }
 .pt-extra-large { padding-top: $spacing-extra-large; }
 
-.pb-small { padding-bottom: $spacing-small; }
-.pb-medium { padding-bottom: $spacing-medium; }
-.pb-large { padding-bottom: $spacing-large; }
+.pb-small { padding-bottom: space(4); }
+.pb-medium { padding-bottom: space(5); }
+.pb-large { padding-bottom: space(6); }
 .pb-extra-large { padding-bottom: $spacing-extra-large; }
 
 // Text utilities

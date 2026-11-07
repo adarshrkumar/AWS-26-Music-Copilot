@@ -1,3 +1,4 @@
+@use 'sass:map';
 @use './globals' as *;
 
 // NOTE: All mixins below use variables from globals.scss which are now powered by OpenProps design tokens
@@ -5,7 +6,7 @@
 
 // Responsive breakpoint mixins
 @mixin tablet {
-    @media (min-width: $breakpoint-tablet) {
+    @media (min-width: map.get($breakpoints, md)) {
         @content;
     }
 }
@@ -57,13 +58,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: $spacing-small $spacing-large;
+    padding: space(4) space(6);
     font-family: $font-family-base;
     font-size: $font-size-base;
     font-weight: $font-weight-medium;
     line-height: $line-height-normal;
     border: none;
-    border-radius: $radius-medium;
+    border-radius: radius(lg);
     cursor: pointer;
     transition: all $transition-base;
     text-decoration: none;
@@ -118,14 +119,14 @@
 // Input mixin
 @mixin input-base {
     width: 100%;
-    padding: $spacing-small $spacing-medium;
+    padding: space(4) space(5);
     font-family: $font-family-base;
     font-size: $font-size-base;
     line-height: $line-height-normal;
     color: $text-primary;
     background-color: $bg-primary;
     border: 1px solid $border-color;
-    border-radius: $radius-medium;
+    border-radius: radius(lg);
     transition: border-color $transition-fast;
 
     &:focus {
@@ -150,8 +151,8 @@
     max-width: $breakpoint-extra-wide;
     margin-left: auto;
     margin-right: auto;
-    padding-left: $spacing-medium;
-    padding-right: $spacing-medium;
+    padding-left: space(5);
+    padding-right: space(5);
 
     @include wide {
         padding-left: $spacing-extra-large;
@@ -161,9 +162,9 @@
 
 // Typography mixins
 @mixin heading-1 {
-    font-size: $font-size-3x-large;
-    font-weight: $font-weight-bold;
-    line-height: $line-height-tight;
+    font-size: font-size(2xl);
+    font-weight: font-weight(bold);
+    line-height: map.get($leading, tight);
     color: $text-primary;
 
     @include desktop {
@@ -173,19 +174,19 @@
 
 @mixin heading-2 {
     font-size: $font-size-2x-large;
-    font-weight: $font-weight-bold;
-    line-height: $line-height-tight;
+    font-weight: font-weight(bold);
+    line-height: map.get($leading, tight);
     color: $text-primary;
 
     @include desktop {
-        font-size: $font-size-3x-large;
+        font-size: font-size(2xl);
     }
 }
 
 @mixin heading-3 {
     font-size: $font-size-extra-large;
-    font-weight: $font-weight-semibold;
-    line-height: $line-height-tight;
+    font-weight: font-weight(semi);
+    line-height: map.get($leading, tight);
     color: $text-primary;
 
     @include desktop {

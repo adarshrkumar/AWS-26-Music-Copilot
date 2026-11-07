@@ -20,6 +20,9 @@ $space-scale: (
     @return map.get($space-scale, $key);
 }
 
+$spacing-extra-large: var(--size-6);  // 1.75rem
+$spacing-3x-large: var(--size-10);    // 5rem
+
 $padding: (
     control: 10px 18px,
     chip: 10px 16px,
@@ -47,6 +50,8 @@ $radius: (
 @function radius($key) {
     @return map.get($radius, $key);
 }
+
+$radius-large: var(--radius-4);       // 2rem
 
 $border-width: 1px;
 $border-width-accent: 4px;

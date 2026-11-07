@@ -38,12 +38,12 @@
 
     // Size modifiers using data attributes
     &[data-size="small"] {
-        padding: $spacing-extra-small $spacing-small;
-        font-size: $font-size-small;
+        padding: space(2) space(4);
+        font-size: font-size(base);
     }
 
     &[data-size="large"] {
-        padding: $spacing-medium $spacing-extra-large;
+        padding: space(5) $spacing-extra-large;
         font-size: $font-size-large;
     }
 
@@ -81,7 +81,7 @@
     &[data-has-icon="true"] {
         display: inline-flex;
         align-items: center;
-        gap: $spacing-small;
+        gap: space(4);
 
         svg {
             width: 1.25rem;
@@ -119,12 +119,12 @@
 
     // Size class chaining alternatives
     &.small {
-        padding: $spacing-extra-small $spacing-small;
-        font-size: $font-size-small;
+        padding: space(2) space(4);
+        font-size: font-size(base);
     }
 
     &.large {
-        padding: $spacing-medium $spacing-extra-large;
+        padding: space(5) $spacing-extra-large;
         font-size: $font-size-large;
     }
 
@@ -136,7 +136,7 @@
     &.with-icon {
         display: inline-flex;
         align-items: center;
-        gap: $spacing-small;
+        gap: space(4);
 
         svg {
             width: 1.25rem;

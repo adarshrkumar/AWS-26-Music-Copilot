@@ -17,6 +17,11 @@ $shadow-rest: 0 1px 3px rgba($black, .35);
     box-shadow: shadow-soft($level);
 }
 
+$shadow-small: var(--shadow-2);
+$shadow-medium: var(--shadow-3);
+$shadow-large: var(--shadow-4);
+$shadow-extra-large: var(--shadow-6);
+
 $focus-ring-width: 3px;
 $focus-ring-offset: 2px;
 $focus-ring: 0 0 0 $focus-ring-width rgba($primary-color, .45);

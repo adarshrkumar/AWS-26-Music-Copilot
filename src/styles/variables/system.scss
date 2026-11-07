@@ -7,6 +7,7 @@
 $font-display: 'Rubik', system-ui, sans-serif;
 $font-body: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
 $font-mono: 'Source Sans 3', system-ui, sans-serif;
+$font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 
 $font-size: (
     xs: 12px,
@@ -38,6 +39,17 @@ $leading: (
     @return map.get($font-weight, $key);
 }
 
+$font-size-base: var(--font-size-2);          // 1.1rem
+$font-size-large: var(--font-size-3);         // 1.25rem
+$font-size-extra-large: var(--font-size-4);   // 1.5rem
+$font-size-2x-large: var(--font-size-5);      // 2rem
+$font-size-4x-large: var(--font-size-7);      // 3rem
+
+$font-weight-medium: var(--font-weight-5);    // 500
+
+$line-height-normal: var(--font-lineheight-3);  // 1.5
+$line-height-relaxed: var(--font-lineheight-4); // 1.75
+
 @mixin display-heading($size: 2xl) {
     font-family: $font-display;
     font-weight: font-weight(bold);
@@ -60,6 +72,11 @@ $breakpoints: (
     }
 }
 
+$breakpoint-desktop: 768px;
+$breakpoint-wide: 1024px;
+$breakpoint-extra-wide: 1280px;
+$breakpoint-ultra-wide: 1536px;
+
 $z-index: (
     base: 1,
     sticky: 50,
@@ -77,6 +94,9 @@ $ease: (
     out: cubic-bezier(0.2, 0.9, 0.3, 1),
     smooth: cubic-bezier(0.2, 0.8, 0.2, 1)
 );
+
+$transition-fast: var(--ease-1);  // Fast spring easing
+$transition-base: var(--ease-3);  // Standard easing
 
 @mixin reduced-motion {
     @media (prefers-reduced-motion: reduce) {
