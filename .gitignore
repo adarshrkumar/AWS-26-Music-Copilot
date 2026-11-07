@@ -2,3 +2,4 @@ node_modules/
 .astro/
 .vercel/output/
 dist/
+CLAUDE.md
