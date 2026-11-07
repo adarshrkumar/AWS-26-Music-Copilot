@@ -81,16 +81,10 @@ export async function searchWeb(
         const exa = getExaClient();
 
         const response = await exa.searchAndContents(query, {
+            ...options,
             numResults: options.numResults || 10,
             type: options.type || 'auto',
             useAutoprompt: options.useAutoprompt || false,
-            category: options.category,
-            startCrawlDate: options.startCrawlDate,
-            endCrawlDate: options.endCrawlDate,
-            startPublishedDate: options.startPublishedDate,
-            endPublishedDate: options.endPublishedDate,
-            includeDomains: options.includeDomains,
-            excludeDomains: options.excludeDomains,
             text: options.contents?.text || undefined,
             highlights: options.contents?.highlights || undefined,
             summary: options.contents?.summary || undefined,

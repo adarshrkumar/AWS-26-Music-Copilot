@@ -34,8 +34,8 @@ DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
 BETTER_AUTH_SECRET="your-secret-key-min-32-chars"
 BETTER_AUTH_URL="http://localhost:4321"
 
-# OpenAI (for Vercel AI SDK)
-OPENAI_API_KEY="sk-..."
+# Vercel AI Gateway (for Vercel AI SDK)
+AI_GATEWAY_API_KEY="..."
 
 # Exa Search (optional)
 EXA_API_KEY="..."
@@ -210,7 +210,7 @@ Make sure to set these environment variables in your Vercel project settings:
 - `DATABASE_URL`
 - `BETTER_AUTH_SECRET`
 - `BETTER_AUTH_URL`
-- `OPENAI_API_KEY`
+- `AI_GATEWAY_API_KEY`
 - `EXA_API_KEY` (optional)
 
 ## 📚 Documentation
