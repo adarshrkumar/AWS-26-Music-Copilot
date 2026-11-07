@@ -1,7 +1,7 @@
-import type { APIRoute } from 'astro';
-
 import { streamText } from 'ai';
 import { z } from 'zod';
+
+import type { APIRoute } from 'astro';
 
 /**
  * Vercel AI SDK Chat API Route

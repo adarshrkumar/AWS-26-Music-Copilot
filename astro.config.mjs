@@ -1,7 +1,7 @@
+import { VitePWA } from 'vite-plugin-pwa';
+
 import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
-
-import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
     output: 'server',

@@ -1,6 +1,6 @@
-import { pgTable, text, timestamp, boolean, varchar } from 'drizzle-orm/pg-core';
-
 import { nanoid } from 'nanoid';
+
+import { pgTable, text, timestamp, boolean, varchar } from 'drizzle-orm/pg-core';
 
 /**
  * Posts table schema
