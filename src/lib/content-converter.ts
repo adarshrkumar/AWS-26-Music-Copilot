@@ -37,7 +37,7 @@ export async function markdownToHtml(markdown: string): Promise<string> {
         return html;
     } catch (error) {
         console.error('Error converting markdown to HTML:', error);
-        throw new Error('Failed to convert markdown to HTML');
+        throw new Error('Failed to convert markdown to HTML', { cause: error });
     }
 }
 
@@ -48,11 +48,11 @@ export async function markdownToHtml(markdown: string): Promise<string> {
  */
 export function markdownToHtmlSync(markdown: string): string {
     try {
-        const html = marked.parse(markdown) as string;
+        const html = marked.parse(markdown, { async: false });
         return html;
     } catch (error) {
         console.error('Error converting markdown to HTML:', error);
-        throw new Error('Failed to convert markdown to HTML');
+        throw new Error('Failed to convert markdown to HTML', { cause: error });
     }
 }
 
@@ -67,7 +67,7 @@ export function htmlToMarkdown(html: string): string {
         return markdown;
     } catch (error) {
         console.error('Error converting HTML to markdown:', error);
-        throw new Error('Failed to convert HTML to markdown');
+        throw new Error('Failed to convert HTML to markdown', { cause: error });
     }
 }
 
@@ -89,7 +89,7 @@ export async function sanitizeMarkdown(markdown: string): Promise<string> {
         return html;
     } catch (error) {
         console.error('Error sanitizing markdown:', error);
-        throw new Error('Failed to sanitize markdown');
+        throw new Error('Failed to sanitize markdown', { cause: error });
     }
 }
 
@@ -100,7 +100,7 @@ export async function sanitizeMarkdown(markdown: string): Promise<string> {
  */
 export function markdownToPlainText(markdown: string): string {
     try {
-        const html = marked.parse(markdown) as string;
+        const html = marked.parse(markdown, { async: false });
         const text = html
             .replace(/<[^>]*>/g, '') // Remove HTML tags
             .replace(/&nbsp;/g, ' ') // Replace &nbsp;
@@ -112,7 +112,7 @@ export function markdownToPlainText(markdown: string): string {
         return text;
     } catch (error) {
         console.error('Error extracting plain text:', error);
-        throw new Error('Failed to extract plain text');
+        throw new Error('Failed to extract plain text', { cause: error });
     }
 }
 
