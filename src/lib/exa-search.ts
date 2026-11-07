@@ -13,16 +13,12 @@ import Exa from 'exa-js';
 function getExaClient(): Exa {
     const apiKey = import.meta.env.EXA_API_KEY || process.env.EXA_API_KEY;
 
-    if (!apiKey) {
-        throw new Error('EXA_API_KEY environment variable is not set');
-    }
+    if (!apiKey) throw new Error('EXA_API_KEY environment variable is not set');
 
     return new Exa(apiKey);
 }
 
-/**
- * Search options for Exa
- */
+// Search options for Exa
 export interface ExaSearchOptions {
     /** Number of results to return (1-10, default: 10) */
     numResults?: number;
@@ -62,9 +58,7 @@ export interface ExaSearchOptions {
     };
 }
 
-/**
- * Exa search result
- */
+// Exa search result
 export interface ExaResult {
     url: string;
     title: string;

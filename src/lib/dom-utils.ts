@@ -106,8 +106,8 @@ export function extractHeadings(html: string) {
 export function generateTableOfContents(html: string, maxLevel: number = 3) {
     const headings = extractHeadings(html);
     return headings
-        .filter((h) => h.level <= maxLevel)
-        .map((h) => ({
+        .filter(h => h.level <= maxLevel)
+        .map(h => ({
             ...h,
             slug: h.id || h.text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''),
         }));
@@ -131,10 +131,8 @@ export function cleanHtml(html: string): string {
         const attrs = $el.attr();
 
         if (attrs) {
-            Object.keys(attrs).forEach((attr) => {
-                if (attr.startsWith('on')) {
-                    $el.removeAttr(attr);
-                }
+            Object.keys(attrs).forEach(attr => {
+                if (attr.startsWith('on')) $el.removeAttr(attr);
             });
         }
     });

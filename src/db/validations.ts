@@ -15,9 +15,7 @@ const slugSchema = z
         'Slug must be lowercase alphanumeric with hyphens only'
     );
 
-/**
- * Post validation schemas
- */
+// Post validation schemas
 
 // Schema for creating a new post
 export const createPostSchema = z.object({
@@ -82,19 +80,17 @@ export const postQuerySchema = z.object({
     limit: z.coerce.number().int().positive().max(100).default(10),
     published: z
         .string()
-        .transform((val) => val === 'true')
+        .transform(val => val === 'true')
         .optional(),
     featured: z
         .string()
-        .transform((val) => val === 'true')
+        .transform(val => val === 'true')
         .optional(),
     authorId: z.string().optional(),
     search: z.string().optional(),
 });
 
-/**
- * Comment validation schemas
- */
+// Comment validation schemas
 
 // Schema for creating a new comment
 export const createCommentSchema = z.object({
@@ -139,14 +135,12 @@ export const commentQuerySchema = z.object({
     limit: z.coerce.number().int().positive().max(100).default(20),
     approved: z
         .string()
-        .transform((val) => val === 'true')
+        .transform(val => val === 'true')
         .optional(),
     authorId: z.string().optional(),
 });
 
-/**
- * Type exports for use in application
- */
+// Type exports for use in application
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
 export type PublishPostInput = z.infer<typeof publishPostSchema>;

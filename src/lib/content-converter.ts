@@ -125,17 +125,13 @@ export function markdownToPlainText(markdown: string): string {
 export function generateExcerpt(markdown: string, maxLength: number = 200): string {
     const plainText = markdownToPlainText(markdown);
 
-    if (plainText.length <= maxLength) {
-        return plainText;
-    }
+    if (plainText.length <= maxLength) return plainText;
 
     // Truncate at word boundary
     const truncated = plainText.slice(0, maxLength);
     const lastSpace = truncated.lastIndexOf(' ');
 
-    if (lastSpace > 0) {
-        return truncated.slice(0, lastSpace) + '...';
-    }
+    if (lastSpace > 0) return truncated.slice(0, lastSpace) + '...';
 
     return truncated + '...';
 }

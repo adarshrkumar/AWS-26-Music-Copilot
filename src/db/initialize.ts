@@ -1,5 +1,7 @@
 import { neon } from '@neondatabase/serverless';
+
 import { drizzle } from 'drizzle-orm/neon-http';
+
 import * as schema from './schema';
 import { posts, comments } from './schema';
 
@@ -20,9 +22,7 @@ export { schema };
  * Handles table creation, migrations, and initial setup
  */
 
-/**
- * Check if the database tables exist by attempting a simple query
- */
+// Check if the database tables exist by attempting a simple query
 export async function checkTablesExist(): Promise<boolean> {
     try {
         await db.select().from(posts).limit(1);
@@ -56,9 +56,7 @@ export async function initializeDatabase(): Promise<void> {
     }
 }
 
-/**
- * Verify database connection
- */
+// Verify database connection
 export async function verifyConnection(): Promise<boolean> {
     try {
         await db.select().from(posts).limit(1);
@@ -69,9 +67,7 @@ export async function verifyConnection(): Promise<boolean> {
     }
 }
 
-/**
- * Get database health status
- */
+// Get database health status
 export async function getDatabaseHealth(): Promise<{
     connected: boolean;
     tablesExist: boolean;
@@ -87,9 +83,7 @@ export async function getDatabaseHealth(): Promise<{
     };
 }
 
-/**
- * Seed initial data (optional - for development)
- */
+// Seed initial data (optional - for development)
 export async function seedDatabase(): Promise<void> {
     try {
         // Check if data already exists

@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+
 import { db } from '@/db/initialize';
 import { posts } from '@/db/schema';
 import {
@@ -8,7 +9,9 @@ import {
     type CreatePostInput,
     type UpdatePostInput,
 } from '@/db/validations';
+
 import { eq, desc, and, ilike, or } from 'drizzle-orm';
+
 import { z } from 'zod';
 
 /**
@@ -35,17 +38,11 @@ export const GET: APIRoute = async ({ request, url }) => {
         // Build query conditions
         const conditions = [];
 
-        if (validated.published !== undefined) {
-            conditions.push(eq(posts.published, validated.published));
-        }
+        if (validated.published !== undefined) conditions.push(eq(posts.published, validated.published));
 
-        if (validated.featured !== undefined) {
-            conditions.push(eq(posts.featured, validated.featured));
-        }
+        if (validated.featured !== undefined) conditions.push(eq(posts.featured, validated.featured));
 
-        if (validated.authorId) {
-            conditions.push(eq(posts.authorId, validated.authorId));
-        }
+        if (validated.authorId) conditions.push(eq(posts.authorId, validated.authorId));
 
         if (validated.search) {
             conditions.push(
