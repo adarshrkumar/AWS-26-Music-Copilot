@@ -1,7 +1,6 @@
 // OpenProps - CSS design tokens
 @use 'open-props/normalize' as *;
 @use 'open-props/style' as *;
-
 @use './reset' as *;
 @use './variables/globals' as *;
 @use './variables/mixins' as *;
@@ -20,10 +19,11 @@
 }
 
 html {
-    font-family: $font-family-base;
-    font-size: 16px;
     color: $text-primary;
     background-color: $bg-primary;
+    font-family: $font-family-base;
+    font-size: 16px;
+
     @include smooth-scroll;
 }
 
@@ -33,24 +33,27 @@ body {
 
 // Typography
 h1 {
-    @include heading-1;
     margin-bottom: space(6);
+
+    @include heading-1;
 }
 
 h2 {
-    @include heading-2;
     margin-bottom: space(5);
+
+    @include heading-2;
 }
 
 h3 {
-    @include heading-3;
     margin-bottom: space(5);
+
+    @include heading-3;
 }
 
 p {
     margin-bottom: space(5);
-    line-height: $line-height-relaxed;
     color: $text-secondary;
+    line-height: $line-height-relaxed;
 }
 
 // Links
@@ -58,11 +61,11 @@ a {
     color: $primary-color;
     transition: color $transition-fast;
 
+    @include focus-visible;
+
     &:hover {
         color: state-hover($primary-color);
     }
-
-    @include focus-visible;
 }
 
 // Utility classes

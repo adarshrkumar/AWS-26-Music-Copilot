@@ -15,11 +15,11 @@
     }
 
     &-label {
-        display: block;
         margin-bottom: space(2);
+        color: $text-primary;
         font-size: font-size(base);
         font-weight: $font-weight-medium;
-        color: $text-primary;
+        display: block;
 
         // Use data attributes for required state
         &[data-required="true"]::after {
@@ -44,7 +44,7 @@
             border-color: $error-color;
 
             &:focus {
-                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+                box-shadow: 0 0 0 3px rgb(239 68 68 / 10%);
             }
         }
 
@@ -52,7 +52,7 @@
             border-color: $success-color;
 
             &:focus {
-                box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+                box-shadow: 0 0 0 3px rgb(16 185 129 / 10%);
             }
         }
 
@@ -60,7 +60,7 @@
             border-color: $warning-color;
 
             &:focus {
-                box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+                box-shadow: 0 0 0 3px rgb(245 158 11 / 10%);
             }
         }
 
@@ -80,7 +80,7 @@
             border-color: $error-color;
 
             &:focus {
-                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+                box-shadow: 0 0 0 3px rgb(239 68 68 / 10%);
             }
         }
 
@@ -88,7 +88,7 @@
             border-color: $success-color;
 
             &:focus {
-                box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+                box-shadow: 0 0 0 3px rgb(16 185 129 / 10%);
             }
         }
 
@@ -96,7 +96,7 @@
             border-color: $warning-color;
 
             &:focus {
-                box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+                box-shadow: 0 0 0 3px rgb(245 158 11 / 10%);
             }
         }
 
@@ -113,8 +113,8 @@
     }
 
     &-textarea {
-        min-height: 120px;
         resize: vertical;
+        min-height: 120px;
 
         &[data-resize="none"] {
             resize: none;
@@ -130,19 +130,19 @@
     }
 
     &-select {
-        cursor: pointer;
-        appearance: none;
+        padding-right: space(12);
         background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"%3E%3Cpath stroke="%236b7280" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/%3E%3C/svg%3E');
+        background-size: 1.5rem 1.5rem;
         background-position: right space(4) center;
         background-repeat: no-repeat;
-        background-size: 1.5rem 1.5rem;
-        padding-right: space(12);
+        appearance: none;
+        cursor: pointer;
     }
 
     &-helper {
         margin-top: space(2);
-        font-size: font-size(base);
         color: $text-secondary;
+        font-size: font-size(base);
 
         &[data-state="error"] {
             color: $error-color;
@@ -159,28 +159,28 @@
 
     &-error {
         margin-top: space(2);
-        font-size: font-size(base);
         color: $error-color;
+        font-size: font-size(base);
     }
 
     &-checkbox,
     &-radio {
-        display: flex;
+        margin-bottom: space(4);
         align-items: center;
         gap: space(4);
-        margin-bottom: space(4);
+        display: flex;
 
         input {
             width: 1.125rem;
             height: 1.125rem;
-            cursor: pointer;
             accent-color: $primary-color;
+            cursor: pointer;
         }
 
         label {
-            cursor: pointer;
-            font-size: $font-size-base;
             color: $text-primary;
+            font-size: $font-size-base;
+            cursor: pointer;
         }
 
         &[data-state="disabled"] {
@@ -206,9 +206,10 @@
     }
 
     &-actions {
-        @include flex-between;
         margin-top: $spacing-extra-large;
         gap: space(5);
+
+        @include flex-between;
 
         &[data-layout="stack"] {
             flex-direction: column;

@@ -55,7 +55,7 @@ $shade-steps: (
     @return color.change($base-color, $alpha: $opacity);
 }
 
-@function complement($base-color) {
+@function hue-complement($base-color) {
     @return color.adjust($base-color, $hue: 180deg);
 }
 
@@ -63,7 +63,7 @@ $shade-steps: (
 @function channel-linear($value) {
     $channel-fraction: math.div($value, 255);
 
-    @if $channel-fraction <=0.03928 {
+    @if $channel-fraction <=0.0393 {
         @return math.div($channel-fraction, 12.92);
     }
 
@@ -77,6 +77,7 @@ $shade-steps: (
 @function contrast-ratio($first-color, $second-color) {
     $first-luminance: luminance($first-color);
     $second-luminance: luminance($second-color);
+
     @return math.div(math.max($first-luminance, $second-luminance) + 0.05, math.min($first-luminance, $second-luminance) + 0.05);
 }
 

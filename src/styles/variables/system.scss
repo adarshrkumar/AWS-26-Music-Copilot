@@ -7,8 +7,7 @@
 $font-display: 'Rubik', system-ui, sans-serif;
 $font-body: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
 $font-mono: 'Source Sans 3', system-ui, sans-serif;
-$font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-
+$font-family-base: -apple-system, blinkmacsystemfont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 $font-size: (
     xs: 12px,
     sm: 14px,
@@ -16,15 +15,13 @@ $font-size: (
     md: 18px,
     lg: 22px,
     xl: 30px,
-    2xl: 40px
+    '2xl': 40px
 );
-
 $font-weight: (
     regular: 400,
     semi: 600,
     bold: 700
 );
-
 $leading: (
     tight: 1.1,
     snug: 1.25,
@@ -50,10 +47,10 @@ $font-weight-medium: var(--font-weight-5);    // 500
 $line-height-normal: var(--font-lineheight-3);  // 1.5
 $line-height-relaxed: var(--font-lineheight-4); // 1.75
 
-@mixin display-heading($size: 2xl) {
+@mixin display-heading($size: '2xl') {
     font-family: $font-display;
-    font-weight: font-weight(bold);
     font-size: font-size($size);
+    font-weight: font-weight(bold);
     line-height: map.get($leading, tight);
     text-wrap: balance;
 }
@@ -76,25 +73,21 @@ $breakpoint-desktop: 768px;
 $breakpoint-wide: 1024px;
 $breakpoint-extra-wide: 1280px;
 $breakpoint-ultra-wide: 1536px;
-
 $z-index: (
     base: 1,
     sticky: 50,
     banner: 60,
     progress: 70
 );
-
 $duration: (
     fast: 0.15s,
     base: 0.2s,
     slow: 0.3s
 );
-
 $ease: (
     out: cubic-bezier(0.2, 0.9, 0.3, 1),
     smooth: cubic-bezier(0.2, 0.8, 0.2, 1)
 );
-
 $transition-fast: var(--ease-1);  // Fast spring easing
 $transition-base: var(--ease-3);  // Standard easing
 
@@ -105,33 +98,33 @@ $transition-base: var(--ease-3);  // Standard easing
 }
 
 .bar {
+    padding: padding(row);
     background: $bg-secondary;
     border: $border-width-accent $border-style $text-primary;
     border-radius: radius(lg);
-    padding: padding(row);
-    display: grid;
     gap: 10px;
+    display: grid;
 }
 
 .sign {
-    display: inline-block;
-    background: $text-primary;
+    padding: 7px 12px;
     color: $bg-primary;
+    background: $text-primary;
+    border-radius: radius(pill);
     font: font-weight(bold) #{font-size(xs)} / 1 $font-display;
     letter-spacing: .06em;
     text-transform: uppercase;
-    border-radius: radius(pill);
-    padding: 7px 12px;
+    display: inline-block;
 }
 
 .chord {
-    font: font-weight(bold) #{font-size(md)} / 1 $font-display;
-    background: $bg-secondary;
-    color: $text-primary;
-    border: $border-width-accent $border-style $text-primary;
-    border-radius: radius(pill);
     padding: padding(control);
     min-height: sizing(control-height);
+    color: $text-primary;
+    background: $bg-secondary;
+    border: $border-width-accent $border-style $text-primary;
+    border-radius: radius(pill);
+    font: font-weight(bold) #{font-size(md)} / 1 $font-display;
     cursor: pointer;
 
     &:hover,
@@ -141,8 +134,8 @@ $transition-base: var(--ease-3);  // Standard easing
     }
 
     &[aria-pressed="true"] {
-        background: $primary-color;
         color: $text-inverse;
+        background: $primary-color;
     }
 }
 
@@ -165,33 +158,33 @@ $transition-base: var(--ease-3);  // Standard easing
 }
 
 .suggestion {
+    padding: padding(callout);
+    color: $text-primary;
     background: $bg-primary;
     border: $border-width $border-style $border-color;
     border-left: $border-width-accent $border-style $primary-color;
     border-radius: radius(md);
-    padding: padding(callout);
     font: font-weight(regular) #{font-size(base)} / 1.5 $font-body;
-    color: $text-primary;
 }
 
 .staff-block {
+    padding: padding(callout);
     background: $bg-primary;
     border: $border-width-accent $border-style $text-primary;
     border-radius: radius(lg);
-    padding: padding(callout);
     font: font-weight(semi) #{font-size(base)} / 1.5 $font-body;
 }
 
 .btn {
-    font: font-weight(bold) #{font-size(base)} / 1 $font-body;
-    background: $primary-color;
-    color: $text-inverse;
-    border: 0;
-    border-radius: radius(pill);
     padding: padding(control);
     min-height: sizing(control-height);
-    cursor: pointer;
+    color: $text-inverse;
+    background: $primary-color;
+    border: 0;
+    border-radius: radius(pill);
+    font: font-weight(bold) #{font-size(base)} / 1 $font-body;
     transition: background .15s ease, transform .15s ease;
+    cursor: pointer;
 
     &:hover {
         background: state-hover($primary-color);
@@ -214,15 +207,15 @@ $transition-base: var(--ease-3);  // Standard easing
 }
 
 .indicative-note {
-    font: font-weight(regular) #{font-size(sm)} / 1.5 $font-body;
     color: $text-secondary;
+    font: font-weight(regular) #{font-size(sm)} / 1.5 $font-body;
 }
 
 .note-blocked {
-    background: $bg-primary;
+    padding: padding(callout);
     color: $error-color;
+    background: $bg-primary;
     border: $border-width $border-style $error-color;
     border-radius: radius(lg);
-    padding: padding(callout);
     font-weight: font-weight(semi);
 }

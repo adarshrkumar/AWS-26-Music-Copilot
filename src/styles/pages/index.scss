@@ -6,24 +6,25 @@
     padding: $spacing-3x-large 0;
 
     &__header {
-        text-align: center;
         margin-bottom: $spacing-3x-large;
+        text-align: center;
     }
 
     &__title {
-        @include heading-1;
-        margin-inline: auto;
         margin-bottom: space(5);
+        margin-inline: auto;
         background: linear-gradient(135deg, $primary-color 0%, $secondary-color 100%);
-        -webkit-text-fill-color: transparent;
         background-clip: text;
+        -webkit-text-fill-color: transparent;
+
+        @include heading-1;
     }
 
     &__subtitle {
-        font-size: $font-size-large;
-        color: $text-secondary;
-        max-width: 600px;
         margin: 0 auto;
+        max-width: 600px;
+        color: $text-secondary;
+        font-size: $font-size-large;
 
         @include desktop {
             font-size: $font-size-extra-large;
@@ -31,10 +32,10 @@
     }
 
     &__features {
-        display: grid;
+        margin-bottom: $spacing-3x-large;
         grid-template-columns: 1fr;
         gap: space(6);
-        margin-bottom: $spacing-3x-large;
+        display: grid;
 
         @include tablet {
             grid-template-columns: repeat(2, 1fr);
@@ -47,33 +48,35 @@
 
     &__feature {
         h3 {
-            font-size: $font-size-extra-large;
-            font-weight: font-weight(semi);
             margin-bottom: space(4);
             color: $text-primary;
+            font-size: $font-size-extra-large;
+            font-weight: font-weight(semi);
         }
 
         p {
-            font-size: $font-size-base;
-            color: $text-secondary;
             margin-bottom: 0;
+            color: $text-secondary;
+            font-size: $font-size-base;
         }
     }
 
     &__cta {
-        text-align: center;
         padding: $spacing-3x-large 0;
         border-top: 1px solid $border-color;
+        text-align: center;
 
         h2 {
-            @include heading-2;
             margin-bottom: $spacing-extra-large;
+
+            @include heading-2;
         }
     }
 
     &__cta-buttons {
-        @include flex-center;
-        gap: space(6);
         flex-wrap: wrap;
+        gap: space(6);
+
+        @include flex-center;
     }
 }

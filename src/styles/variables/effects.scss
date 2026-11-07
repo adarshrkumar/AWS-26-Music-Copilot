@@ -6,7 +6,6 @@ $shadow-soft: (
     md: 0 6px 18px rgba($black, .45),
     lg: 0 14px 34px rgba($black, .55)
 );
-
 $shadow-rest: 0 1px 3px rgba($black, .35);
 
 @function shadow-soft($level: md) {
@@ -21,7 +20,6 @@ $shadow-small: var(--shadow-2);
 $shadow-medium: var(--shadow-3);
 $shadow-large: var(--shadow-4);
 $shadow-extra-large: var(--shadow-6);
-
 $focus-ring-width: 3px;
 $focus-ring-offset: 2px;
 $focus-ring: 0 0 0 $focus-ring-width rgba($primary-color, .45);
@@ -35,6 +33,5 @@ $focus-ring: 0 0 0 $focus-ring-width rgba($primary-color, .45);
 
 // Reads --mx and --my, set from JavaScript.
 $bg-glow: radial-gradient(420px circle at var(--mx) var(--my), rgba($primary-color, .08), transparent 60%);
-
 $grad-progress: linear-gradient(90deg, $primary-color, $secondary-color);
 $grad-escalate: linear-gradient(90deg, rgba($secondary-color, .25), rgba($error-color, .18));

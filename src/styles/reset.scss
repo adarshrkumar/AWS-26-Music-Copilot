@@ -16,8 +16,8 @@ html {
 
 body {
     min-height: 100vh;
-    text-rendering: optimizeSpeed;
     line-height: 1.5;
+    text-rendering: optimizespeed;
 }
 
 h1,
@@ -49,8 +49,8 @@ input,
 button,
 textarea,
 select {
-    font: inherit;
     color: inherit;
+    font: inherit;
 }
 
 button {
