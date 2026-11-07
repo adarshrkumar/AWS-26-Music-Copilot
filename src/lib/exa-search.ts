@@ -30,7 +30,7 @@ export interface ExaSearchOptions {
     useAutoprompt?: boolean;
 
     /** Category of content to search */
-    category?: 'company' | 'research paper' | 'news' | 'github' | 'tweet' | 'movie' | 'song' | 'personal site' | 'pdf';
+    category?: 'company' | 'research paper' | 'news' | 'github' | 'tweet' | 'movie' | 'song' | 'personal site' | 'pdf' | 'linkedin profile' | 'financial report';
 
     /** Start crawl date (YYYY-MM-DD) */
     startCrawlDate?: string;

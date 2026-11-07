@@ -51,12 +51,12 @@ export const POST: APIRoute = async ({ request }) => {
             model: validatedData.model, // Use model string directly (e.g., 'openai/gpt-4o')
             messages: validatedData.messages,
             temperature: validatedData.temperature,
-            maxTokens: validatedData.maxTokens,
+            maxOutputTokens: validatedData.maxTokens,
             apiKey: import.meta.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY,
         });
 
         // Return the stream response
-        return result.toDataStreamResponse();
+        return result.toUIMessageStreamResponse();
     } catch (error) {
         // Handle Zod validation errors
         if (error instanceof z.ZodError) {
