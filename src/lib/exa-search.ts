@@ -20,37 +20,37 @@ function getExaClient(): Exa {
 
 // Search options for Exa
 export interface ExaSearchOptions {
-    /** Number of results to return (1-10, default: 10) */
+    // Number of results to return (1-10, default: 10)
     numResults?: number;
 
-    /** Type of search: 'neural', 'keyword', or 'auto' (default: 'auto') */
+    // Type of search: 'neural', 'keyword', or 'auto' (default: 'auto')
     type?: 'neural' | 'keyword' | 'auto';
 
-    /** Whether to use autoprompt to expand query (default: false) */
+    // Whether to use autoprompt to expand query (default: false)
     useAutoprompt?: boolean;
 
-    /** Category of content to search */
+    // Category of content to search
     category?: 'company' | 'research paper' | 'news' | 'github' | 'tweet' | 'movie' | 'song' | 'personal site' | 'pdf' | 'linkedin profile' | 'financial report';
 
-    /** Start crawl date (YYYY-MM-DD) */
+    // Start crawl date (YYYY-MM-DD)
     startCrawlDate?: string;
 
-    /** End crawl date (YYYY-MM-DD) */
+    // End crawl date (YYYY-MM-DD)
     endCrawlDate?: string;
 
-    /** Start published date (YYYY-MM-DD) */
+    // Start published date (YYYY-MM-DD)
     startPublishedDate?: string;
 
-    /** End published date (YYYY-MM-DD) */
+    // End published date (YYYY-MM-DD)
     endPublishedDate?: string;
 
-    /** Include domains (whitelist) */
+    // Include domains (whitelist)
     includeDomains?: string[];
 
-    /** Exclude domains (blacklist) */
+    // Exclude domains (blacklist)
     excludeDomains?: string[];
 
-    /** Whether to include page content */
+    // Whether to include page content
     contents?: {
         text?: boolean | { maxCharacters?: number };
         highlights?: boolean | { numSentences?: number; highlightsPerUrl?: number };
