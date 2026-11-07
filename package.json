@@ -10,7 +10,7 @@
         "astro": "astro",
         "ts": "node --experimental-strip-types",
         "check": "eslint . && stylelint \"**/*.scss\" && astro check && astro build",
-        "stylelint:fix": "stylelint \"src/**/*.scss\" --fix"
+        "stylelint:fix": "stylelint \"**/*.scss\" --fix"
     },
     "dependencies": {
         "@astrojs/check": "^0.9.6",
