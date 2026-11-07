@@ -1,0 +1,17 @@
+[
+    {
+        "sign": "Songwriter",
+        "title": "Hobbyists writing their own material",
+        "body": "Write a progression, see what fits, and decide what goes into the song. You stay the author."
+    },
+    {
+        "sign": "Student",
+        "title": "Music students learning harmony",
+        "body": "Work from a teacher’s sample progressions and build the theory you need while you play."
+    },
+    {
+        "sign": "Teacher",
+        "title": "Teachers running a class",
+        "body": "Share sample progressions and see which concepts students explored, without seeing their melodies."
+    }
+]

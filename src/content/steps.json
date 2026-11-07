@@ -1,0 +1,22 @@
+[
+    {
+        "bar": "Bar 1",
+        "title": "Build a progression",
+        "body": "Set a key, a tempo and up to sixteen bars. Enter chords one at a time or start from a sample. Each chord shows its function in the key."
+    },
+    {
+        "bar": "Bar 2",
+        "title": "Find scales and notes",
+        "body": "Tap a chord to see the scales and arpeggios that fit, the feel of each, and the guide tones that lead into the next chord."
+    },
+    {
+        "bar": "Bar 3",
+        "title": "Write your melody",
+        "body": "Write in tabs or sheet music. Notes that fit are checked, notes outside the scale are marked. Nothing is ever removed for you."
+    },
+    {
+        "bar": "Bar 4",
+        "title": "Ask for autofill",
+        "body": "Stuck on a bar? Copilot proposes a short phrase with the theory behind it. Accept it, edit it, or throw it away."
+    }
+]

@@ -1,7 +1,9 @@
-@use '../variables/globals' as *;
+@use '../variables/colors' as *;
+@use '../variables/effects' as *;
 @use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
 
-// Card component styles
 // Usage (preferred): <div class="card" data-variant="primary" data-state="active">...</div>
 // Usage (alternative): <div class="card primary active">Class chaining</div>
 

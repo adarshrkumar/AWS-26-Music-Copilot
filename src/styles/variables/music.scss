@@ -1,0 +1,65 @@
+@use 'colors' as *;
+
+@mixin staff-lines($color: rgba($border-color, .3), $gap: 24px, $offset: 0) {
+    background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc($gap - 1px), $color calc($gap - 1px), $color $gap);
+    background-size: 100% calc($gap * 5);
+    background-position: 0 $offset;
+    background-repeat: repeat-x;
+}
+
+// Glyph mixins set `content`, so use them inside ::before or ::after.
+@mixin treble-clef {
+    content: '\1D11E';
+}
+
+@mixin bass-clef {
+    content: '\1D122';
+}
+
+@mixin sharp {
+    content: '\266F';
+}
+
+@mixin flat {
+    content: '\266D';
+}
+
+@mixin whole-note {
+    content: '\1D15D';
+}
+
+@mixin whole-rest {
+    content: '\1D13B';
+}
+
+@mixin half-note {
+    content: '\1D15E';
+}
+
+@mixin half-rest {
+    content: '\1D13C';
+}
+
+@mixin quarter-note {
+    content: '\1D15F';
+}
+
+@mixin quarter-rest {
+    content: '\1D13D';
+}
+
+@mixin eighth-note {
+    content: '\1D160';
+}
+
+@mixin eighth-rest {
+    content: '\1D13E';
+}
+
+@mixin sixteenth-note {
+    content: '\1D161';
+}
+
+@mixin sixteenth-rest {
+    content: '\1D13F';
+}

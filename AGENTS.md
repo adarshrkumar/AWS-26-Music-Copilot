@@ -268,3 +268,18 @@ PWA settings in `astro.config.mjs`:
 ### Code Style Guidelines
 
 **CRITICAL: Always use 4 spaces for indentation, never tabs.**
+
+**CRITICAL: Never hard-wrap comments.** This applies to every language and file type (TypeScript, Astro, SCSS, JavaScript, HTML, Markdown and config files). Write each comment as one line, however long. Do not break a comment across several lines to fit a column width.
+
+```text
+❌ WRONG
+// Site header with the brand badge and section links.
+// Styles live in src/styles/components/header.scss.
+
+✅ CORRECT
+// Site header with the brand badge and section links. Styles live in src/styles/components/header.scss.
+```
+
+**CRITICAL: No `@forward` in SCSS.** Every SCSS file imports the files it needs directly with `@use` (for example `@use '../variables/colors' as *;`). Never create or use a forwarding barrel file, and never inject one through `additionalData`.
+
+**CRITICAL: No useless comments.** Do not add comments that restate the code, label sections (`// Header`, `<!-- Hero -->`), name a variable's obvious purpose (`// Docs URL`), or describe file conventions already in this file. Only comment when the code cannot explain a non-obvious reason on its own.

@@ -1,4 +1,8 @@
-@use './globals' as *;
+@use 'color-functions' as *;
+@use 'colors' as *;
+@use 'effects' as *;
+@use 'system' as *;
+@use 'tokens' as *;
 @use 'sass:map';
 
 // NOTE: All mixins below use variables from globals.scss which are now powered by OpenProps design tokens

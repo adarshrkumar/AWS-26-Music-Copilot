@@ -1,0 +1,29 @@
+---
+import { siteConfig } from '@/lib/config';
+
+import '@/styles/components/header.scss';
+const links = [
+    { href: '#how', label: 'How it works' },
+    { href: '#rules', label: 'Rules' },
+    { href: '#engine', label: 'Theory engine' },
+    { href: '#pilot', label: 'Pilot' },
+];
+---
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="header">
+    <div class="container header__inner">
+        <a class="header__brand" href="/" aria-label={`${siteConfig.appName} home`}>
+            <span class="header__badge" aria-hidden="true">&#x1D11E;</span>
+            <span class="header__name">{siteConfig.appName}</span>
+        </a>
+        <nav class="header__nav" aria-label="Main">
+            <ul class="header__list">
+                {links.map(link => (
+                    <li><a class="header__link" href={link.href}>{link.label}</a></li>
+                ))}
+            </ul>
+        </nav>
+    </div>
+</header>

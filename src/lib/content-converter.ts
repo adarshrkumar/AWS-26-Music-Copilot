@@ -1,4 +1,3 @@
-// Content Converter Utilities
 // Provides functions for converting between HTML and Markdown using marked and turndown
 
 import { marked } from 'marked';
