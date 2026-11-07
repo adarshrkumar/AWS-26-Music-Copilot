@@ -75,7 +75,7 @@
     }
 
     &:focus-visible {
-        outline: 2px solid $border-focus;
+        outline: 2px solid $primary-color;
         outline-offset: 2px;
     }
 }
@@ -86,7 +86,7 @@
     color: $text-inverse;
 
     &:hover:not(:disabled) {
-        background-color: $primary-hover;
+        background-color: state-hover($primary-color);
     }
 }
 
@@ -130,7 +130,7 @@
 
     &:focus {
         outline: none;
-        border-color: $border-focus;
+        border-color: $primary-color;
         box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
 
@@ -224,7 +224,7 @@
 // Focus visible outline
 @mixin focus-visible {
     &:focus-visible {
-        outline: 2px solid $border-focus;
+        outline: 2px solid $primary-color;
         outline-offset: 2px;
     }
 }
