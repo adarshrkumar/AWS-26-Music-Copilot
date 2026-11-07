@@ -22,14 +22,14 @@ Music Copilot addresses these by keeping theory next to the writing. The student
 
 ## 3. Goals and Non-Goals
 
-**Goals**
+### Goals
 
 - Let a user build a chord progression with tempo and bars, and see the scales and arpeggios that fit it within one minute.
 - Show the reason for each suggestion in plain words, so the user learns the theory.
 - Support both tabs and sheet music for the same progression.
 - Provide a visual of the scale on a fretboard or keyboard for each chord.
 
-**Non-goals**
+### Non-goals
 
 - Generating a complete song or a finished melody without the user's input.
 - Recording, mixing, or producing audio in v1.
@@ -57,27 +57,27 @@ Music Copilot addresses these by keeping theory next to the writing. The student
 
 ## 6. Primary Workflows
 
-**Build a progression**
+### Build a progression
 
 - The songwriter sets a key, a tempo, and a number of bars.
 - They enter chords one at a time, or choose a sample progression.
 - Copilot shows the chord names, their functions in the key, and a short note on each.
 - The songwriter can change any chord, and the suggestions update.
 
-**Find scales and notes**
+### Find scales and notes
 
 - The songwriter taps a chord.
 - Copilot lists the scales and arpeggios that fit it, with the feel of each.
 - The songwriter can view the scale on a keyboard or fretboard diagram.
 - Copilot marks the guide tones for the chord and the next one.
 
-**Write notes**
+### Write notes
 
 - The songwriter writes a melody in the tab or sheet music area.
 - Copilot highlights notes that fit the current chord and scale, and marks any note outside them.
 - The songwriter keeps, changes, or removes any note. Copilot does not change notes on its own.
 
-**Autofill**
+### Autofill
 
 - The songwriter asks for autofill on a bar.
 - Copilot proposes a short phrase that fits the chord and scale, and shows the theory behind it.
@@ -152,7 +152,7 @@ Notation software handles tabs and sheet music but does not explain theory. Onli
 
 The high-level flow is:
 
-```
+```text
 INPUT (chords, key, tempo, bars)
   → THEORY ENGINE (chord functions, scales, arpeggios, guide tones)
   → SUGGESTIONS (ranked, with reasons)
