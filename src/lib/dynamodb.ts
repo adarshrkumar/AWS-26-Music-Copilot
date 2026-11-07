@@ -40,8 +40,7 @@ export const tableName = process.env.DYNAMODB_TABLE_NAME ?? 'music-copilot';
 export async function getItem(
     key: GetCommandInput['Key'],
 ): Promise<GetCommandOutput['Item'] | null> {
-    const result = await docClient.send(new GetCommand({ TableName: tableName, Key: key }));
-    return result.Item ?? null;
+    return (await docClient.send(new GetCommand({ TableName: tableName, Key: key }))).Item ?? null;
 }
 
 export async function putItem(item: PutCommandInput['Item']): Promise<void> {
@@ -55,8 +54,7 @@ export async function deleteItem(key: DeleteCommandInput['Key']): Promise<void> 
 export async function queryItems(
     input: Omit<QueryCommandInput, 'TableName'>,
 ): Promise<NonNullable<QueryCommandOutput['Items']>> {
-    const result = await docClient.send(new QueryCommand({ TableName: tableName, ...input }));
-    return result.Items ?? [];
+    return (await docClient.send(new QueryCommand({ TableName: tableName, ...input }))).Items ?? [];
 }
 
 export async function verifyDynamoConnection(): Promise<boolean> {
