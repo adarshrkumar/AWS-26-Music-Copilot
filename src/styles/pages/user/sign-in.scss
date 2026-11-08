@@ -13,7 +13,7 @@ body {
 }
 
 .auth {
-    padding-block: space(16);
+    padding-block: space(8);
 
     @include flex-center;
 
@@ -25,13 +25,13 @@ body {
     }
 
     &__title {
-        margin-bottom: space(6);
+        margin-bottom: space(4);
 
         @include heading-2;
     }
 
     &__error {
-        margin-bottom: space(6);
+        margin-bottom: space(4);
         color: $error-color;
 
         &:empty {
@@ -39,8 +39,15 @@ body {
         }
     }
 
+    &__social {
+        margin-top: space(4);
+        gap: space(3);
+
+        @include flex-column;
+    }
+
     &__switch {
-        margin-top: space(6);
+        margin-top: space(4);
         color: $text-secondary;
         text-align: center;
     }
