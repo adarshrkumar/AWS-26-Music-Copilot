@@ -1,22 +1,62 @@
 ---
-import { appLinks } from '@/lib/app-links';
-
-import Card from '@/components/Card.astro';
 import App from '@/layouts/App.astro';
-import '@/styles/pages/app-home.scss';
+import IndexScript from '@/script/app/index.astro';
+import '@/styles/pages/app/index.scss';
 
 if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
 ---
 
-<App pageTitle="App">
-    <h1 class="app-home__title">Your workspace</h1>
-    <ul class="app-home__grid">
-        {appLinks.map(link => (
-            <li>
-                <Card href={link.href} title={link.label}>
-                    <p>{link.description}</p>
-                </Card>
+<App pageTitle="Songs">
+    <IndexScript />
+    <div class="songs-page">
+        <div class="songs-page__head">
+            <div>
+                <h1 class="songs-page__title">Your Songs</h1>
+                <p class="songs-page__lead">Pick a song to keep working on it, or start a new one.</p>
+            </div>
+            <button class="btn songs-page__new-btn" id="new-song-btn" type="button" aria-label="Create a new song">
+                + New song
+            </button>
+        </div>
+
+        <ul class="songs-page__list" id="songs-list" role="list" aria-live="polite" aria-label="Your songs">
+            <li class="songs-page__empty" id="songs-empty">
+                <p>No songs yet. Create one to get started.</p>
             </li>
-        ))}
-    </ul>
+        </ul>
+    </div>
+
+    <div class="songs-page__modal" id="new-song-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+        <div class="songs-page__modal-panel">
+            <h2 id="modal-title" class="songs-page__modal-title">New song</h2>
+            <form class="songs-page__form" id="new-song-form" novalidate>
+                <label class="songs-page__label" for="song-title">Title</label>
+                <input class="songs-page__input" id="song-title" name="title" type="text" placeholder="Untitled" autocomplete="off" required />
+
+                <label class="songs-page__label" for="song-key">Key</label>
+                <select class="songs-page__input" id="song-key" name="key">
+                    <option value="C major">C major</option>
+                    <option value="G major">G major</option>
+                    <option value="D major">D major</option>
+                    <option value="A major">A major</option>
+                    <option value="E major">E major</option>
+                    <option value="F major">F major</option>
+                    <option value="Bb major">B♭ major</option>
+                    <option value="Eb major">E♭ major</option>
+                    <option value="A minor">A minor</option>
+                    <option value="E minor">E minor</option>
+                    <option value="D minor">D minor</option>
+                    <option value="G minor">G minor</option>
+                </select>
+
+                <label class="songs-page__label" for="song-tempo">Tempo (BPM)</label>
+                <input class="songs-page__input" id="song-tempo" name="tempo" type="number" min="40" max="280" value="120" />
+
+                <div class="songs-page__form-actions">
+                    <button class="btn" type="submit">Create song</button>
+                    <button class="btn songs-page__btn-cancel" type="button" id="cancel-modal-btn" data-variant="secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </App>

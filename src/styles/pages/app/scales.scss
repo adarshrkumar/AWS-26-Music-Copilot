@@ -1,0 +1,115 @@
+@use '../../variables/colors' as *;
+@use '../../variables/mixins' as *;
+@use '../../variables/system' as *;
+@use '../../variables/tokens' as *;
+
+.scales {
+    gap: space(6);
+    display: grid;
+
+    &__title {
+        margin-bottom: space(1);
+        font-family: $font-display;
+        font-size: font-size(xl);
+    }
+
+    &__lead {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__controls-row {
+        gap: space(4);
+        flex-wrap: wrap;
+        margin-top: space(4);
+        display: flex;
+
+        .form-group { flex: 1; min-width: 180px; }
+    }
+
+    &__chord-row {
+        gap: space(3);
+        display: flex;
+
+        input { flex: 1; }
+    }
+
+    &__chord-header {
+        gap: space(2);
+        display: grid;
+    }
+
+    &__section-title {
+        margin-bottom: space(3);
+        font-family: $font-display;
+        font-size: font-size(md);
+    }
+
+    &__scale-list {
+        gap: space(3);
+        display: grid;
+
+        @include tablet {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+    }
+
+    &__scale-card {
+        padding: padding(card);
+        background: $bg-secondary;
+        border: $border-width $border-style $border-color;
+        border-top: 4px $border-style $secondary-color;
+        border-radius: radius(lg);
+        gap: space(2);
+        display: grid;
+    }
+
+    &__scale-card-name {
+        margin: 0;
+        font-family: $font-display;
+        font-size: font-size(md);
+        font-weight: font-weight(bold);
+    }
+
+    &__keyboard {
+        position: relative;
+        height: 120px;
+        border: 2px $border-style $text-primary;
+        border-radius: radius(sm);
+        overflow: hidden;
+        display: flex;
+        user-select: none;
+    }
+
+    &__key {
+        position: relative;
+        flex: 1;
+        border-right: 1px $border-style rgba($border-color, .3);
+        background: $bg-secondary;
+
+        &--black {
+            position: absolute;
+            width: 60%;
+            height: 65%;
+            background: $text-primary;
+            border-radius: 0 0 radius(xs) radius(xs);
+            z-index: 1;
+        }
+
+        &--in-scale { background: rgba($secondary-color, .2); }
+        &--chord-tone { background: rgba($primary-color, .3); }
+        &--guide-tone { background: rgba($accent-color, .45); }
+        &--root { background: $primary-color; }
+    }
+
+    &__key-label {
+        position: absolute;
+        bottom: 6px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 9px;
+        color: $text-secondary;
+        pointer-events: none;
+    }
+}

@@ -1,2 +1,181 @@
 <script>
+import type { ChordAnalysis, GuideToneMove, InvalidChord, ProgressionAnalysis, Suggestion } from '@/lib/theory/types';
+
+type ProgressionResult = ProgressionAnalysis;
+type ChordEntry = ChordAnalysis;
+type BadEntry = InvalidChord;
+type ScaleSuggestion = Suggestion;
+type GuideMove = GuideToneMove;
+
+const KEY_STORAGE = 'mc_prog_key';
+const CHORDS_STORAGE = 'mc_prog_chords';
+
+const keyInput    = document.querySelector<HTMLInputElement>('#prog-key')!;
+const tempoInput  = document.querySelector<HTMLInputElement>('#prog-tempo')!;
+const barsInput   = document.querySelector<HTMLInputElement>('#prog-bars')!;
+const sampleSel   = document.querySelector<HTMLSelectElement>('#prog-sample')!;
+const loadBtn     = document.querySelector<HTMLElement>('#load-sample-btn')!;
+const chordInput  = document.querySelector<HTMLInputElement>('#chord-input')!;
+const addBtn      = document.querySelector<HTMLElement>('#add-chord-btn')!;
+const barGrid     = document.querySelector<HTMLElement>('#bar-grid')!;
+const barCount    = document.querySelector<HTMLElement>('#bar-count')!;
+const analysisSection = document.querySelector<HTMLElement>('#analysis-section')!;
+const chordCards  = document.querySelector<HTMLElement>('#chord-cards')!;
+const saveBtn     = document.querySelector<HTMLElement>('#save-prog-btn')!;
+const clearBtn    = document.querySelector<HTMLElement>('#clear-prog-btn')!;
+const progStatus  = document.querySelector<HTMLElement>('#prog-status')!;
+
+let chords: string[] = [];
+let lastResult: ProgressionResult | null = null;
+
+function escHtml(str: string): string {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function maxBars(): number {
+    return Math.min(parseInt(barsInput.value, 10) || 16, 16);
+}
+
+function saveLocal() {
+    localStorage.setItem(KEY_STORAGE, keyInput.value);
+    localStorage.setItem(CHORDS_STORAGE, JSON.stringify(chords));
+}
+
+function loadLocal() {
+    const key = localStorage.getItem(KEY_STORAGE);
+    const stored = localStorage.getItem(CHORDS_STORAGE);
+    if (key) keyInput.value = key;
+    if (stored) {
+        try { chords = JSON.parse(stored) as string[]; } catch { chords = []; }
+    }
+}
+
+function renderBars() {
+    barGrid.innerHTML = '';
+    for (const [i, chord] of chords.entries()) {
+        const entry = lastResult?.chords[i];
+        const roman = entry?.valid ? entry.context.roman : '';
+
+        const item = document.createElement('div');
+        item.className = 'progression__bar-item';
+        item.setAttribute('role', 'listitem');
+        item.setAttribute('aria-label', `Bar ${i + 1}: ${chord}`);
+        item.innerHTML = `<span class="progression__bar-number" aria-hidden="true">${i + 1}</span><span class="progression__bar-chord">${escHtml(chord)}</span>${roman ? `<span class="progression__bar-function">${escHtml(roman)}</span>` : ''}<button class="progression__bar-remove" data-remove="${i}" aria-label="Remove bar ${i + 1}" type="button">×</button>`;
+        barGrid.appendChild(item);
+    }
+
+    barGrid.querySelectorAll<HTMLElement>('[data-remove]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation();
+            chords.splice(parseInt(btn.dataset.remove ?? '0', 10), 1);
+            saveLocal();
+            analyzeAndRender();
+        });
+    });
+
+    barCount.textContent = `${chords.length} / ${maxBars()} bars`;
+}
+
+function renderChordCard(entry: ChordEntry | BadEntry) {
+    const card = document.createElement('div');
+    card.className = 'progression__chord-card';
+
+    if (!entry.valid) {
+        card.innerHTML = `<h3 class="progression__chord-card-name">${escHtml(entry.name)}</h3><p class="note-blocked">${escHtml(entry.message)}</p>`;
+        return card;
+    }
+
+    const borrowed = entry.context.status !== 'diatonic' ? `<span class="note-blocked" style="font-size:.75rem;padding:2px 8px">${escHtml(entry.context.status)}</span>` : '';
+    const scales = entry.scales.slice(0, 3).map((s: ScaleSuggestion) => `<div class="progression__chord-scale-item"><span class="progression__chord-scale-name">${escHtml(s.name)}</span><p style="font-size:.8125rem;color:var(--color-text-secondary,#5f5f6b);margin:0">${escHtml(s.reason)}</p><a class="progression__chord-scale-link" href="/app/scales?chord=${encodeURIComponent(entry.name)}&key=${encodeURIComponent(keyInput.value)}">View scale →</a></div>`).join('');
+    const guideMove = entry.guideToneMoves[0] as GuideMove | undefined;
+    const guide = guideMove ? `<div class="progression__chord-guide"><span class="sign" style="font-size:.625rem">Guide tones</span><p style="margin:0;font-size:.875rem">${escHtml(guideMove.reason)}</p></div>` : '';
+
+    card.innerHTML = `<h3 class="progression__chord-card-name">${escHtml(entry.name)}</h3><div class="progression__chord-function"><span class="sign">${escHtml(entry.context.roman)}</span><span style="font-size:.875rem;color:var(--color-text-secondary,#5f5f6b)">${escHtml(entry.context.description)}</span>${borrowed}</div><p style="font-size:.875rem;color:var(--color-text-secondary,#5f5f6b);margin:0">${escHtml(entry.context.reason)}</p><div class="progression__chord-scales">${scales}</div>${guide}`;
+    return card;
+}
+
+function renderAnalysis() {
+    if (!lastResult || chords.length === 0) {
+        analysisSection.hidden = true;
+        return;
+    }
+    analysisSection.hidden = false;
+    chordCards.innerHTML = '';
+    for (const entry of lastResult.chords) chordCards.appendChild(renderChordCard(entry));
+}
+
+async function analyzeAndRender() {
+    renderBars();
+    if (chords.length === 0) {
+        lastResult = null;
+        analysisSection.hidden = true;
+        return;
+    }
+
+    const chordObjs = chords.map((name, index) => ({ bar: index + 1, beat: 1, name }));
+    const res = await fetch('/api/modules/progression', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: keyInput.value, chords: chordObjs }),
+    });
+    if (!res.ok) return;
+    lastResult = await res.json() as ProgressionResult;
+    renderBars();
+    renderAnalysis();
+}
+
+function addChord() {
+    const name = chordInput.value.trim();
+    if (!name) return;
+    const max = maxBars();
+    const incoming = name.split(',').map(s => s.trim()).filter(Boolean);
+    for (const c of incoming) {
+        if (chords.length < max) chords.push(c);
+    }
+    chordInput.value = '';
+    saveLocal();
+    analyzeAndRender();
+}
+
+chordInput.addEventListener('keydown', e => { if (e.key === 'Enter') addChord(); });
+addBtn.addEventListener('click', addChord);
+
+loadBtn.addEventListener('click', () => {
+    const opt = sampleSel.options[sampleSel.selectedIndex];
+    if (!opt.value) return;
+    if (opt.dataset.key) keyInput.value = opt.dataset.key;
+    chords = (opt.dataset.chords ?? '').split(',').map(s => s.trim()).filter(Boolean);
+    saveLocal();
+    analyzeAndRender();
+});
+
+keyInput.addEventListener('change', () => { saveLocal(); analyzeAndRender(); });
+barsInput.addEventListener('change', () => {
+    const max = maxBars();
+    if (chords.length > max) chords = chords.slice(0, max);
+    saveLocal();
+    analyzeAndRender();
+});
+
+saveBtn.addEventListener('click', async () => {
+    if (chords.length === 0) { progStatus.textContent = 'Add at least one chord first.'; return; }
+    const songId = new URLSearchParams(window.location.search).get('song');
+    const body = { id: songId ?? undefined, key: keyInput.value, tempo: parseInt(tempoInput.value, 10) || 100, sections: [{ id: crypto.randomUUID(), name: 'Section 1', bars: Math.min(chords.length, 16), chords: chords.map((c, i) => ({ bar: i + 1, beat: 1, name: c })), notes: [] }] };
+    const res = await fetch('/api/modules/songs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (res.ok) {
+        progStatus.textContent = 'Saved.';
+        setTimeout(() => { progStatus.textContent = ''; }, 3000);
+    }
+});
+
+clearBtn.addEventListener('click', () => {
+    chords = [];
+    lastResult = null;
+    saveLocal();
+    renderBars();
+    analysisSection.hidden = true;
+});
+
+loadLocal();
+analyzeAndRender();
 </script>

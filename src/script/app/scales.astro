@@ -1,2 +1,127 @@
 <script>
+import type { ChordAnalysis, GuideTone, GuideToneMove, Suggestion } from '@/lib/theory/types';
+
+type ScalesResult = ChordAnalysis;
+type ScaleSuggestion = Suggestion;
+type GuideT = GuideTone;
+type GuideMove = GuideToneMove;
+
+const page = document.querySelector<HTMLElement>('.scales')!;
+const keyInput     = document.querySelector<HTMLInputElement>('#scales-key')!;
+const chordInput   = document.querySelector<HTMLInputElement>('#scales-chord')!;
+const nextInput    = document.querySelector<HTMLInputElement>('#scales-next')!;
+const analyzeBtn   = document.querySelector<HTMLElement>('#scales-analyze-btn')!;
+const results      = document.querySelector<HTMLElement>('#scales-results')!;
+const emptyMsg     = document.querySelector<HTMLElement>('#scales-empty')!;
+const chordHeader  = document.querySelector<HTMLElement>('#chord-header')!;
+const scaleList    = document.querySelector<HTMLElement>('#scale-list')!;
+const arpList      = document.querySelector<HTMLElement>('#arp-list')!;
+const guideCard    = document.querySelector<HTMLElement>('#guide-card')!;
+const keyboardDiv  = document.querySelector<HTMLElement>('#keyboard-diagram')!;
+const keyboardDesc = document.querySelector<HTMLElement>('#keyboard-desc')!;
+
+function escHtml(str: string): string {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const WHITE_ORDER = [0, 2, 4, 5, 7, 9, 11];
+const BLACK_OFFSETS: Record<string, number> = { 'C#': 1, 'D#': 2, 'F#': 4, 'G#': 5, 'A#': 6 };
+
+function renderKeyboard(scaleNotes: string[], chordNotes: string[], guideToneNotes: string[], root: string) {
+    keyboardDiv.innerHTML = '';
+    const scaleSet = new Set(scaleNotes.map(n => n.replace(/\d$/, '')));
+    const chordSet = new Set(chordNotes.map(n => n.replace(/\d$/, '')));
+    const guideSet = new Set(guideToneNotes.map(n => n.replace(/\d$/, '')));
+
+    const octaves = 2;
+    const pct = 100 / (7 * octaves);
+
+    for (let oct = 0; oct < octaves; oct++) {
+        for (const step of WHITE_ORDER) {
+            const note = CHROMATIC[step];
+            const el = document.createElement('div');
+            const cls = ['scales__key',
+                note === root ? 'scales__key--root' :
+                guideSet.has(note) ? 'scales__key--guide-tone' :
+                chordSet.has(note) ? 'scales__key--chord-tone' :
+                scaleSet.has(note) ? 'scales__key--in-scale' : ''].filter(Boolean).join(' ');
+            el.className = cls;
+            el.setAttribute('aria-label', `${note}${oct + 4}${scaleSet.has(note) ? ', in scale' : ''}`);
+            if (scaleSet.has(note)) {
+                const lbl = document.createElement('span');
+                lbl.className = 'scales__key-label';
+                lbl.setAttribute('aria-hidden', 'true');
+                lbl.textContent = note;
+                el.appendChild(lbl);
+            }
+            keyboardDiv.appendChild(el);
+        }
+    }
+
+    for (let oct = 0; oct < octaves; oct++) {
+        for (const [note, pos] of Object.entries(BLACK_OFFSETS)) {
+            const el = document.createElement('div');
+            const cls = ['scales__key scales__key--black',
+                note === root ? 'scales__key--root' :
+                guideSet.has(note) ? 'scales__key--guide-tone' :
+                chordSet.has(note) ? 'scales__key--chord-tone' :
+                scaleSet.has(note) ? 'scales__key--in-scale' : ''].filter(Boolean).join(' ');
+            el.className = cls;
+            el.style.left = `${(oct * 7 + pos - 0.35) * pct}%`;
+            el.setAttribute('aria-label', `${note}${oct + 4}`);
+            keyboardDiv.appendChild(el);
+        }
+    }
+}
+
+async function analyze() {
+    const chord = chordInput.value.trim();
+    const key   = keyInput.value.trim();
+    const next  = nextInput.value.trim() || undefined;
+    if (!chord || !key) return;
+
+    const res = await fetch('/api/modules/scales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, chord, nextChord: next }),
+    });
+    if (!res.ok) return;
+    const data = await res.json() as ScalesResult;
+
+    emptyMsg.hidden = true;
+    results.hidden = false;
+
+    const borrowed = data.context.status !== 'diatonic' ? `<span class="note-blocked" style="font-size:.75rem;padding:2px 8px">${escHtml(data.context.status)}</span>` : '';
+    chordHeader.innerHTML = `<h2 style="margin:0;font-family:var(--font-display,'Rubik',sans-serif);font-size:1.875rem;font-weight:700">${escHtml(data.name)}</h2><div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center"><span class="sign">${escHtml(data.context.roman)}</span><span style="font-size:.875rem;color:var(--color-text-secondary,#5f5f6b)">${escHtml(data.context.description)}</span>${borrowed}</div><p style="margin:0;font-size:.875rem;color:var(--color-text-secondary,#5f5f6b)">${escHtml(data.context.reason)}</p>`;
+
+    scaleList.innerHTML = data.scales.map((s: ScaleSuggestion) => `<div class="scales__scale-card"><h3 class="scales__scale-card-name">${escHtml(s.name)}</h3><p style="font-size:.8125rem;font-family:var(--font-display,'Rubik',sans-serif);margin:0">${escHtml(s.notes.join(' – '))}</p><p style="font-size:.875rem;color:var(--color-text-secondary,#5f5f6b);margin:0">${escHtml(s.reason)}</p></div>`).join('');
+
+    arpList.innerHTML = data.arpeggios.map((a: ScaleSuggestion) => `<div class="scales__scale-card"><h3 class="scales__scale-card-name">${escHtml(a.name)}</h3><p style="font-size:.8125rem;font-family:var(--font-display,'Rubik',sans-serif);margin:0">${escHtml(a.notes.join(' – '))}</p><p style="font-size:.875rem;color:var(--color-text-secondary,#5f5f6b);margin:0">${escHtml(a.reason)}</p></div>`).join('');
+
+    if (data.guideToneMoves.length > 0) {
+        guideCard.innerHTML = data.guideToneMoves.map((m: GuideMove) => `<p style="margin:0;font-size:.875rem">${escHtml(m.reason)}</p>`).join('');
+    }
+    else if (data.guideTones.length > 0) {
+        guideCard.innerHTML = `<p style="margin:0;font-size:.875rem">Guide tones: ${escHtml(data.guideTones.map((g: GuideT) => `${g.note} (${g.role})`).join(', '))}.</p>`;
+    }
+    else {
+        guideCard.innerHTML = '<p style="margin:0;font-size:.875rem;color:var(--color-text-secondary,#5f5f6b)">No guide tones for this chord type.</p>';
+    }
+
+    const scaleNotes = data.scales[0]?.notes ?? [];
+    keyboardDesc.textContent = `Keyboard — ${data.name}: ${scaleNotes.join(', ')}`;
+    renderKeyboard(scaleNotes, data.chord.notes, data.guideTones.map((g: GuideT) => g.note), data.chord.root);
+}
+
+analyzeBtn.addEventListener('click', analyze);
+chordInput.addEventListener('keydown', e => { if (e.key === 'Enter') analyze(); });
+
+const initChord = page.dataset.chord;
+const initKey   = page.dataset.key;
+if (initKey) keyInput.value = initKey;
+if (initChord) {
+    chordInput.value = initChord;
+    analyze();
+}
 </script>

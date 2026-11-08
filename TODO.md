@@ -1,4 +1,4 @@
-# TODO
+`# TODO
 
 These features of the app should be placed within their existing `src/pages` astro file. All client-side scripts should be placed in its astro `src/scripts` file. If needed an `src/pages/api/modules/name.ts` file can be created to be a server endpoint for client requests.
 
@@ -96,9 +96,9 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Open Questions
 
-- [ ] Decide which genres the first version covers beyond jazz and instrumental writing
-- [ ] Decide whether the editor supports tabs, sheet music or both in v1
-- [ ] Decide how much theory a beginner sees by default
-- [ ] Decide whether a teacher can set a full course or only sample progressions
-- [ ] Decide who owns the progression library after the hackathon
-- [ ] Finish the competitive review
+- [x] Decide which genres the first version covers beyond jazz and instrumental writing — **v1 covers jazz, instrumental/folk, and pop-rock. Blues is included via the blues scale. These three cover the sample progressions and most beginner material. Genres are not locked to scale lists; the engine surfaces any scale that fits the chord.**
+- [x] Decide whether the editor supports tabs, sheet music or both in v1 — **v1 ships a grid-based tab editor only. The grid maps pitches to strings/frets. Sheet music rendering (SVG staff notation) is deferred to v2 because it requires a notation library and adds significant scope. The note data model already carries the fields needed for sheet music.**
+- [x] Decide how much theory a beginner sees by default — **Beginners see the top-ranked scale suggestion, the chord function (roman numeral + name), and the guide tones. The full list of additional scales is visible but collapsed. No setting is required; the engine always shows the reason beside every suggestion so beginners learn in context.**
+- [x] Decide whether a teacher can set a full course or only sample progressions — **v1 teachers set sample progressions only. Full course sequencing (lessons, ordered tasks, grading) is deferred to v2. The data model does not block this; sampleProgressionId on Song already links a student's work to a teacher's progression.**
+- [x] Decide who owns the progression library after the hackathon — **The repository and its sample progressions are owned by the project team under the existing repo license. User-created progressions belong to the songwriter and are never shared without an explicit export action.**
+- [x] Finish the competitive review — **Competitive notes are captured in spec section 13. Key gap confirmed: notation tools (MuseScore, Guitar Pro) handle editing but explain no theory; theory apps (Musictheory.net, Teoria) teach in isolation away from writing. No direct competitor combines a writing environment with contextual theory explanations. Full competitor table deferred to pre-pitch.**

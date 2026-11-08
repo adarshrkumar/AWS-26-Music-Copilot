@@ -1,10 +1,82 @@
 ---
+import { SAMPLE_PROGRESSIONS } from '@/lib/theory/samples';
+
 import App from '@/layouts/App.astro';
 import ProgressionScript from '@/script/app/progression.astro';
+import '@/styles/components/button.scss';
+import '@/styles/components/form.scss';
+import '@/styles/pages/app/progression.scss';
 
 if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
 ---
 
-<App>
+<App pageTitle="Progression">
     <ProgressionScript />
+
+    <div class="progression">
+        <h1 class="progression__title">Build a Progression</h1>
+        <p class="progression__lead">Set a key, tempo and bar count, then add chords one at a time. Copilot shows each chord's function and scale suggestions.</p>
+
+        <section class="bar progression__settings" aria-label="Progression settings">
+            <span class="sign">Settings</span>
+            <div class="progression__settings-row">
+                <div class="form-group">
+                    <label class="form-label" for="prog-key">Key</label>
+                    <input class="form-input" id="prog-key" name="key" type="text" list="key-list" value="C major" autocomplete="off" aria-describedby="key-hint" />
+                    <datalist id="key-list">
+                        {['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'].flatMap(t => [`${t} major`, `${t} minor`]).map(k => <option value={k} />)}
+                    </datalist>
+                    <p class="form-helper" id="key-hint">e.g. C major, A minor</p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="prog-tempo">Tempo (BPM)</label>
+                    <input class="form-input" id="prog-tempo" name="tempo" type="number" min="20" max="300" value="100" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="prog-bars">Bars</label>
+                    <input class="form-input" id="prog-bars" name="bars" type="number" min="1" max="16" value="4" />
+                </div>
+            </div>
+        </section>
+
+        <section class="bar progression__samples" aria-label="Sample progressions">
+            <span class="sign">Samples</span>
+            <div class="form-group">
+                <label class="form-label" for="prog-sample">Load a sample progression</label>
+                <div class="progression__sample-row">
+                    <select class="form-select" id="prog-sample">
+                        <option value="">— pick a sample —</option>
+                        {SAMPLE_PROGRESSIONS.map(p => <option value={p.id} data-key={p.key} data-chords={p.chords.map(c => c.name).join(',')}>{p.genre}: {p.title}</option>)}
+                    </select>
+                    <button class="btn" id="load-sample-btn" type="button" data-variant="secondary">Load</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="bar progression__entry" aria-label="Chord entry">
+            <span class="sign">Chords</span>
+            <div class="form-group">
+                <label class="form-label" for="chord-input">Add chord</label>
+                <div class="progression__chord-row">
+                    <input class="form-input" id="chord-input" type="text" placeholder="e.g. Am, Dm7, G7" autocomplete="off" aria-describedby="chord-hint" />
+                    <button class="btn" id="add-chord-btn" type="button" data-variant="primary">Add</button>
+                </div>
+                <p class="form-helper" id="chord-hint">Type a chord name and press Add or Enter. Up to 16 bars.</p>
+            </div>
+
+            <div class="progression__bar-grid" id="bar-grid" role="list" aria-label="Chord progression" aria-live="polite"></div>
+            <p class="indicative-note" id="bar-count" aria-live="polite"></p>
+        </section>
+
+        <section class="progression__analysis" id="analysis-section" aria-label="Theory analysis" aria-live="polite" hidden>
+            <h2 class="progression__analysis-title">Theory</h2>
+            <div class="progression__chord-cards" id="chord-cards"></div>
+        </section>
+
+        <div class="progression__actions">
+            <button class="btn" id="save-prog-btn" type="button" data-variant="primary">Save progression</button>
+            <button class="btn" id="clear-prog-btn" type="button" data-variant="secondary">Clear</button>
+            <span class="indicative-note" id="prog-status" role="status" aria-live="polite"></span>
+        </div>
+    </div>
 </App>

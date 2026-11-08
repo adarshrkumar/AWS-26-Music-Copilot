@@ -1,10 +1,72 @@
 ---
 import App from '@/layouts/App.astro';
 import ScalesScript from '@/script/app/scales.astro';
+import '@/styles/components/button.scss';
+import '@/styles/components/form.scss';
+import '@/styles/pages/app/scales.scss';
 
 if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+
+const chord = Astro.url.searchParams.get('chord') ?? '';
+const key   = Astro.url.searchParams.get('key') ?? 'C major';
 ---
 
-<App>
+<App pageTitle="Scales">
     <ScalesScript />
+
+    <div class="scales" data-chord={chord} data-key={key}>
+        <h1 class="scales__title">Find Scales and Notes</h1>
+        <p class="scales__lead">Select a chord to see the scales and arpeggios that fit, with guide tones and a keyboard diagram.</p>
+
+        <section class="bar scales__controls" aria-label="Chord and key selection">
+            <span class="sign">Chord</span>
+            <div class="scales__controls-row">
+                <div class="form-group">
+                    <label class="form-label" for="scales-key">Key</label>
+                    <input class="form-input" id="scales-key" type="text" list="scales-key-list" autocomplete="off" value="C major" />
+                    <datalist id="scales-key-list">
+                        {['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'].flatMap(t => [`${t} major`, `${t} minor`]).map(k => <option value={k} />)}
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="scales-chord">Chord</label>
+                    <div class="scales__chord-row">
+                        <input class="form-input" id="scales-chord" type="text" placeholder="e.g. Am, G7, Cmaj7" autocomplete="off" />
+                        <button class="btn" id="scales-analyze-btn" type="button" data-variant="primary">Analyze</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="scales-next">Next chord (guide tones)</label>
+                    <input class="form-input" id="scales-next" type="text" placeholder="optional" autocomplete="off" />
+                </div>
+            </div>
+        </section>
+
+        <div id="scales-results" aria-live="polite" hidden>
+            <div class="bar scales__chord-header" id="chord-header"></div>
+
+            <section aria-labelledby="scales-list-title">
+                <h2 id="scales-list-title" class="scales__section-title">Scale suggestions</h2>
+                <div class="scales__scale-list" id="scale-list"></div>
+            </section>
+
+            <section aria-labelledby="arp-title">
+                <h2 id="arp-title" class="scales__section-title">Arpeggios</h2>
+                <div id="arp-list" class="scales__scale-list"></div>
+            </section>
+
+            <section aria-labelledby="guide-title">
+                <h2 id="guide-title" class="scales__section-title">Guide tones</h2>
+                <div id="guide-card" class="suggestion"></div>
+            </section>
+
+            <section aria-labelledby="keyboard-title">
+                <h2 id="keyboard-title" class="scales__section-title">Keyboard diagram</h2>
+                <p class="indicative-note" id="keyboard-desc"></p>
+                <div class="scales__keyboard" id="keyboard-diagram" role="img" aria-labelledby="keyboard-desc"></div>
+            </section>
+        </div>
+
+        <p class="indicative-note" id="scales-empty">Enter a chord and press Analyze to see suggestions.</p>
+    </div>
 </App>

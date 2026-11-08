@@ -34,45 +34,9 @@
 
     &__inner {
         padding-block: space(3);
-        flex-wrap: wrap;
-        gap: space(3);
+        gap: space(6);
 
         @include flex-between;
-    }
-
-    &__nav {
-        max-width: 100%;
-    }
-
-    &__list {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        flex-wrap: wrap;
-        gap: space(2);
-        display: flex;
-    }
-
-    &__link {
-        padding: padding(control);
-        color: $text-primary;
-        border-radius: radius(pill);
-        text-decoration: none;
-
-        &:hover {
-            background: $bg-secondary;
-        }
-
-        &:focus-visible {
-            outline: $focus-ring-width solid $primary-color;
-            outline-offset: $focus-ring-offset;
-        }
-
-        &[aria-current="page"] {
-            font-weight: font-weight(bold);
-            text-decoration: underline;
-            text-underline-offset: 0.3em;
-        }
     }
 
     &__brand {
@@ -80,6 +44,7 @@
         align-items: center;
         gap: space(3);
         text-decoration: none;
+        flex-shrink: 0;
         display: inline-flex;
 
         &:hover {
@@ -103,5 +68,45 @@
         font-family: $font-display;
         font-size: font-size(lg);
         font-weight: font-weight(bold);
+    }
+
+    &__nav {
+        flex: 1;
+        overflow-x: auto;
+    }
+
+    &__nav-list {
+        gap: space(1);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+    }
+
+    &__nav-link {
+        padding: space(2) space(3);
+        color: $text-secondary;
+        border-radius: radius(sm);
+        font-size: font-size(sm);
+        font-weight: font-weight(semi);
+        text-decoration: none;
+        white-space: nowrap;
+        transition: color .15s ease, background .15s ease;
+        display: block;
+
+        &:hover {
+            color: $text-primary;
+            background: $bg-secondary;
+        }
+
+        &[aria-current="page"] {
+            color: $primary-color;
+            background: $bg-secondary;
+        }
+
+        &:focus-visible {
+            outline: $focus-ring-width solid $border-focus;
+            outline-offset: $focus-ring-offset;
+        }
     }
 }

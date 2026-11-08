@@ -1,2 +1,58 @@
 <script>
+import type { ChordAnalysis } from '@/lib/theory/types';
+
+type AutofillResponse = { phrase: { bar: number; chord: string; notes: { beat: number; pitch: string; duration: number; isChordTone: boolean }[]; reason: string; topScale: { name: string; notes: string[] } | null }; analysis: ChordAnalysis };
+
+const keyInput   = document.querySelector<HTMLInputElement>('#af-key')!;
+const chordInput = document.querySelector<HTMLInputElement>('#af-chord')!;
+const barInput   = document.querySelector<HTMLInputElement>('#af-bar')!;
+const proposeBtn = document.querySelector<HTMLElement>('#af-propose-btn')!;
+const proposals  = document.querySelector<HTMLElement>('#af-proposals')!;
+
+let proposalCount = 0;
+
+function escHtml(str: string): string {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderProposal(data: AutofillResponse) {
+    const id = `proposal-${++proposalCount}`;
+    const phrase = data.phrase;
+    const ctx = data.analysis.context;
+
+    const noteHtml = phrase.notes.map(n => `<div class="autofill__note${n.isChordTone ? ' autofill__note--chord-tone' : ''}"><span class="autofill__note-pitch">${escHtml(n.pitch)}</span><span class="autofill__note-beat">beat ${n.beat}</span></div>`).join('');
+
+    const card = document.createElement('article');
+    card.className = 'autofill__proposal';
+    card.id = id;
+    card.innerHTML = `<div class="autofill__proposal-meta"><span class="sign">Bar ${phrase.bar}</span><span style="font-family:var(--font-display,'Rubik',sans-serif);font-size:1.125rem;font-weight:700">${escHtml(phrase.chord)}</span><span style="font-size:.875rem;color:var(--color-text-secondary,#5f5f6b)">${escHtml(ctx.roman)} — ${escHtml(ctx.description)}</span>${phrase.topScale ? `<span class="indicative-note">Scale: ${escHtml(phrase.topScale.name)}</span>` : ''}</div><div class="autofill__phrase-notes">${noteHtml}</div><p style="font-size:.875rem;color:var(--color-text-secondary,#5f5f6b);margin:0">${escHtml(phrase.reason)}</p><div class="autofill__proposal-actions"><button class="btn" data-action="accept" type="button" data-variant="primary">Accept phrase</button><button class="btn" data-action="reject" type="button" data-variant="secondary">Reject</button><span class="indicative-note" id="${id}-status" aria-live="polite"></span></div>`;
+
+    card.querySelector<HTMLElement>('[data-action="accept"]')?.addEventListener('click', () => setStatus(id, 'accepted'));
+    card.querySelector<HTMLElement>('[data-action="reject"]')?.addEventListener('click', () => setStatus(id, 'rejected'));
+
+    proposals.prepend(card);
+}
+
+function setStatus(id: string, status: 'accepted' | 'rejected') {
+    const card = document.getElementById(id);
+    if (!card) return;
+    const statusEl = document.getElementById(`${id}-status`);
+    if (statusEl) statusEl.textContent = status === 'accepted' ? '✓ Accepted' : '✕ Rejected';
+    card.querySelectorAll<HTMLElement>('[data-action]').forEach(btn => btn.setAttribute('disabled', 'true'));
+}
+
+async function propose() {
+    const chord = chordInput.value.trim();
+    if (!chord) { chordInput.focus(); return; }
+    proposeBtn.setAttribute('disabled', 'true');
+    proposeBtn.textContent = 'Proposing…';
+    const res = await fetch('/api/modules/autofill', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: keyInput.value, chord, bar: parseInt(barInput.value, 10) || 1 }) });
+    proposeBtn.removeAttribute('disabled');
+    proposeBtn.textContent = 'Propose phrase';
+    if (!res.ok) return;
+    renderProposal(await res.json() as AutofillResponse);
+}
+
+proposeBtn.addEventListener('click', propose);
+chordInput.addEventListener('keydown', e => { if (e.key === 'Enter') propose(); });
 </script>

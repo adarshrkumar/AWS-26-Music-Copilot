@@ -1,0 +1,91 @@
+@use '../../variables/colors' as *;
+@use '../../variables/mixins' as *;
+@use '../../variables/system' as *;
+@use '../../variables/tokens' as *;
+
+.autofill {
+    gap: space(6);
+    display: grid;
+
+    &__title {
+        margin-bottom: space(1);
+        font-family: $font-display;
+        font-size: font-size(xl);
+    }
+
+    &__lead {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__controls-row {
+        gap: space(4);
+        flex-wrap: wrap;
+        margin-top: space(4);
+        display: flex;
+
+        .form-group { flex: 1; min-width: 140px; }
+    }
+
+    &__proposals {
+        gap: space(4);
+        display: grid;
+    }
+
+    &__proposal {
+        padding: padding(card);
+        background: $bg-secondary;
+        border: $border-width $border-style $border-color;
+        border-top: 4px $border-style $primary-color;
+        border-radius: radius(lg);
+        gap: space(3);
+        display: grid;
+    }
+
+    &__proposal-meta {
+        gap: space(2);
+        flex-wrap: wrap;
+        display: flex;
+        align-items: center;
+    }
+
+    &__phrase-notes {
+        gap: space(2);
+        flex-wrap: wrap;
+        display: flex;
+    }
+
+    &__note {
+        padding: space(2) space(3);
+        background: $bg-primary;
+        border: 2px $border-style $border-color;
+        border-radius: radius(sm);
+        text-align: center;
+        min-width: 52px;
+        gap: space(1);
+        display: grid;
+
+        &--chord-tone {
+            border-color: $primary-color;
+            background: rgba($primary-color, .07);
+        }
+    }
+
+    &__note-pitch {
+        font-family: $font-display;
+        font-weight: font-weight(bold);
+        font-size: font-size(sm);
+    }
+
+    &__note-beat {
+        font-size: font-size(xs);
+        color: $text-light;
+    }
+
+    &__proposal-actions {
+        gap: space(3);
+        flex-wrap: wrap;
+        display: flex;
+        align-items: center;
+    }
+}

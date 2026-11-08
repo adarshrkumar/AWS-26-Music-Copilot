@@ -1,0 +1,248 @@
+@use '../../variables/colors' as *;
+@use '../../variables/mixins' as *;
+@use '../../variables/system' as *;
+@use '../../variables/tokens' as *;
+
+.editor-page {
+    gap: space(8);
+    display: grid;
+
+    &__head {
+        gap: space(2);
+        display: grid;
+    }
+
+    &__title {
+        margin-bottom: space(1);
+        font-family: $font-display;
+        font-size: font-size(xl);
+    }
+
+    &__lead {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__settings {
+        padding: padding(panel);
+        background: $bg-secondary;
+        border: $border-width $border-style $border-color;
+        border-radius: radius(lg);
+    }
+
+    &__settings-row {
+        gap: space(4);
+        flex-wrap: wrap;
+        display: flex;
+    }
+
+    &__field {
+        gap: space(2);
+        flex: 1;
+        min-width: 160px;
+        display: grid;
+        align-content: start;
+    }
+
+    &__label {
+        font-size: font-size(sm);
+        font-weight: font-weight(semi);
+        color: $text-secondary;
+    }
+
+    &__input {
+        padding: space(2) space(3);
+        width: 100%;
+        color: $text-primary;
+        background: $bg-primary;
+        border: 1px $border-style $border-color;
+        border-radius: radius(md);
+        font-family: $font-body;
+        font-size: font-size(base);
+        transition: border-color .15s ease;
+        box-sizing: border-box;
+
+        &:focus {
+            border-color: $border-focus;
+            outline: none;
+        }
+    }
+
+    &__grid-section {
+        gap: space(4);
+        display: grid;
+    }
+
+    &__legend {
+        gap: space(4);
+        flex-wrap: wrap;
+        font-size: font-size(xs);
+        display: flex;
+        align-items: center;
+
+        &-chord {
+            color: $primary-color;
+            font-weight: font-weight(semi);
+        }
+    }
+
+    &__grid-wrap {
+        overflow-x: auto;
+    }
+
+    &__grid {
+        display: grid;
+        border: 2px $border-style $text-primary;
+        border-radius: radius(sm);
+        overflow: hidden;
+    }
+
+    &__pitch-label {
+        padding: space(1) space(2);
+        min-width: 40px;
+        color: $text-secondary;
+        background: $bg-secondary;
+        border-bottom: 1px $border-style $border-color;
+        font-size: font-size(xs);
+        font-family: $font-display;
+        font-weight: font-weight(semi);
+        text-align: right;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    &__cell {
+        padding: 0;
+        min-width: 44px;
+        height: 32px;
+        background: $bg-primary;
+        border-bottom: 1px $border-style rgba($border-color, .3);
+        border-right: 1px $border-style rgba($border-color, .3);
+        cursor: pointer;
+        position: relative;
+        transition: background .1s ease;
+
+        &:hover {
+            background: rgba($primary-color, .08);
+        }
+
+        &:focus-visible {
+            outline: 2px solid $border-focus;
+            outline-offset: -2px;
+            z-index: 1;
+        }
+
+        &--active {
+            background: rgba($secondary-color, .2);
+
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 3px;
+                background: $secondary-color;
+                border-radius: radius(xs);
+                opacity: .7;
+            }
+        }
+
+        &--out-of-scale {
+            background: rgba($warning-color, .12);
+
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 3px;
+                background: $warning-color;
+                border-radius: radius(xs);
+                opacity: .6;
+            }
+        }
+
+        &--chord-tone.editor-page__cell--active::after {
+            background: $primary-color;
+            opacity: .85;
+        }
+    }
+
+    &__cell-symbol {
+        position: absolute;
+        top: 2px;
+        right: 3px;
+        font-size: 9px;
+        font-weight: font-weight(bold);
+        color: $text-primary;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    &__bar-header {
+        padding: space(1) space(2);
+        background: $bg-secondary;
+        border-bottom: 2px $border-style $text-primary;
+        font-size: font-size(xs);
+        font-family: $font-display;
+        font-weight: font-weight(bold);
+        text-align: center;
+        color: $text-secondary;
+    }
+
+    &__beat-header {
+        padding: space(1) 0;
+        background: $bg-secondary;
+        border-bottom: 1px $border-style $border-color;
+        font-size: font-size(xs);
+        color: $text-light;
+        text-align: center;
+    }
+
+    &__note-panel {
+        padding: padding(callout);
+        background: $bg-secondary;
+        border: $border-width $border-style $border-color;
+        border-left: 4px $border-style $primary-color;
+        border-radius: radius(md);
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
+    &__panel-title {
+        margin-bottom: space(3);
+        font-family: $font-display;
+        font-size: font-size(md);
+    }
+
+    &__note-detail {
+        font-size: font-size(sm);
+        color: $text-secondary;
+    }
+
+    &__actions {
+        gap: space(3);
+        align-items: center;
+        flex-wrap: wrap;
+        display: flex;
+    }
+
+    &__clear-btn {
+        color: $text-secondary;
+        background: transparent;
+        border: 1px $border-style $border-color;
+        border-radius: radius(pill);
+        padding: padding(control);
+        font-size: font-size(base);
+        font-weight: font-weight(bold);
+        cursor: pointer;
+        transition: background .15s ease;
+
+        &:hover {
+            background: $bg-secondary;
+        }
+    }
+
+    &__save-status {
+        color: $success-color;
+    }
+}

@@ -1,0 +1,200 @@
+@use '../../variables/colors' as *;
+@use '../../variables/mixins' as *;
+@use '../../variables/system' as *;
+@use '../../variables/tokens' as *;
+
+.progression {
+    gap: space(6);
+    display: grid;
+
+    &__title {
+        margin-bottom: space(1);
+        font-family: $font-display;
+        font-size: font-size(xl);
+    }
+
+    &__lead {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__settings-row {
+        gap: space(4);
+        flex-wrap: wrap;
+        margin-top: space(4);
+        display: flex;
+
+        .form-group {
+            flex: 1;
+            min-width: 140px;
+        }
+    }
+
+    &__sample-row {
+        gap: space(3);
+        display: flex;
+
+        select { flex: 1; }
+    }
+
+    &__chord-row {
+        gap: space(3);
+        display: flex;
+
+        input { flex: 1; }
+    }
+
+    &__bar-grid {
+        gap: space(2);
+        margin-top: space(4);
+        flex-wrap: wrap;
+        display: flex;
+    }
+
+    &__bar-item {
+        position: relative;
+        padding: space(3) space(4);
+        min-width: 72px;
+        background: $bg-secondary;
+        border: 4px $border-style $text-primary;
+        border-radius: radius(lg);
+        text-align: center;
+        cursor: default;
+    }
+
+    &__bar-number {
+        position: absolute;
+        top: 4px;
+        left: 6px;
+        color: $text-light;
+        font-size: font-size(xs);
+    }
+
+    &__bar-chord {
+        font-family: $font-display;
+        font-size: font-size(md);
+        font-weight: font-weight(bold);
+    }
+
+    &__bar-function {
+        margin-top: space(1);
+        color: $text-secondary;
+        font-size: font-size(xs);
+    }
+
+    &__bar-remove {
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        width: 18px;
+        height: 18px;
+        color: $text-light;
+        background: transparent;
+        border: 0;
+        border-radius: radius(pill);
+        font-size: font-size(xs);
+        cursor: pointer;
+        transition: color .15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover { color: $error-color; }
+    }
+
+    &__analysis {
+        gap: space(4);
+        display: grid;
+
+        &[hidden] { display: none; }
+    }
+
+    &__analysis-title {
+        margin-bottom: 0;
+        font-family: $font-display;
+        font-size: font-size(md);
+    }
+
+    &__chord-cards {
+        gap: space(4);
+        display: grid;
+
+        @include tablet {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+    }
+
+    &__chord-card {
+        padding: padding(card);
+        background: $bg-secondary;
+        border: $border-width $border-style $border-color;
+        border-top: 4px $border-style $primary-color;
+        border-radius: radius(lg);
+        gap: space(3);
+        display: grid;
+    }
+
+    &__chord-card-name {
+        margin: 0;
+        font-family: $font-display;
+        font-size: font-size(md);
+        font-weight: font-weight(bold);
+    }
+
+    &__chord-function {
+        gap: space(2);
+        flex-wrap: wrap;
+        display: flex;
+        align-items: center;
+    }
+
+    &__chord-scales {
+        gap: space(2);
+        display: grid;
+    }
+
+    &__chord-scale-item {
+        padding: padding(callout);
+        border: $border-width $border-style $border-color;
+        border-left: 4px $border-style $secondary-color;
+        border-radius: radius(sm);
+        font-size: font-size(sm);
+        gap: space(1);
+        display: grid;
+    }
+
+    &__chord-scale-name { font-weight: font-weight(semi); }
+
+    &__chord-scale-link {
+        padding: space(1) space(3);
+        color: $primary-color;
+        background: transparent;
+        border: 1px $border-style $border-color;
+        border-radius: radius(pill);
+        font-size: font-size(xs);
+        font-weight: font-weight(semi);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: background .15s ease;
+
+        &:hover { background: $bg-primary; }
+    }
+
+    &__chord-guide {
+        padding: padding(callout);
+        border: $border-width $border-style $border-color;
+        border-left: 4px $border-style $accent-color;
+        border-radius: radius(sm);
+        font-size: font-size(sm);
+        gap: space(1);
+        display: grid;
+    }
+
+    &__actions {
+        gap: space(3);
+        align-items: center;
+        flex-wrap: wrap;
+        display: flex;
+    }
+}

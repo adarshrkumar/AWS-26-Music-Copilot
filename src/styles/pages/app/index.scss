@@ -1,0 +1,225 @@
+@use '../../variables/colors' as *;
+@use '../../variables/mixins' as *;
+@use '../../variables/system' as *;
+@use '../../variables/tokens' as *;
+@use 'sass:map';
+
+.songs-page {
+    gap: space(6);
+    display: grid;
+
+    &__head {
+        align-items: flex-start;
+        gap: space(4);
+
+        @include flex-between;
+    }
+
+    &__title {
+        margin-bottom: space(1);
+        font-family: $font-display;
+        font-size: font-size(xl);
+    }
+
+    &__lead {
+        margin: 0;
+        color: $text-secondary;
+        font-size: font-size(sm);
+    }
+
+    &__list {
+        gap: space(3);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+
+        @include tablet {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    }
+
+    &__empty {
+        padding: space(10);
+        color: $text-secondary;
+        text-align: center;
+        border: 1px dashed $border-color;
+        border-radius: radius(lg);
+        grid-column: 1 / -1;
+
+        p {
+            margin: 0;
+        }
+    }
+
+    &__song-card {
+        padding: padding(card);
+        background: $bg-secondary;
+        border: $border-width $border-style $border-color;
+        border-left: 4px $border-style $primary-color;
+        border-radius: radius(lg);
+        text-decoration: none;
+        color: $text-primary;
+        transition: box-shadow .15s ease, transform .1s ease;
+        display: block;
+
+        &:hover {
+            box-shadow: 0 4px 16px rgba($black, .12);
+            transform: translateY(-1px);
+        }
+
+        &:focus-visible {
+            outline: $focus-ring-width solid $border-focus;
+            outline-offset: $focus-ring-offset;
+        }
+    }
+
+    &__song-title {
+        margin-bottom: space(1);
+        font-family: $font-display;
+        font-size: font-size(md);
+        font-weight: font-weight(bold);
+    }
+
+    &__song-meta {
+        margin: 0;
+        color: $text-secondary;
+        font-size: font-size(xs);
+    }
+
+    &__song-actions {
+        margin-top: space(3);
+        gap: space(2);
+        display: flex;
+    }
+
+    &__song-link {
+        padding: space(2) space(3);
+        color: $primary-color;
+        background: transparent;
+        border: 1px $border-style $border-color;
+        border-radius: radius(pill);
+        font-size: font-size(xs);
+        font-weight: font-weight(semi);
+        text-decoration: none;
+        white-space: nowrap;
+        transition: background .15s ease;
+        display: inline-flex;
+        align-items: center;
+
+        &:hover {
+            background: $bg-primary;
+        }
+
+        &:focus-visible {
+            outline: $focus-ring-width solid $border-focus;
+            outline-offset: $focus-ring-offset;
+        }
+    }
+
+    &__song-delete {
+        padding: space(2) space(3);
+        color: $error-color;
+        background: transparent;
+        border: 1px $border-style $error-color;
+        border-radius: radius(pill);
+        font-size: font-size(xs);
+        font-weight: font-weight(semi);
+        cursor: pointer;
+        transition: background .15s ease;
+
+        &:hover {
+            background: rgba($error-color, .07);
+        }
+
+        &:focus-visible {
+            outline: $focus-ring-width solid $error-color;
+            outline-offset: $focus-ring-offset;
+        }
+    }
+
+    &__modal {
+        position: fixed;
+        inset: 0;
+        background: rgba($black, .45);
+        z-index: map.get($z-index, banner);
+        align-items: center;
+        justify-content: center;
+        display: flex;
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
+    &__modal-panel {
+        padding: space(8);
+        width: min(480px, 92vw);
+        background: $bg-secondary;
+        border: 2px $border-style $text-primary;
+        border-radius: radius(xl);
+        gap: space(4);
+        display: grid;
+    }
+
+    &__modal-title {
+        margin: 0;
+        font-family: $font-display;
+        font-size: font-size(md);
+    }
+
+    &__form {
+        gap: space(3);
+        display: grid;
+    }
+
+    &__label {
+        font-size: font-size(sm);
+        font-weight: font-weight(semi);
+        display: block;
+    }
+
+    &__input {
+        padding: space(2) space(3);
+        width: 100%;
+        color: $text-primary;
+        background: $bg-primary;
+        border: 1px $border-style $border-color;
+        border-radius: radius(md);
+        font-family: $font-body;
+        font-size: font-size(base);
+        transition: border-color .15s ease;
+        box-sizing: border-box;
+
+        &:focus {
+            border-color: $border-focus;
+            outline: none;
+        }
+    }
+
+    &__form-actions {
+        gap: space(3);
+        margin-top: space(2);
+        display: flex;
+    }
+
+    &__btn-cancel {
+        color: $text-secondary;
+        background: transparent;
+        border: 1px $border-style $border-color;
+        border-radius: radius(pill);
+        padding: padding(control);
+        font-size: font-size(base);
+        font-weight: font-weight(bold);
+        cursor: pointer;
+        transition: background .15s ease;
+
+        &:hover {
+            background: $bg-primary;
+        }
+    }
+
+    &__new-btn {
+        flex-shrink: 0;
+    }
+}

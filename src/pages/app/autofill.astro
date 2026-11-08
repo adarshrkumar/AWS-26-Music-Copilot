@@ -1,10 +1,42 @@
 ---
 import App from '@/layouts/App.astro';
 import AutofillScript from '@/script/app/autofill.astro';
+import '@/styles/components/button.scss';
+import '@/styles/components/form.scss';
+import '@/styles/pages/app/autofill.scss';
 
 if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
 ---
 
-<App>
+<App pageTitle="Autofill">
     <AutofillScript />
+
+    <div class="autofill">
+        <h1 class="autofill__title">Autofill</h1>
+        <p class="autofill__lead">Ask for a phrase on any bar. Copilot proposes a short melody using chord tones on the strong beats. Accept, edit or reject — nothing enters the song until you accept.</p>
+
+        <section class="bar autofill__controls" aria-label="Autofill settings">
+            <span class="sign">Request</span>
+            <div class="autofill__controls-row">
+                <div class="form-group">
+                    <label class="form-label" for="af-key">Key</label>
+                    <input class="form-input" id="af-key" type="text" list="af-key-list" value="C major" autocomplete="off" />
+                    <datalist id="af-key-list">
+                        {['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'].flatMap(t => [`${t} major`, `${t} minor`]).map(k => <option value={k} />)}
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="af-chord">Chord</label>
+                    <input class="form-input" id="af-chord" type="text" placeholder="e.g. Am" autocomplete="off" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="af-bar">Bar</label>
+                    <input class="form-input" id="af-bar" type="number" min="1" max="16" value="1" />
+                </div>
+            </div>
+            <button class="btn" id="af-propose-btn" type="button" data-variant="primary">Propose phrase</button>
+        </section>
+
+        <div class="autofill__proposals" id="af-proposals" aria-live="polite"></div>
+    </div>
 </App>

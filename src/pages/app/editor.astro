@@ -1,106 +1,65 @@
 ---
-import { getSongs } from '@/lib/songs';
-
 import App from '@/layouts/App.astro';
 import EditorScript from '@/script/app/editor.astro';
-import '@/styles/components/button.scss';
-import '@/styles/components/form.scss';
-import '@/styles/pages/editor.scss';
+import '@/styles/pages/app/editor.scss';
 
-if (!Astro.locals.session || !Astro.locals.user) return Astro.redirect('/user/sign-in');
+if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
 
-const songs = await getSongs(Astro.locals.user.id);
-const song = songs.find(candidate => candidate.id === Astro.url.searchParams.get('song')) ?? songs[0];
-const section = song?.sections.find(candidate => candidate.id === Astro.url.searchParams.get('section')) ?? song?.sections[0];
+const PITCHES = ['C5','B4','A4','G4','F4','E4','D4','C4','B3','A3','G3','F3','E3','D3','C3'];
+const BEATS = [1, 2, 3, 4];
 ---
 
-<App pageTitle="Write notes">
-    <div class="editor">
-        <h1 class="editor__title">Write notes</h1>
+<App pageTitle="Editor">
+    <EditorScript />
 
-        {song && section ? (
-            <>
-                <p class="editor__meta">{song.title} &middot; {section.name} &middot; Key of {song.key} &middot; {song.tempo} BPM</p>
-                <script type="application/json" id="editor-data" data-song={song.id} data-key={song.key} is:inline set:html={JSON.stringify(section).replaceAll('<', '\\u003c')}></script>
+    <div class="editor-page">
+        <div class="editor-page__head">
+            <h1 class="editor-page__title">Write Notes</h1>
+            <p class="editor-page__lead">Click a cell to place a note. Copilot marks notes that fit the current chord and scale, and marks any note outside with a symbol. Notes are never removed automatically.</p>
+        </div>
 
-                <section class="bar editor__bar" aria-labelledby="bar-heading">
-                    <span class="sign">Bar</span>
-                    <h2 id="bar-heading" class="editor__heading">Choose a bar</h2>
-                    <div class="editor__bars" role="group" aria-label="Bars">
-                        {Array.from({ length: section.bars }, (_, index) => index + 1).map(bar =><button class="chord" type="button" data-bar={bar} aria-pressed={bar === 1 ? 'true' : 'false'}>{bar}</button>)}
-                    </div>
-                    <ul class="editor__chords" id="chord-readout" aria-live="polite"></ul>
-                </section>
+        <section class="editor-page__settings" aria-label="Editor settings">
+            <div class="editor-page__settings-row">
+                <div class="editor-page__field">
+                    <label class="editor-page__label" for="editor-key">Key</label>
+                    <select class="editor-page__input" id="editor-key">
+                        <option value="C major">C major</option>
+                        <option value="G major">G major</option>
+                        <option value="A minor" selected>A minor</option>
+                        <option value="E minor">E minor</option>
+                        <option value="D minor">D minor</option>
+                    </select>
+                </div>
+                <div class="editor-page__field">
+                    <label class="editor-page__label" for="editor-chord">Current chord</label>
+                    <input class="editor-page__input" id="editor-chord" type="text" placeholder="e.g. Am" autocomplete="off" />
+                </div>
+                <div class="editor-page__field">
+                    <label class="editor-page__label" for="editor-bars">Bars</label>
+                    <input class="editor-page__input" id="editor-bars" type="number" min="1" max="16" value="4" />
+                </div>
+            </div>
+        </section>
 
-                <section class="editor__views" aria-label="Notes in this bar">
-                    <div class="staff-block editor__view">
-                        <h2 class="editor__heading" id="tab-heading">Tab</h2>
-                        <svg id="tab" class="editor__svg" role="img" aria-labelledby="tab-heading" aria-describedby="tab-description" viewBox="0 0 640 120"></svg>
-                        <p class="indicative-note" id="tab-description"></p>
-                    </div>
-                    <div class="staff-block editor__view">
-                        <h2 class="editor__heading" id="sheet-heading">Sheet music</h2>
-                        <svg id="sheet" class="editor__svg" role="img" aria-labelledby="sheet-heading" aria-describedby="sheet-description" viewBox="0 0 640 170"></svg>
-                        <p class="indicative-note" id="sheet-description"></p>
-                    </div>
-                </section>
+        <section class="editor-page__grid-section" aria-label="Note grid">
+            <div class="editor-page__legend" aria-hidden="true">
+                <span class="note-in">✓ in scale</span>
+                <span class="note-out">! outside scale</span>
+                <span class="editor-page__legend-chord">● chord tone</span>
+            </div>
+            <div class="editor-page__grid-wrap" role="grid" aria-label="Tab editor — click to toggle notes" id="note-grid">
+            </div>
+        </section>
 
-                <section class="bar editor__bar" aria-labelledby="entry-heading">
-                    <span class="sign">Note</span>
-                    <h2 id="entry-heading" class="editor__heading"><span id="entry-verb">Add a note</span> in bar <span id="entry-bar">1</span></h2>
-                    <form class="form editor__form" id="note-form" novalidate>
-                        <div class="form-group">
-                            <label class="form-label" for="note-beat">Beat</label>
-                            <input class="form-input" id="note-beat" name="beat" type="number" min="1" max="4.75" step="0.25" value="1" required />
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="note-duration">Length</label>
-                            <select class="form-select" id="note-duration" name="duration">
-                                <option value="4">Whole</option>
-                                <option value="2">Half</option>
-                                <option value="1" selected>Quarter</option>
-                                <option value="0.5">Eighth</option>
-                                <option value="0.25">Sixteenth</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="note-pitch">Pitch</label>
-                            <input class="form-input" id="note-pitch" name="pitch" type="text" inputmode="text" autocomplete="off" placeholder="C#4" aria-describedby="note-help" />
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="note-string">String</label>
-                            <select class="form-select" id="note-string" name="string" aria-describedby="note-help">
-                                <option value="">None</option>
-                                {[1, 2, 3, 4, 5, 6].map(string => <option value={string}>{string}</option>)}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="note-fret">Fret</label>
-                            <input class="form-input" id="note-fret" name="fret" type="number" min="0" max="24" step="1" aria-describedby="note-help" />
-                        </div>
-                        <p class="form-helper editor__help" id="note-help">Write a pitch such as C4, F#3 or Bb4, or pick a string and fret. If you give a string and fret, the pitch comes from them. String 1 is the thinnest.</p>
-                        <div class="form-actions editor__actions">
-                            <button class="btn" type="submit" data-variant="primary" id="note-submit">Add note</button>
-                            <button class="btn" type="button" data-variant="secondary" id="note-cancel" hidden>Cancel change</button>
-                        </div>
-                    </form>
-                    <p class="editor__error" id="editor-error" role="alert"></p>
-                    <p class="editor__status" id="editor-status" role="status"></p>
-                </section>
+        <section class="editor-page__note-panel" id="note-panel" aria-live="polite" hidden>
+            <h2 class="editor-page__panel-title">Note</h2>
+            <div class="editor-page__note-detail" id="note-detail"></div>
+        </section>
 
-                <section class="bar editor__bar" aria-labelledby="notes-heading">
-                    <span class="sign">List</span>
-                    <h2 id="notes-heading" class="editor__heading" tabindex="-1">Notes in bar <span id="list-bar">1</span></h2>
-                    <ul class="editor__notes" id="note-list"></ul>
-                    <p class="indicative-note">Notes outside the scale are marked, never removed. Keep, change or remove any note you like.</p>
-                </section>
-
-                <section class="suggestion editor__reason" id="reason" aria-live="polite" hidden></section>
-
-                <EditorScript />
-            </>
-        ) : (
-            <p class="note-blocked" role="status">You have no songs yet. Create a song with a section to start writing notes.</p>
-        )}
+        <div class="editor-page__actions">
+            <button class="btn" id="editor-save-btn" type="button">Save notes</button>
+            <button class="btn editor-page__clear-btn" id="editor-clear-btn" type="button">Clear all</button>
+            <span class="editor-page__save-status indicative-note" id="editor-save-status" aria-live="polite"></span>
+        </div>
     </div>
 </App>
