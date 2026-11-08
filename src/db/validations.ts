@@ -169,8 +169,6 @@ export const songInputSchema = z.object({
     updatedAt: z.string().max(40),
 });
 
-export const songIdSchema = songInputSchema.shape.id;
-
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
 export type PublishPostInput = z.infer<typeof publishPostSchema>;

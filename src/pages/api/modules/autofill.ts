@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import { z } from 'zod';
 import type { Song } from '@/db/types';
 import { getSong } from '@/lib/songs';
+import { getUnauthorizedError } from '@/lib/status-responses';
 import { proposePhrases } from '@/lib/theory';
 import { addPhraseSuggestion, explainPhrase, getPhraseSuggestions, setPhraseSuggestionStatus } from '@/lib/modules/autofill';
 import { setNotes } from '@/lib/modules/editor';
@@ -67,7 +68,7 @@ function errorResponse(error: Error): Response {
 }
 
 export const GET: APIRoute = async ({ locals, url }) => {
-    if (!locals.user) return json({ error: 'Not signed in' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     const parsed = querySchema.safeParse(Object.fromEntries(url.searchParams));
     if (!parsed.success) return errorResponse(parsed.error);
@@ -76,7 +77,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
 };
 
 export const POST: APIRoute = async ({ locals, request }) => {
-    if (!locals.user) return json({ error: 'Not signed in' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     const parsed = proposeSchema.safeParse(await request.json());
     if (!parsed.success) return errorResponse(parsed.error);
@@ -124,7 +125,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
 };
 
 export const PUT: APIRoute = async ({ locals, request }) => {
-    if (!locals.user) return json({ error: 'Not signed in' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     const parsed = statusSchema.safeParse(await request.json());
     if (!parsed.success) return errorResponse(parsed.error);

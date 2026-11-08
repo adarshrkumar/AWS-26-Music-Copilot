@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { songIdSchema, songInputSchema } from '@/db/validations';
+import { songInputSchema } from '@/db/validations';
 import { deleteSong, getSong, getSongs, setSong } from '@/lib/songs';
+import { getUnauthorizedError } from '@/lib/status-responses';
 
 import type { APIContext } from 'astro';
 
@@ -15,7 +16,7 @@ function failure(method: string, error: Error | null): Response {
 }
 
 export async function GET({ locals }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         return json({ data: await getSongs(locals.user.id) });
@@ -25,7 +26,7 @@ export async function GET({ locals }: APIContext): Promise<Response> {
 }
 
 export async function PUT({ locals, request }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const input = songInputSchema.parse(await request.json());
@@ -40,10 +41,10 @@ export async function PUT({ locals, request }: APIContext): Promise<Response> {
 }
 
 export async function DELETE({ locals, url }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     try {
-        await deleteSong(locals.user.id, songIdSchema.parse(url.searchParams.get('id')));
+        await deleteSong(locals.user.id, songInputSchema.shape.id.parse(url.searchParams.get('id')));
         return json({ message: 'Synced copy removed' });
     } catch (error) {
         return failure('DELETE', error instanceof Error ? error : null);

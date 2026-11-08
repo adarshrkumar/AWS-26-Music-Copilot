@@ -1,17 +1,8 @@
 <script>
     import type { Song } from '@/db/types';
 
-    interface SongOption {
-        id: string;
-        title: string;
-        sections: { id: string; name: string; bars: number }[];
-    }
-
-    interface PhraseNote {
-        beat: number;
-        pitch: string;
-    }
-
+    type SongOption = Pick<Song, 'id' | 'title'> & { sections: Pick<Song['sections'][number], 'id' | 'name' | 'bars'>[] };
+    type PhraseNote = Pick<Song['sections'][number]['notes'][number], 'beat' | 'pitch'>;
     type Suggestion = Song['suggestions'][number];
 
     const form = document.querySelector<HTMLFormElement>('.autofill__form');
