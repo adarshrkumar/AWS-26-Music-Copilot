@@ -9,10 +9,7 @@ const region = process.env.AWS_REGION || import.meta.env.AWS_REGION || 'us-east-
 
 const bedrockClient = new BedrockRuntimeClient({ region });
 
-type ChatMessage = {
-    role: NonNullable<Message['role']> | 'system';
-    content: string;
-};
+type ChatMessage = { role: 'system'; content: string } | { role: NonNullable<Message['role']>; content: string };
 
 type ToolStatus = NonNullable<ToolResultBlock['status']>;
 
@@ -40,26 +37,24 @@ type GenerateOptions = {
     requestId?: string;
 };
 
-function buildMessages(prompt: string, history: ChatMessage[]): Message[] {
-    const messages: Message[] = history.flatMap(message => message.role === 'system' || message.content === '' ? [] : [{ role: message.role, content: [{ text: message.content }] }]);
-    const last = messages.at(-1);
+function buildMessages(prompt: string, history: ChatMessage[] = []): Message[] {
+    const messages: Message[] = [];
 
-    if (last?.role !== 'user' || last.content?.map(block => block.text ?? '').join('') !== prompt) messages.push({ role: 'user', content: [{ text: prompt }] });
+    for (const { role, content } of history) if (role !== 'system') messages.push({ role, content: [{ text: content }] });
 
-    return messages;
+    return [...messages, { role: 'user', content: [{ text: prompt }] }];
 }
 
-function buildRequest(options: GenerateOptions, messages: Message[], tools: BedrockTool[]) {
-    const system = [options.system ?? '', ...(options.history ?? []).flatMap(message => message.role === 'system' ? [message.content] : [])].flatMap(text => text ? [{ text }] : []);
+function buildRequest(options: GenerateOptions, messages: Message[], tools: BedrockTool[] = []) {
+    console.log(`[${options.requestId ?? nanoid()}] Bedrock request: model=${options.modelId ?? DEFAULT_MODEL_ID}, messages=${messages.length}, tools=${tools.length}`);
+
+    const system = [options.system, ...(options.history ?? []).map(({ role, content }) => role === 'system' ? content : '')].flatMap(text => text ? [{ text }] : []);
 
     return {
         modelId: options.modelId ?? DEFAULT_MODEL_ID,
         messages,
         system: system.length > 0 ? system : undefined,
-        inferenceConfig: {
-            maxTokens: options.maxTokens ?? 1024,
-            temperature: options.temperature ?? 0.7,
-        },
+        inferenceConfig: { maxTokens: options.maxTokens ?? 1024, temperature: options.temperature ?? 0.7 },
         toolConfig: tools.length > 0 ? { tools: tools.map(tool => ({ toolSpec: tool.spec })) } : undefined,
     };
 }
@@ -85,48 +80,33 @@ async function runTools(content: ContentBlock[], tools: BedrockTool[], toolCallL
 }
 
 export async function generateText(options: GenerateOptions): Promise<{ text: string; toolCallLog: ToolCallLogEntry[] }> {
-    const { maxSteps = 25, requestId = nanoid() } = options;
-    const messages = buildMessages(options.prompt, options.history ?? []);
-    const tools = options.tools ?? [];
+    const messages = buildMessages(options.prompt, options.history);
     const toolCallLog: ToolCallLogEntry[] = [];
-    const startTime = Date.now();
     let text = '';
 
-    console.log(`[${requestId}] Bedrock request: model=${options.modelId ?? DEFAULT_MODEL_ID}, messages=${messages.length}, tools=${tools.length}`);
+    for (let step = 0; step < (options.maxSteps ?? 25); step++) {
+        const response = await bedrockClient.send(new ConverseCommand(buildRequest(options, messages, options.tools)));
+        const message = response.output?.message;
 
-    try {
-        for (let step = 0; step < maxSteps; step++) {
-            const response = await bedrockClient.send(new ConverseCommand(buildRequest(options, messages, tools)));
-            const message = response.output?.message;
+        if (!message) break;
 
-            if (!message) break;
+        messages.push(message);
+        text = message.content?.map(block => block.text ?? '').join('') ?? '';
 
-            messages.push(message);
-            text = message.content?.map(block => block.text ?? '').join('') ?? '';
+        if (response.stopReason !== 'tool_use') break;
 
-            if (response.stopReason !== 'tool_use') break;
-
-            messages.push({ role: 'user', content: await runTools(message.content ?? [], tools, toolCallLog) });
-        }
-
-        console.log(`[${requestId}] Bedrock response received in ${Date.now() - startTime}ms`);
-        return { text, toolCallLog };
-    } catch (error) {
-        console.error(`[${requestId}] Bedrock generation failed after ${Date.now() - startTime}ms:`, error);
-        throw error;
+        messages.push({ role: 'user', content: await runTools(message.content ?? [], options.tools ?? [], toolCallLog) });
     }
+
+    return { text, toolCallLog };
 }
 
 export async function* streamText(options: GenerateOptions): AsyncGenerator<string, ToolCallLogEntry[]> {
-    const { maxSteps = 25, requestId = nanoid() } = options;
-    const messages = buildMessages(options.prompt, options.history ?? []);
-    const tools = options.tools ?? [];
+    const messages = buildMessages(options.prompt, options.history);
     const toolCallLog: ToolCallLogEntry[] = [];
 
-    console.log(`[${requestId}] Bedrock stream request: model=${options.modelId ?? DEFAULT_MODEL_ID}, messages=${messages.length}, tools=${tools.length}`);
-
-    for (let step = 0; step < maxSteps; step++) {
-        const response = await bedrockClient.send(new ConverseStreamCommand(buildRequest(options, messages, tools)));
+    for (let step = 0; step < (options.maxSteps ?? 25); step++) {
+        const response = await bedrockClient.send(new ConverseStreamCommand(buildRequest(options, messages, options.tools)));
         const blocks = new Map<number, ContentBlock>();
         const inputs = new Map<number, string>();
         let stopReason: StopReason | undefined;
@@ -158,42 +138,29 @@ export async function* streamText(options: GenerateOptions): AsyncGenerator<stri
 
         if (stopReason !== 'tool_use') break;
 
-        messages.push({ role: 'user', content: await runTools(content, tools, toolCallLog) });
+        messages.push({ role: 'user', content: await runTools(content, options.tools ?? [], toolCallLog) });
     }
 
     return toolCallLog;
 }
 
 export async function generateObject<T extends z.ZodType>(options: GenerateOptions & { schema: T }): Promise<z.infer<T>> {
-    const { requestId = nanoid() } = options;
-    const startTime = Date.now();
+    const response = await bedrockClient.send(new ConverseCommand({
+        ...buildRequest(options, buildMessages(options.prompt, options.history)),
+        toolConfig: {
+            tools: [{ toolSpec: { name: 'respond', description: 'Respond with the structured result.', inputSchema: { json: JSON.parse(JSON.stringify(z.toJSONSchema(options.schema))) } } }],
+            toolChoice: { tool: { name: 'respond' } },
+        },
+    }));
 
-    console.log(`[${requestId}] Bedrock generateObject request: model=${options.modelId ?? DEFAULT_MODEL_ID}`);
-
-    try {
-        const response = await bedrockClient.send(new ConverseCommand({
-            ...buildRequest(options, buildMessages(options.prompt, options.history ?? []), []),
-            toolConfig: {
-                tools: [{ toolSpec: { name: 'respond', description: 'Respond with the structured result.', inputSchema: { json: JSON.parse(JSON.stringify(z.toJSONSchema(options.schema))) } } }],
-                toolChoice: { tool: { name: 'respond' } },
-            },
-        }));
-
-        console.log(`[${requestId}] Bedrock generateObject response received in ${Date.now() - startTime}ms`);
-        return options.schema.parse(response.output?.message?.content?.find(block => block.toolUse)?.toolUse?.input);
-    } catch (error) {
-        console.error(`[${requestId}] Bedrock generateObject failed after ${Date.now() - startTime}ms:`, error);
-        throw error;
-    }
+    return options.schema.parse(response.output?.message?.content?.find(block => block.toolUse)?.toolUse?.input);
 }
 
 export async function generateTitle(history: ChatMessage[], modelId?: string): Promise<string> {
-    const { text } = await generateText({
+    return (await generateText({
         system: 'You are a helpful assistant that generates concise, descriptive titles for conversations.',
         prompt: 'Please generate a concise title for this conversation.',
         history,
         modelId,
-    });
-
-    return text;
+    })).text;
 }

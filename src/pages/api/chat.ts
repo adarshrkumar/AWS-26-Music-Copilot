@@ -20,7 +20,7 @@ const requestSchema = z.object({
 export const POST: APIRoute = async ({ request }) => {
     try {
         const { messages, system, modelId, temperature, maxTokens } = requestSchema.parse(await request.json());
-        const stream = streamText({ system, prompt: messages.filter(message => message.role === 'user').at(-1)?.content ?? '', history: messages, modelId, temperature, maxTokens });
+        const stream = streamText({ system, prompt: messages[messages.length - 1].content, history: messages.slice(0, -1), modelId, temperature, maxTokens });
         const encoder = new TextEncoder();
 
         return new Response(
