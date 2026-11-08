@@ -1,8 +1,7 @@
 import { z } from 'zod';
+import { streamText } from '@/lib/bedrock';
 
 import type { APIRoute } from 'astro';
-
-import { streamText } from '@/lib/bedrock';
 
 const requestSchema = z.object({
     messages: z.array(
