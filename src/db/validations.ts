@@ -190,6 +190,44 @@ export const songInputSchema = z.object({
 
 export const songIdSchema = songInputSchema.shape.id;
 
+// Progression validation schemas
+
+export const MAX_SECTION_BARS = 16;
+export const MIN_TEMPO = 20;
+export const MAX_TEMPO = 300;
+
+export const progressionChordSchema = z.object({
+    bar: z.number().int().min(1).max(MAX_SECTION_BARS),
+    beat: z.number().int().min(1).max(4),
+    name: z.string().trim().min(1).max(24),
+});
+
+export const progressionSectionSchema = z.object({
+    id: z.string().min(1).max(64),
+    name: z.string().trim().min(1).max(60),
+    bars: z.number().int().min(1).max(MAX_SECTION_BARS),
+    chords: z.array(progressionChordSchema).max(MAX_SECTION_BARS * 4),
+});
+
+export const progressionDraftSchema = z.object({
+    songId: z.string().min(1).max(64).nullable(),
+    sampleProgressionId: z.string().min(1).max(64).nullable(),
+    tonic: z.string().regex(/^[A-G][#b]?$/),
+    mode: z.enum(['major', 'minor']),
+    tempo: z.number().int().min(MIN_TEMPO).max(MAX_TEMPO),
+    sections: z.array(progressionSectionSchema).min(1).max(32),
+    activeSectionId: z.string().min(1).max(64),
+});
+
+export const progressionRequestSchema = z.discriminatedUnion('action', [
+    z.object({ action: z.literal('save'), draft: progressionDraftSchema }),
+    z.object({
+        action: z.literal('explain'),
+        key: z.string().min(1).max(20),
+        chord: z.string().min(1).max(24),
+    }),
+]);
+
 // Type exports for use in application
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
@@ -197,6 +235,11 @@ export type PublishPostInput = z.infer<typeof publishPostSchema>;
 export type PostQueryInput = z.infer<typeof postQuerySchema>;
 
 export type SongInput = z.infer<typeof songInputSchema>;
+
+export type ProgressionChordInput = z.infer<typeof progressionChordSchema>;
+export type ProgressionSectionInput = z.infer<typeof progressionSectionSchema>;
+export type ProgressionDraft = z.infer<typeof progressionDraftSchema>;
+export type ProgressionRequest = z.infer<typeof progressionRequestSchema>;
 
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type UpdateCommentInput = z.infer<typeof updateCommentSchema>;

@@ -1,2 +1,523 @@
 <script>
+    import { z } from 'zod';
+    import { MAX_SECTION_BARS, MAX_TEMPO, MIN_TEMPO, progressionDraftSchema, progressionSectionSchema } from '@/db/validations';
+    import type { ProgressionDraft } from '@/db/validations';
+    import { parseChord } from '@/lib/theory/chords';
+    import { analyzeProgression } from '@/lib/theory/engine';
+    import { parseKey } from '@/lib/theory/keys';
+    import { SAMPLE_PROGRESSIONS } from '@/lib/theory/samples';
+    import type { ChordAnalysis, ChordStatus, InvalidChord } from '@/lib/theory/types';
+
+    type Section = ProgressionDraft['sections'][number];
+
+    const STORAGE_KEY = 'music-copilot-progression-draft';
+    const DEFAULT_BARS = 4;
+    const DEFAULT_TEMPO = 100;
+    const EXPLAIN_DELAY = 600;
+    const STATUS_LABELS: Record<ChordStatus, string> = {
+        diatonic: '✓ In key',
+        borrowed: '◇ Borrowed chord',
+        outside: '! Outside the key',
+    };
+
+    const songResponseSchema = z.object({
+        data: z.object({
+            songId: z.string(),
+            key: z.string(),
+            tempo: z.number(),
+            sampleProgressionId: z.string().nullable(),
+            sections: z.array(progressionSectionSchema),
+        }),
+    });
+    const saveResponseSchema = z.object({ data: z.object({ songId: z.string() }) });
+    const explainResponseSchema = z.object({ data: z.object({ text: z.string() }) });
+    const errorResponseSchema = z.object({ error: z.string() });
+
+    function required<T>(value: T | null): T {
+        if (value === null) throw new Error('A page element is missing.');
+        return value;
+    }
+
+    const tonicSelect = required(document.querySelector<HTMLSelectElement>('#key-tonic'));
+    const modeSelect = required(document.querySelector<HTMLSelectElement>('#key-mode'));
+    const tempoInput = required(document.querySelector<HTMLInputElement>('#tempo'));
+    const barsInput = required(document.querySelector<HTMLInputElement>('#bars'));
+    const sampleSelect = required(document.querySelector<HTMLSelectElement>('#sample'));
+    const sampleButton = required(document.querySelector<HTMLButtonElement>('#sample-load'));
+    const settingsForm = required(document.querySelector<HTMLFormElement>('#settings-form'));
+    const chordForm = required(document.querySelector<HTMLFormElement>('#chord-form'));
+    const chordInput = required(document.querySelector<HTMLInputElement>('#chord-input'));
+    const sectionTabs = required(document.querySelector<HTMLElement>('#section-tabs'));
+    const barList = required(document.querySelector<HTMLElement>('#bar-list'));
+    const analysisList = required(document.querySelector<HTMLElement>('#analysis-list'));
+    const analysisIntro = required(document.querySelector<HTMLElement>('#analysis-intro'));
+    const message = required(document.querySelector<HTMLElement>('#progression-message'));
+    const saveButton = required(document.querySelector<HTMLButtonElement>('#save-button'));
+    const saveMessage = required(document.querySelector<HTMLElement>('#save-message'));
+
+    const explanations = new Map<string, string>();
+    const requested = new Set<string>();
+    let explainTimer = 0;
+
+    function createElement(tag: string, className: string, text = ''): HTMLElement {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (text) element.textContent = text;
+        return element;
+    }
+
+    function createSection(name: string, bars: number, chords: Section['chords']): Section {
+        return { id: crypto.randomUUID(), name, bars, chords };
+    }
+
+    function createDraft(): ProgressionDraft {
+        const section = createSection('Section 1', DEFAULT_BARS, []);
+        return { songId: null, sampleProgressionId: null, tonic: 'C', mode: 'major', tempo: DEFAULT_TEMPO, sections: [section], activeSectionId: section.id };
+    }
+
+    function clamp(value: number, min: number, max: number): number {
+        return Math.min(max, Math.max(min, value));
+    }
+
+    function hasStackedChords(source: ProgressionDraft): boolean {
+        return source.sections.some(section => new Set(section.chords.map(chord => chord.bar)).size < section.chords.length);
+    }
+
+    function normalizeDraft(source: ProgressionDraft): ProgressionDraft {
+        const sections: Section[] = source.sections.map(section => {
+            const chords: Section['chords'] = [];
+
+            for (const chord of [...section.chords].sort((a, b) => a.bar - b.bar || a.beat - b.beat)) {
+                if (!chords.some(existing => existing.bar === chord.bar)) chords.push({ bar: chord.bar, beat: 1, name: chord.name });
+            }
+
+            const lastBar = chords.length > 0 ? chords[chords.length - 1].bar : 1;
+            return { ...section, bars: Math.max(section.bars, lastBar), chords };
+        });
+
+        const activeSectionId = sections.some(section => section.id === source.activeSectionId) ? source.activeSectionId : sections[0].id;
+        return { ...source, sections, activeSectionId };
+    }
+
+    function loadDraft(): ProgressionDraft {
+        const text = localStorage.getItem(STORAGE_KEY);
+        if (!text) return createDraft();
+
+        try {
+            const result = progressionDraftSchema.safeParse(JSON.parse(text));
+            return result.success ? normalizeDraft(result.data) : createDraft();
+        } catch {
+            return createDraft();
+        }
+    }
+
+    let draft = loadDraft();
+
+    function getActiveSection(): Section {
+        return draft.sections.find(section => section.id === draft.activeSectionId) ?? draft.sections[0];
+    }
+
+    function getKeyName(): string {
+        return `${draft.tonic} ${draft.mode}`;
+    }
+
+    function setMessage(text: string): void {
+        message.textContent = text;
+    }
+
+    function persist(): void {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+        } catch {
+            setMessage('This browser could not keep a copy of the progression on your device.');
+        }
+    }
+
+    function capitalizeChord(value: string): string {
+        return value.trim().replace(/^[a-g]/, letter => letter.toUpperCase());
+    }
+
+    function getChordAt(section: Section, bar: number): string {
+        return section.chords.find(chord => chord.bar === bar)?.name ?? '';
+    }
+
+    function setChordAt(section: Section, bar: number, name: string | null): void {
+        const chords = section.chords.filter(chord => chord.bar !== bar);
+        if (name !== null) chords.push({ bar, beat: 1, name });
+        section.chords = chords.sort((a, b) => a.bar - b.bar);
+    }
+
+    function getHighestBar(section: Section): number {
+        return section.chords.reduce((highest, chord) => Math.max(highest, chord.bar), 1);
+    }
+
+    function renderSettings(): void {
+        tonicSelect.value = draft.tonic;
+        modeSelect.value = draft.mode;
+        tempoInput.value = draft.tempo.toString();
+        barsInput.value = getActiveSection().bars.toString();
+    }
+
+    function renderTabs(): void {
+        sectionTabs.replaceChildren();
+
+        for (const section of draft.sections) {
+            const button = document.createElement('button');
+            button.className = 'chord';
+            button.textContent = section.name;
+            button.type = 'button';
+            button.setAttribute('aria-pressed', section.id === draft.activeSectionId ? 'true' : 'false');
+            button.addEventListener('click', () => {
+                draft.activeSectionId = section.id;
+                persist();
+                renderAll();
+            });
+            sectionTabs.append(button);
+        }
+    }
+
+    function renderBars(): void {
+        const section = getActiveSection();
+        barList.replaceChildren();
+
+        for (let bar = 1; bar <= section.bars; bar++) {
+            const item = createElement('li', 'progression__bar');
+            const label = document.createElement('label');
+            const input = document.createElement('input');
+            const remove = document.createElement('button');
+            const inputId = `bar-${bar.toString()}`;
+
+            label.className = 'progression__bar-number';
+            label.textContent = `Bar ${bar.toString()}`;
+            label.htmlFor = inputId;
+            input.className = 'form-input';
+            input.id = inputId;
+            input.type = 'text';
+            input.autocomplete = 'off';
+            input.maxLength = 24;
+            input.placeholder = 'Empty';
+            input.value = getChordAt(section, bar);
+            remove.type = 'button';
+            remove.className = 'btn';
+            remove.textContent = 'Remove';
+            remove.dataset.variant = 'secondary';
+            remove.dataset.size = 'small';
+            remove.disabled = input.value === '';
+            remove.setAttribute('aria-label', `Remove the chord from bar ${bar.toString()}`);
+
+            input.addEventListener('change', () => editBar(bar, input, remove));
+            remove.addEventListener('click', () => {
+                setChordAt(getActiveSection(), bar, null);
+                input.value = '';
+                input.removeAttribute('data-state');
+                remove.disabled = true;
+                setMessage(`Removed the chord from bar ${bar.toString()}.`);
+                persist();
+                renderAnalysis();
+                input.focus();
+            });
+
+            item.append(label, input, remove);
+            barList.append(item);
+        }
+    }
+
+    function editBar(bar: number, input: HTMLInputElement, remove: HTMLButtonElement): void {
+        const value = capitalizeChord(input.value);
+        const chord = value === '' ? null : parseChord(value);
+
+        if (value !== '' && !chord) {
+            input.dataset.state = 'error';
+            setMessage(`"${value}" is not a chord Music Copilot recognizes, so bar ${bar.toString()} keeps ${getChordAt(getActiveSection(), bar) || 'no chord'}.`);
+            return;
+        }
+
+        setChordAt(getActiveSection(), bar, chord ? chord.name : null);
+        input.value = chord ? chord.name : '';
+        input.removeAttribute('data-state');
+        remove.disabled = !chord;
+        setMessage(chord ? `Bar ${bar.toString()} now holds ${chord.name}.` : `Removed the chord from bar ${bar.toString()}.`);
+        persist();
+        renderAnalysis();
+    }
+
+    function createGuideText(entry: ChordAnalysis): string {
+        const tones = entry.guideTones.map(tone => `${tone.note} (${tone.role})`);
+        return `Guide tones: ${tones.join(', ')}.`;
+    }
+
+    function createOptions(entry: ChordAnalysis): HTMLElement {
+        const details = createElement('details', 'progression__options');
+        details.append(createElement('summary', 'progression__options-summary', 'Scales and arpeggios that can fit'));
+
+        const list = createElement('ul', 'progression__option-list');
+        for (const option of [...entry.scales.slice(0, 3), ...entry.arpeggios.slice(0, 2)]) {
+            const item = createElement('li', 'suggestion');
+            item.append(createElement('strong', 'progression__option-name', option.kind === 'scale' ? `${option.root} ${option.name}` : option.name));
+            item.append(createElement('span', 'progression__option-notes', option.description));
+            item.append(createElement('span', 'progression__option-reason', option.reason));
+
+            if (option.outsideReference.length > 0) {
+                item.append(createElement('span', 'note-out', `Outside ${getKeyName()}: ${option.outsideReference.join(', ')}`));
+            }
+
+            list.append(item);
+        }
+
+        details.append(list);
+        return details;
+    }
+
+    function createChordCard(entry: ChordAnalysis | InvalidChord, keyName: string): HTMLElement {
+        const card = createElement('li', 'progression__chord');
+        const header = createElement('div', 'progression__chord-header');
+        header.append(createElement('span', 'progression__bar-number', `Bar ${entry.bar.toString()}`));
+        header.append(createElement('h3', 'progression__chord-name', entry.name));
+
+        if (!entry.valid) {
+            card.dataset.status = 'invalid';
+            header.append(createElement('span', 'progression__status', '! Not recognized'));
+            card.append(header, createElement('p', 'progression__note', entry.message));
+            return card;
+        }
+
+        card.dataset.status = entry.context.status;
+        header.append(createElement('span', 'progression__status', STATUS_LABELS[entry.context.status]));
+
+        const cacheKey = `${keyName}|${entry.name}`;
+        const note = createElement('p', 'progression__note', explanations.get(cacheKey) ?? entry.context.reason);
+        note.dataset.explainKey = cacheKey;
+
+        card.append(header, createElement('p', 'progression__function', entry.context.description), note, createElement('p', 'progression__guide', createGuideText(entry)));
+
+        if (entry.guideToneMoves.length > 0) {
+            const moves = createElement('ul', 'progression__moves');
+            for (const move of entry.guideToneMoves) moves.append(createElement('li', 'progression__move', move.reason));
+            card.append(moves);
+        }
+
+        card.append(createOptions(entry));
+        return card;
+    }
+
+    function renderAnalysis(): void {
+        const section = getActiveSection();
+        const keyName = getKeyName();
+        const result = analyzeProgression(keyName, section.chords);
+        analysisList.replaceChildren();
+
+        if (!result || result.chords.length === 0) {
+            analysisIntro.textContent = 'Add a chord to see its function in the key and the scales that can fit.';
+            return;
+        }
+
+        analysisIntro.textContent = `Chord functions are shown in ${result.key.name}. A chord outside the key is labeled and kept as written. Everything here is a suggestion, and the choice is yours.`;
+        for (const entry of result.chords) analysisList.append(createChordCard(entry, keyName));
+
+        scheduleExplanations(keyName, result.chords.filter(entry => entry.valid).map(entry => entry.name));
+    }
+
+    function scheduleExplanations(keyName: string, names: string[]): void {
+        window.clearTimeout(explainTimer);
+        explainTimer = window.setTimeout(() => runExplanations(keyName, names), EXPLAIN_DELAY);
+    }
+
+    async function runExplanations(keyName: string, names: string[]): Promise<void> {
+        for (const name of new Set(names)) {
+            const cacheKey = `${keyName}|${name}`;
+            if (explanations.has(cacheKey) || requested.has(cacheKey)) continue;
+            requested.add(cacheKey);
+
+            try {
+                const response = await fetch('/api/modules/progression', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'explain', key: keyName, chord: name }) });
+                const result = explainResponseSchema.safeParse(await response.json());
+                if (!response.ok || !result.success) continue;
+
+                explanations.set(cacheKey, result.data.data.text);
+                for (const note of document.querySelectorAll<HTMLElement>('[data-explain-key]')) {
+                    if (note.dataset.explainKey === cacheKey) note.textContent = result.data.data.text;
+                }
+            } catch {
+                continue;
+            }
+        }
+    }
+
+    function renderAll(): void {
+        renderSettings();
+        renderTabs();
+        renderBars();
+        renderAnalysis();
+    }
+
+    function addChord(rawName: string): void {
+        const chord = parseChord(capitalizeChord(rawName));
+        if (!chord) {
+            chordInput.dataset.state = 'error';
+            setMessage(`"${rawName.trim()}" is not a chord Music Copilot recognizes. Try a name such as Dm7, G7 or Cmaj7.`);
+            return;
+        }
+
+        chordInput.removeAttribute('data-state');
+        let section = getActiveSection();
+        let bar = 1;
+        while (bar <= section.bars && getChordAt(section, bar) !== '') bar++;
+
+        let notice = `Added ${chord.name} to bar ${bar.toString()}.`;
+        if (bar > section.bars && section.bars < MAX_SECTION_BARS) section.bars = bar;
+
+        if (bar > section.bars) {
+            const previous = section.name;
+            section = createSection(`Section ${(draft.sections.length + 1).toString()}`, DEFAULT_BARS, []);
+            draft.sections.push(section);
+            draft.activeSectionId = section.id;
+            bar = 1;
+            notice = `${previous} holds ${MAX_SECTION_BARS.toString()} bars, so ${chord.name} starts ${section.name}.`;
+        }
+
+        setChordAt(section, bar, chord.name);
+        chordInput.value = '';
+        setMessage(notice);
+        persist();
+        renderAll();
+        chordInput.focus();
+    }
+
+    function loadSample(): void {
+        const sample = SAMPLE_PROGRESSIONS.find(item => item.id === sampleSelect.value);
+        if (!sample) {
+            setMessage('Choose a sample progression first.');
+            return;
+        }
+
+        const hasChords = draft.sections.some(section => section.chords.length > 0);
+        if (hasChords && !window.confirm('Replace the chords in this song with the sample progression?')) return;
+
+        const parsedKey = parseKey(sample.key);
+        const first = draft.sections[0];
+        const section: Section = { id: first.id, name: 'Section 1', bars: sample.bars, chords: sample.chords.map(chord => ({ bar: chord.bar, beat: 1, name: chord.name })) };
+
+        draft = { ...draft, sampleProgressionId: sample.id, tonic: parsedKey?.tonic ?? draft.tonic, mode: parsedKey?.mode ?? draft.mode, sections: [section], activeSectionId: section.id };
+        setMessage(`Loaded ${sample.title}. You can change any chord.`);
+        persist();
+        renderAll();
+    }
+
+    async function save(): Promise<void> {
+        if (!draft.sections.some(section => section.chords.length > 0)) {
+            saveMessage.textContent = 'Add at least one chord before saving.';
+            return;
+        }
+
+        saveButton.dataset.state = 'loading';
+        saveMessage.textContent = '';
+
+        try {
+            const response = await fetch('/api/modules/progression', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'save', draft }) });
+            const body = await response.json();
+            const result = saveResponseSchema.safeParse(body);
+
+            if (response.ok && result.success) {
+                draft.songId = result.data.data.songId;
+                persist();
+                saveMessage.textContent = 'Saved to your account.';
+                return;
+            }
+
+            const failure = errorResponseSchema.safeParse(body);
+            saveMessage.textContent = failure.success ? failure.data.error : 'The progression could not be saved.';
+        } catch {
+            saveMessage.textContent = 'The progression could not be saved. Your copy on this device is unchanged.';
+        } finally {
+            saveButton.removeAttribute('data-state');
+        }
+    }
+
+    async function loadSong(songId: string): Promise<void> {
+        try {
+            const response = await fetch(`/api/modules/progression?song=${encodeURIComponent(songId)}`);
+            const result = songResponseSchema.safeParse(await response.json());
+            if (!response.ok || !result.success || result.data.data.sections.length === 0) {
+                setMessage('That saved progression could not be loaded, so your copy on this device is shown.');
+                return;
+            }
+
+            const { data } = result.data;
+            const parsedKey = parseKey(data.key);
+            const loaded: ProgressionDraft = {
+                songId: data.songId,
+                sampleProgressionId: data.sampleProgressionId,
+                tonic: parsedKey?.tonic ?? draft.tonic,
+                mode: parsedKey?.mode ?? draft.mode,
+                tempo: clamp(Math.round(data.tempo), MIN_TEMPO, MAX_TEMPO),
+                sections: data.sections,
+                activeSectionId: data.sections[0].id,
+            };
+
+            draft = normalizeDraft(loaded);
+            setMessage(hasStackedChords(loaded) ? 'Some bars held more than one chord. This editor shows the first chord in each bar.' : 'Loaded your saved progression.');
+            persist();
+            renderAll();
+        } catch {
+            setMessage('That saved progression could not be loaded, so your copy on this device is shown.');
+        }
+    }
+
+    tonicSelect.addEventListener('change', () => {
+        draft.tonic = tonicSelect.value;
+        persist();
+        renderAnalysis();
+    });
+
+    modeSelect.addEventListener('change', () => {
+        draft.mode = modeSelect.value === 'minor' ? 'minor' : 'major';
+        persist();
+        renderAnalysis();
+    });
+
+    tempoInput.addEventListener('change', () => {
+        const value = Number.parseInt(tempoInput.value, 10);
+        draft.tempo = Number.isNaN(value) ? DEFAULT_TEMPO : clamp(value, MIN_TEMPO, MAX_TEMPO);
+        tempoInput.value = draft.tempo.toString();
+        persist();
+    });
+
+    barsInput.addEventListener('change', () => {
+        const section = getActiveSection();
+        const value = Number.parseInt(barsInput.value, 10);
+        const minimum = getHighestBar(section);
+        const bars = Number.isNaN(value) ? section.bars : clamp(value, minimum, MAX_SECTION_BARS);
+
+        if (!Number.isNaN(value) && value < minimum) {
+            setMessage(`Bar ${minimum.toString()} holds a chord, so this section keeps at least ${minimum.toString()} bars. Remove the chord to shorten it.`);
+        }
+
+        if (value > MAX_SECTION_BARS) {
+            setMessage(`A section holds up to ${MAX_SECTION_BARS.toString()} bars. Add a chord to a full section to start a new one.`);
+        }
+
+        section.bars = bars;
+        barsInput.value = bars.toString();
+        persist();
+        renderBars();
+    });
+
+    settingsForm.addEventListener('submit', event => event.preventDefault());
+    sampleButton.addEventListener('click', loadSample);
+
+    chordForm.addEventListener('submit', event => {
+        event.preventDefault();
+        if (chordInput.value.trim() === '') {
+            setMessage('Type a chord name first.');
+            return;
+        }
+        addChord(chordInput.value);
+    });
+
+    saveButton.addEventListener('click', save);
+
+    renderAll();
+
+    const songId = new URLSearchParams(window.location.search).get('song');
+    if (songId) loadSong(songId);
 </script>

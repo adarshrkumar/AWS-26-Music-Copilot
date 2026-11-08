@@ -1,0 +1,233 @@
+@use '../variables/colors' as *;
+@use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
+@use 'sass:map';
+
+.progression {
+    gap: space(6);
+    display: grid;
+
+    &__intro {
+        max-width: $measure;
+
+        h1 {
+            margin-bottom: space(3);
+        }
+
+        p {
+            margin-bottom: 0;
+        }
+    }
+
+    &__panel {
+        padding: padding(panel);
+        background: $bg-secondary;
+        border: $border-width-accent $border-style $text-primary;
+        border-radius: radius(lg);
+
+        h2 {
+            margin-bottom: space(4);
+            font-size: font-size(lg);
+        }
+    }
+
+    &__fields {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: space(4);
+        display: grid;
+    }
+
+    &__help {
+        margin-bottom: 0;
+        color: $text-secondary;
+        font-size: font-size(sm);
+    }
+
+    &__message {
+        margin-top: space(3);
+        margin-bottom: 0;
+        min-height: 1.5em;
+        color: $text-primary;
+        font-weight: font-weight(semi);
+    }
+
+    &__sample {
+        margin-top: space(4);
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: space(4);
+        display: grid;
+
+        @include below(md) {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+    }
+
+    &__sections {
+        margin-bottom: space(4);
+        flex-wrap: wrap;
+        gap: space(2);
+        display: flex;
+    }
+
+    &__add {
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: space(3);
+        display: grid;
+
+        @include below(md) {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+    }
+
+    &__bars {
+        list-style: none;
+        margin: space(5) 0 0;
+        padding: 0;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: space(3);
+        display: grid;
+    }
+
+    &__bar {
+        padding: padding(row);
+        background: $bg-primary;
+        border: $border-width $border-style $border-color;
+        border-radius: radius(md);
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: space(3);
+        display: grid;
+    }
+
+    &__bar-number {
+        color: $text-secondary;
+        font-size: font-size(sm);
+        font-weight: font-weight(bold);
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    &__analysis {
+        list-style: none;
+        margin: space(4) 0 0;
+        padding: 0;
+        gap: space(4);
+        display: grid;
+    }
+
+    &__chord {
+        padding: padding(panel);
+        background: $bg-primary;
+        border: $border-width $border-style $border-color;
+        border-left: $border-width-accent $border-style $secondary-color;
+        border-radius: radius(md);
+
+        &[data-status="borrowed"] {
+            border-left-color: $primary-color;
+        }
+
+        &[data-status="outside"],
+        &[data-status="invalid"] {
+            border-left-color: $warning-color;
+        }
+
+        p {
+            margin-bottom: space(3);
+        }
+    }
+
+    &__chord-header {
+        margin-bottom: space(3);
+        flex-wrap: wrap;
+        align-items: center;
+        gap: space(3);
+        display: flex;
+    }
+
+    &__chord-name {
+        margin: 0;
+        font-family: $font-display;
+        font-size: font-size(xl);
+    }
+
+    &__status {
+        margin-left: auto;
+        padding: space(1) space(3);
+        color: $text-primary;
+        background: $bg-secondary;
+        border: $border-width $border-style $text-primary;
+        border-radius: radius(pill);
+        font-size: font-size(sm);
+        font-weight: font-weight(bold);
+    }
+
+    &__function {
+        color: $text-primary;
+        font-weight: font-weight(semi);
+    }
+
+    &__note {
+        color: $text-primary;
+    }
+
+    &__guide {
+        color: $text-secondary;
+    }
+
+    &__moves {
+        margin: 0 0 space(3);
+        padding-left: space(5);
+        color: $text-secondary;
+    }
+
+    &__options-summary {
+        padding: space(2) 0;
+        color: $primary-color;
+        font-weight: font-weight(bold);
+        cursor: pointer;
+
+        @include focus-visible;
+    }
+
+    &__option-list {
+        list-style: none;
+        margin: space(3) 0 0;
+        padding: 0;
+        gap: space(3);
+        display: grid;
+
+        .suggestion {
+            gap: space(1);
+            display: grid;
+        }
+    }
+
+    &__option-notes {
+        color: $text-secondary;
+    }
+
+    &__save {
+        flex-wrap: wrap;
+        align-items: center;
+        gap: space(4);
+        display: flex;
+
+        &-message {
+            margin: 0;
+            min-height: 1.5em;
+            color: $text-primary;
+            font-weight: font-weight(semi);
+        }
+    }
+}

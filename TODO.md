@@ -13,13 +13,13 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Build a Progression
 
-- [ ] Add key, tempo and bar count controls to `src/pages/app/progression.astro`
-- [ ] Add chord entry, one chord at a time, with changes to any chord
-- [ ] Add a sample progression picker
-- [ ] Show each chord's name, function in the key and a short note from `explainChord`
-- [ ] Update suggestions whenever a chord changes
-- [ ] Limit a progression to sixteen bars and split longer progressions into sections
-- [ ] Save progressions through `setProgression` in `src/script/app/progression.astro`
+- [x] Add key, tempo and bar count controls to `src/pages/app/progression.astro`
+- [x] Add chord entry, one chord at a time, with changes to any chord
+- [x] Add a sample progression picker
+- [x] Show each chord's name, function in the key and a short note from `explainChord`
+- [x] Update suggestions whenever a chord changes
+- [x] Limit a progression to sixteen bars and split longer progressions into sections
+- [x] Save progressions through `setProgression` in `src/script/app/progression.astro`
 
 ## Find Scales and Notes
 
