@@ -307,6 +307,34 @@
             font-weight: 700
         }
 
+        .shots {
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            list-style: none
+        }
+
+        .shots figure {
+            margin: 0;
+            display: grid;
+            gap: 8px
+        }
+
+        .shots img {
+            width: 100%;
+            height: auto;
+            border: 2px solid var(--ink);
+            border-radius: 14px;
+            display: block
+        }
+
+        .shots figcaption {
+            font-size: 15px;
+            font-weight: 600
+        }
+
         #fab {
             position: fixed;
             right: 22px;
@@ -510,13 +538,13 @@
       <h2>The gap is the reason, not the theory</h2>
       <table><thead><tr><th>Product</th><th>What it does</th><th>Where Music Copilot differs</th></tr></thead><tbody>
         <tr><td>Hookpad</td><td>Knows the key, hides out-of-key chords by default, and shows note guides.</td><td>Gives a reason with each suggestion, guide tones into the next chord, and labels out-of-key chords instead of hiding them. Edits tab beside notation.</td></tr>
-        <tr><td>Scaler 3</td><td>Detects keys and chords, groups chords by genre and feel, as a DAW plugin and app.</td><td>A browser writing tool that explains the theory. No audio in v1.</td></tr>
+        <tr><td>Scaler 3</td><td>Detects keys and chords, groups chords by genre and feel, as a DAW plugin and app.</td><td>A browser writing tool that explains the theory.</td></tr>
         <tr><td>Captain Chords</td><td>A DAW plugin that generates progressions, some from hit songs.</td><td>Never uses a real artist's song as a template, and explains why each chord fits.</td></tr>
         <tr><td>Guitar Pro 8</td><td>A tab and notation editor with a separate scale tool.</td><td>The scale is tied to the chord under the cursor, with a reason.</td></tr>
         <tr><td>MuseScore Studio</td><td>A free notation editor with linked tablature staves.</td><td>No theory guidance while writing.</td></tr>
         <tr><td>musictheory.net</td><td>Free theory lessons and ear training.</td><td>Teaches inside the song being written, not away from it.</td></tr>
       </tbody></table>
-      <p class="meta">Reviewed November 2026 from each product's own pages, plus KVR Audio, Plugin Boutique and the App Store. All six play audio, which Music Copilot does not in v1.</p></div></section>` },
+      <p class="meta">Reviewed November 2026 from each product's own pages, plus KVR Audio, Plugin Boutique and the App Store.</p></div></section>` },
             {
                 title: "Technical challenges", html: `
     <section class="slide"><div class="bar"><span class="sign">Challenges</span><span class="num">09</span>
@@ -552,7 +580,7 @@
     <section class="slide"><div class="bar"><span class="sign">Data and access</span><span class="num">12</span>
       <h2>The songwriter's work stays theirs</h2>
       <div class="cols">
-        <div class="card"><b>Data</b><span>Songs stay on the device unless the songwriter syncs them. Saved songs with an account are stored on the server. Melodies and progressions are not used to train models or shared without an explicit export. Deleting an account removes synced copies right away.</span></div>
+        <div class="card"><b>Data</b><span>Songs are kept on the device and copied to the songwriter's account automatically when signed in. Melodies and progressions are not used to train models or shared without an explicit export. Deleting an account removes synced copies right away.</span></div>
         <div class="card"><b>Accessibility</b><span>Scale and chord diagrams have text descriptions, such as "C major scale: C, D, E, F, G, A, B." Notes outside the scale carry a symbol, so color is never the only signal. Full keyboard and screen reader support is still in progress.</span></div>
       </div></div></section>` },
             {
@@ -566,23 +594,41 @@
         <tr><td>Sample progression selection (four samples)</td><td>built</td></tr>
         <tr><td>Scale diagram for each chord, with a text description</td><td>built</td></tr>
         <tr><td>Songs page and usage metrics page</td><td>built</td></tr>
-        <tr><td>Audio playback</td><td>out of scope for v1</td></tr>
+        <tr><td>Song playback from the songs page</td><td>built</td></tr>
         <tr><td>Full song generation</td><td>non-goal</td></tr>
       </tbody></table></div></section>` },
             {
+                title: "In the app: writing", html: `
+    <section class="slide"><div class="bar"><span class="sign">In the app</span><span class="num">14</span>
+      <h2>Build, find, write</h2>
+      <div class="shots">
+        <figure><img src="deck-screens/progression.png" alt="Build a progression page with song, key, mode, tempo and bar count controls, noting a section holds up to 16 bars."><figcaption>Build a progression: key, mode, tempo and bars.</figcaption></figure>
+        <figure><img src="deck-screens/scales.png" alt="Find scales and notes page with C major, Dm7 and next chord G7 selected, and the note that Dm7 is ii7 in C major."><figcaption>Find scales: Dm7 labeled ii7 in C major.</figcaption></figure>
+        <figure><img src="deck-screens/editor.png" alt="Write notes page showing bar 1 as Dm7 with the D Dorian scale, in the key, above a guitar tab."><figcaption>Write notes: bar 1 is Dm7, D Dorian, in the key.</figcaption></figure>
+      </div></div></section>` },
+            {
+                title: "In the app: deciding", html: `
+    <section class="slide"><div class="bar"><span class="sign">In the app</span><span class="num">15</span>
+      <h2>Accept, save, measure</h2>
+      <div class="shots">
+        <figure><img src="deck-screens/autofill.png" alt="Autofill page with song, section and bar pickers, a Propose phrases button and an accepted idea for bar 1."><figcaption>Autofill: nothing is written until you accept it.</figcaption></figure>
+        <figure><img src="deck-screens/songs.png" alt="Songs page showing a synced song in C major at 100 BPM with Chords, Notes, Autofill, Play, Edit, Export and Delete actions."><figcaption>Songs: synced, exported or played back.</figcaption></figure>
+        <figure><img src="deck-screens/metrics.png" alt="Metrics page table of progressions built, suggestions accepted, theory checks and time to first scale."><figcaption>Metrics: events only, no notes or melodies.</figcaption></figure>
+      </div></div></section>` },
+            {
                 title: "Metrics", html: `
-    <section class="slide"><div class="bar"><span class="sign">Metrics</span><span class="num">14</span>
+    <section class="slide"><div class="bar"><span class="sign">Metrics</span><span class="num">16</span>
       <h2>What the app measures</h2>
-      <table><thead><tr><th>Metric</th><th>How it is measured</th></tr></thead><tbody>
-        <tr><td>Progressions built</td><td>Sessions that save a progression, out of all sessions</td></tr>
-        <tr><td>Suggestions accepted</td><td>Suggestions accepted, out of suggestions shown</td></tr>
-        <tr><td>Theory checks</td><td>Devices that open a suggestion's reason</td></tr>
-        <tr><td>Time to first scale</td><td>Median seconds from the first chord to the first scale view</td></tr>
+      <table><thead><tr><th>Metric</th><th>How it is measured</th><th>Now</th></tr></thead><tbody>
+        <tr><td>Progressions built</td><td>Sessions that save a progression, out of all sessions</td><td>0 of 4 sessions</td></tr>
+        <tr><td>Suggestions accepted</td><td>Suggestions accepted, out of suggestions shown</td><td>60% (9 of 15)</td></tr>
+        <tr><td>Theory checks</td><td>Devices that open a suggestion's reason</td><td>0 of 4 devices</td></tr>
+        <tr><td>Time to first scale</td><td>Median seconds from the first chord to the first scale view</td><td>No data yet</td></tr>
       </tbody></table>
-      <p class="meta">Metrics count events only and never store chords, notes or melodies. Targets are not set yet.</p></div></section>` },
+      <p class="meta">From the app's metrics page on November 8, 2026. Metrics count events only and never store chords, notes or melodies.</p></div></section>` },
             {
                 title: "Team", html: `
-    <section class="slide"><div class="bar"><span class="sign">Team</span><span class="num">15</span>
+    <section class="slide"><div class="bar"><span class="sign">Team</span><span class="num">17</span>
       <h2>Who built it</h2>
       <table><thead><tr><th>Contributor</th><th>Role</th></tr></thead><tbody>
         <tr><td>Adarsh Kumar</td><td>App shell, accounts, DynamoDB, Bedrock, design system, spec</td></tr>
@@ -593,7 +639,7 @@
       </tbody></table></div></section>` },
             {
                 title: "Links", html: `
-    <section class="slide"><div class="bar hero"><span class="sign" style="background:var(--ink)">Links</span><span class="num" style="color:#e9e7fb">16</span>
+    <section class="slide"><div class="bar hero"><span class="sign" style="background:var(--ink)">Links</span><span class="num" style="color:#e9e7fb">18</span>
       <h1>Thank you</h1>
       <p class="lede">Try the app or read the idea paper.</p>
       <div class="linkrow"><a class="linkbtn alt" href="https://tonepilot.adarshrkumar.app">Open the app</a><a class="linkbtn alt" href="https://claude.ai/artifact/BP4hj1nc6WRVfGHXgMzcRb">Idea paper</a></div>
