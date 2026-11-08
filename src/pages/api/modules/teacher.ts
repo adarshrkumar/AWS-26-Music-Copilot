@@ -1,102 +1,137 @@
-import { nanoid } from 'nanoid';
+import type { User } from 'better-auth';
+import { customAlphabet, nanoid } from 'nanoid';
 import { z } from 'zod';
+import { deleteItem, getItem, queryItems, setItem } from '@/db/helpers';
+import { classMemberTable, classTable, songTable, userTable } from '@/db/schemas';
+import type { ClassMember, ClassRoom, Song } from '@/db/types';
 import { classIdSchema, classInputSchema, joinClassSchema } from '@/db/validations';
-import { addMember, createJoinCodeFor, deleteClass, getClass, getClassByJoinCode, getJoinedClasses, getMembers, getTeachingClasses, removeMember, setClass } from '@/lib/classes';
+import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { SAMPLE_PROGRESSIONS } from '@/lib/theory/samples';
 
 import type { APIContext } from 'astro';
 
-const knownIds = SAMPLE_PROGRESSIONS.map(progression => progression.id);
+const classBodySchema = classInputSchema.refine(input => input.sampleProgressionIds.every(id => SAMPLE_PROGRESSIONS.some(progression => progression.id === id)), { message: 'Choose sample progressions from the list', path: ['sampleProgressionIds'] });
 
-const classBodySchema = classInputSchema.refine(input => input.sampleProgressionIds.every(id => knownIds.includes(id)), { message: 'Choose sample progressions from the list', path: ['sampleProgressionIds'] });
+const createJoinCode = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 8);
 
-const postBodySchema = z.discriminatedUnion('action', [z.object({ action: z.literal('create') }).merge(classInputSchema), z.object({ action: z.literal('join') }).merge(joinClassSchema)]);
-
-function json(body: object, status = 200): Response {
-    return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-}
-
-function failure(method: string, error: Error | null): Response {
-    if (error instanceof z.ZodError) return json({ error: 'Validation error', details: error.errors }, 400);
-    console.error(`${method} /api/modules/teacher error:`, error);
-    return json({ error: 'Internal server error' }, 500);
-}
-
-// GET /api/modules/teacher - Classes the signed-in user teaches, with student counts, and classes the user has joined
-export async function GET({ locals }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+export const GET = async ({ locals }: APIContext): Promise<Response> => {
+    if (!locals.user) return getUnauthorizedError();
 
     try {
-        const [teaching, joined] = await Promise.all([getTeachingClasses(locals.user.id), getJoinedClasses(locals.user.id)]);
-        return json({ data: { teaching, joined } });
+        const [classes, memberships]: [ClassRoom[], ClassMember[]] = await Promise.all([
+            queryItems(classTable, { KeyConditionExpression: 'teacherId = :teacherId', ExpressionAttributeValues: { ':teacherId': locals.user.id } }),
+            queryItems(classMemberTable, { IndexName: 'studentId', KeyConditionExpression: 'studentId = :studentId', ExpressionAttributeValues: { ':studentId': locals.user.id } }),
+        ]);
+
+        return new Response(JSON.stringify({
+            data: {
+                teaching: await Promise.all(classes.map(async ({ id, name, joinCode, sampleProgressionIds }) => ({
+                    id,
+                    name,
+                    joinCode,
+                    sampleProgressionIds,
+                    students: await Promise.all((await queryItems(classMemberTable, { KeyConditionExpression: 'classId = :classId', ExpressionAttributeValues: { ':classId': id } })).map(async ({ studentId }: ClassMember) => {
+                        const [student, songs]: [User | null, Song[]] = await Promise.all([getItem(userTable, { id: studentId }), queryItems(songTable, { KeyConditionExpression: 'userId = :userId', ExpressionAttributeValues: { ':userId': studentId } })]);
+
+                        return {
+                            studentId,
+                            studentName: student?.name || 'Unknown student',
+                            songs: songs.map(song => ({
+                                title: song.title,
+                                sampleProgressionId: song.sampleProgressionId,
+                                acceptedCount: song.suggestions.filter(suggestion => suggestion.status === 'accepted').length,
+                                totalCount: song.suggestions.length,
+                                melody: song.melodyShared ? song.sections : null,
+                            })),
+                        };
+                    })),
+                }))),
+                joined: (await Promise.all(memberships.map(async ({ classId }) => {
+                    const [classRoom]: ClassRoom[] = await queryItems(classTable, { IndexName: 'id', KeyConditionExpression: 'id = :id', ExpressionAttributeValues: { ':id': classId } });
+                    if (!classRoom) return null;
+
+                    const teacher: User | null = await getItem(userTable, { id: classRoom.teacherId });
+                    return { id: classRoom.id, name: classRoom.name, teacherName: teacher?.name || 'Unknown teacher', sampleProgressionIds: classRoom.sampleProgressionIds };
+                }))).filter(classRoom => classRoom !== null),
+            },
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
-        return failure('GET', error instanceof Error ? error : null);
+        console.error('GET /api/modules/teacher error:', error);
+        return getServerError();
     }
-}
+};
 
-// POST /api/modules/teacher - Create a class (action "create") or join one with its code (action "join"). Joining is always the student's own action
-export async function POST({ locals, request }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+export const POST = async ({ locals, request }: APIContext): Promise<Response> => {
+    if (!locals.user) return getUnauthorizedError();
 
     try {
-        const body = postBodySchema.parse(await request.json());
+        const body = z.discriminatedUnion('action', [z.object({ action: z.literal('create') }).merge(classInputSchema), z.object({ action: z.literal('join') }).merge(joinClassSchema)]).parse(await request.json());
 
         if (body.action === 'join') {
-            const classRoom = await getClassByJoinCode(body.joinCode);
-            if (!classRoom) return json({ error: 'No class has that join code' }, 404);
-            if (classRoom.teacherId === locals.user.id) return json({ error: 'You teach this class' }, 400);
+            const [classRoom]: ClassRoom[] = await queryItems(classTable, { IndexName: 'joinCode', KeyConditionExpression: 'joinCode = :joinCode', ExpressionAttributeValues: { ':joinCode': body.joinCode } });
+            if (!classRoom) return new Response(JSON.stringify({ error: 'No class has that join code' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+            if (classRoom.teacherId === locals.user.id) return new Response(JSON.stringify({ error: 'You teach this class' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
-            await addMember(classRoom.id, locals.user.id);
-            return json({ message: `Joined ${classRoom.name}` });
+            await setItem(classMemberTable, { classId: classRoom.id, studentId: locals.user.id, joinedAt: new Date().toISOString() });
+            return new Response(JSON.stringify({ message: `Joined ${classRoom.name}` }), { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
 
         const input = classBodySchema.parse(body);
-        const now = new Date().toISOString();
+        let joinCode = createJoinCode();
 
-        await setClass({ teacherId: locals.user.id, id: nanoid(), name: input.name, joinCode: await createJoinCodeFor(), sampleProgressionIds: input.sampleProgressionIds, createdAt: now, updatedAt: now });
-        return json({ message: 'Class created' }, 201);
+        while ((await queryItems(classTable, { IndexName: 'joinCode', KeyConditionExpression: 'joinCode = :joinCode', ExpressionAttributeValues: { ':joinCode': joinCode } })).length > 0) joinCode = createJoinCode();
+
+        await setItem(classTable, { teacherId: locals.user.id, id: nanoid(), name: input.name, joinCode, sampleProgressionIds: input.sampleProgressionIds, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+        return new Response(JSON.stringify({ message: 'Class created' }), { status: 201, headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
-        return failure('POST', error instanceof Error ? error : null);
-    }
-}
+        if (error instanceof z.ZodError) return new Response(JSON.stringify({ error: 'Validation error', details: error.errors }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
-// PUT /api/modules/teacher?id=... - Change a class name or its sample progressions. Only the class's teacher can do this
-export async function PUT({ locals, request, url }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+        console.error('POST /api/modules/teacher error:', error);
+        return getServerError();
+    }
+};
+
+export const PUT = async ({ locals, request, url }: APIContext): Promise<Response> => {
+    if (!locals.user) return getUnauthorizedError();
 
     try {
-        const classRoom = await getClass(locals.user.id, classIdSchema.parse(url.searchParams.get('id')));
-        if (!classRoom) return json({ error: 'Class not found' }, 404);
+        const classRoom: ClassRoom | null = await getItem(classTable, { teacherId: locals.user.id, id: classIdSchema.parse(url.searchParams.get('id')) });
+        if (!classRoom) return new Response(JSON.stringify({ error: 'Class not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
 
         const input = classBodySchema.parse(await request.json());
 
-        await setClass({ ...classRoom, name: input.name, sampleProgressionIds: input.sampleProgressionIds, updatedAt: new Date().toISOString() });
-        return json({ message: 'Class saved' });
+        await setItem(classTable, { ...classRoom, name: input.name, sampleProgressionIds: input.sampleProgressionIds, updatedAt: new Date().toISOString() });
+        return new Response(JSON.stringify({ message: 'Class saved' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
-        return failure('PUT', error instanceof Error ? error : null);
-    }
-}
+        if (error instanceof z.ZodError) return new Response(JSON.stringify({ error: 'Validation error', details: error.errors }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
-// DELETE /api/modules/teacher?id=...&as=teacher|student - A teacher deletes a class, a student leaves one
-export async function DELETE({ locals, url }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+        console.error('PUT /api/modules/teacher error:', error);
+        return getServerError();
+    }
+};
+
+export const DELETE = async ({ locals, url }: APIContext): Promise<Response> => {
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const id = classIdSchema.parse(url.searchParams.get('id'));
 
         if (url.searchParams.get('as') === 'student') {
-            const members = await getMembers(id);
-            if (!members.some(member => member.studentId === locals.user?.id)) return json({ error: 'You are not in this class' }, 404);
+            if (!(await getItem(classMemberTable, { classId: id, studentId: locals.user.id }))) return new Response(JSON.stringify({ error: 'You are not in this class' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
 
-            await removeMember(id, locals.user.id);
-            return json({ message: 'Left the class' });
+            await deleteItem(classMemberTable, { classId: id, studentId: locals.user.id });
+            return new Response(JSON.stringify({ message: 'Left the class' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
 
-        if (!(await getClass(locals.user.id, id))) return json({ error: 'Class not found' }, 404);
+        if (!(await getItem(classTable, { teacherId: locals.user.id, id }))) return new Response(JSON.stringify({ error: 'Class not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
 
-        await deleteClass(locals.user.id, id);
-        return json({ message: 'Class deleted' });
+        await Promise.all((await queryItems(classMemberTable, { KeyConditionExpression: 'classId = :classId', ExpressionAttributeValues: { ':classId': id } })).map((member: ClassMember) => deleteItem(classMemberTable, { classId: id, studentId: member.studentId })));
+        await deleteItem(classTable, { teacherId: locals.user.id, id });
+        return new Response(JSON.stringify({ message: 'Class deleted' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
-        return failure('DELETE', error instanceof Error ? error : null);
+        if (error instanceof z.ZodError) return new Response(JSON.stringify({ error: 'Validation error', details: error.errors }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
+        console.error('DELETE /api/modules/teacher error:', error);
+        return getServerError();
     }
-}
+};

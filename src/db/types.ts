@@ -62,44 +62,6 @@ export interface ClassMember {
     joinedAt: string;
 }
 
-export interface StudentSongReport {
-    title: string;
-    sampleProgressionId: string | null;
-    acceptedCount: number;
-    totalCount: number;
-    melody: Song['sections'] | null;
-}
-
-export interface StudentReport {
-    studentId: string;
-    studentName: string;
-    songs: StudentSongReport[];
-}
-
-export interface TeachingClass {
-    id: string;
-    name: string;
-    joinCode: string;
-    sampleProgressionIds: string[];
-    students: StudentReport[];
-}
-
-export interface JoinedClass {
-    id: string;
-    name: string;
-    teacherName: string;
-    sampleProgressionIds: string[];
-}
-
-export interface TeacherData {
-    teaching: TeachingClass[];
-    joined: JoinedClass[];
-}
-
-export interface ApiProblem {
-    error?: string;
-}
-
 export interface Comment {
     pk: `POST#${string}`;
     sk: `COMMENT#${string}`;
@@ -114,7 +76,6 @@ export interface Comment {
     updatedAt: string;
 }
 
-// Metric events hold counts and timestamps only. They never hold chords, notes or melodies, and the ids are random values that are not linked to an account.
 export type ClientMetricName = 'session_start' | 'first_chord' | 'first_scale_view' | 'progression_saved' | 'reason_opened';
 
 export type MetricName = ClientMetricName | 'suggestion_shown' | 'suggestion_accepted' | 'suggestion_rejected';

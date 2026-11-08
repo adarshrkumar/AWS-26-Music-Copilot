@@ -148,7 +148,6 @@ Example structure:
 import Layout from '@/layouts/Layout.astro';
 import '@/styles/pages/my-page.scss';  // ← ALWAYS DO THIS
 ---
-
 <Layout>
     <div class="my-page-container">
         <!-- content -->

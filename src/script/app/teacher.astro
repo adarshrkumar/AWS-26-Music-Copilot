@@ -1,6 +1,8 @@
 <script>
+    import { z } from 'zod';
+    import { teacherResponseSchema } from '@/db/validations';
+    import type { TeacherData } from '@/db/validations';
     import { SAMPLE_PROGRESSIONS } from '@/lib/theory/samples';
-    import type { ApiProblem, JoinedClass, StudentReport, TeacherData, TeachingClass } from '@/db/types';
 
     const endpoint = '/api/modules/teacher';
 
@@ -41,7 +43,7 @@
         return Array.from(form.querySelectorAll<HTMLInputElement>('input[name="progression"]:checked'), input => input.value);
     }
 
-    function describeStudent(student: StudentReport): HTMLLIElement {
+    function describeStudent(student: TeacherData['teaching'][number]['students'][number]): HTMLLIElement {
         const item = document.createElement('li');
         const name = document.createElement('strong');
         const songs = document.createElement('ul');
@@ -71,7 +73,7 @@
         return item;
     }
 
-    function buildTeaching(classRoom: TeachingClass): DocumentFragment {
+    function buildTeaching(classRoom: TeacherData['teaching'][number]): DocumentFragment {
         const fragment = document.importNode(teachingTemplate.content, true);
         const item = find<HTMLLIElement>(fragment, 'li');
         const form = find<HTMLFormElement>(item, '[data-role="edit-class"]');
@@ -90,7 +92,7 @@
         return fragment;
     }
 
-    function buildJoined(classRoom: JoinedClass): DocumentFragment {
+    function buildJoined(classRoom: TeacherData['joined'][number]): DocumentFragment {
         const fragment = document.importNode(joinedTemplate.content, true);
         const item = find<HTMLLIElement>(fragment, 'li');
         const titles = classRoom.sampleProgressionIds.map(progressionTitle);
@@ -115,10 +117,10 @@
         try {
             const response = await fetch(endpoint);
 
-            if (!response.ok) return fail('Could not load your classes.');
-            const body: Record<'data', TeacherData> = await response.json();
+            const result = teacherResponseSchema.safeParse(await response.json());
 
-            render(body.data);
+            if (!response.ok || !result.success) return fail('Could not load your classes.');
+            render(result.data.data);
         } catch {
             fail('Could not reach the server.');
         }
@@ -133,9 +135,9 @@
             });
 
             if (response.ok) return null;
-            const problem: ApiProblem = await response.json().catch(() => ({}));
+            const problem = z.object({ error: z.string() }).safeParse(await response.json());
 
-            return problem.error ?? 'The server could not save this change.';
+            return problem.success ? problem.data.error : 'The server could not save this change.';
         } catch {
             return 'Could not reach the server.';
         }

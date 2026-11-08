@@ -1,22 +1,6 @@
 ---
-import { appLinks } from '@/lib/app-links';
-
-import Card from '@/components/Card.astro';
 import App from '@/layouts/App.astro';
-import '@/styles/pages/app-home.scss';
 
 if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
 ---
-
-<App pageTitle="App">
-    <h1 class="app-home__title">Your workspace</h1>
-    <ul class="app-home__grid">
-        {appLinks.map(link => (
-            <li>
-                <Card href={link.href} title={link.label}>
-                    <p>{link.description}</p>
-                </Card>
-            </li>
-        ))}
-    </ul>
-</App>
+<App pageTitle="App" />
