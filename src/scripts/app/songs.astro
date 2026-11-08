@@ -161,6 +161,14 @@
             if (action === 'unsync') button.hidden = !signedIn || song.syncedAt === null;
         }
 
+        for (const link of item.querySelectorAll('a[data-link]')) {
+            if (!(link instanceof HTMLAnchorElement)) continue;
+
+            link.href = `/app/${link.dataset.link}?song=${encodeURIComponent(song.id)}`;
+            link.setAttribute('aria-label', `${link.textContent} for ${song.title}`);
+            link.hidden = !signedIn || song.syncedAt === null;
+        }
+
         return fragment;
     }
 

@@ -12,6 +12,9 @@
     const list = document.querySelector('.autofill__list');
     const status = document.querySelector('.autofill__status');
     const songs: SongOption[] = JSON.parse(document.querySelector('#autofill-songs')?.textContent ?? '[]');
+    const params = new URLSearchParams(window.location.search);
+    let linkedSection = params.get('section');
+    let linkedBar = params.get('bar');
 
     function say(message: string) {
         if (status) status.textContent = message;
@@ -28,6 +31,8 @@
     function renderSections() {
         if (!sectionSelect) return;
         fill(sectionSelect, (currentSong()?.sections ?? []).map(section => ({ value: section.id, label: section.name })));
+        if (sectionSelect instanceof HTMLSelectElement && Array.from(sectionSelect.options).some(option => option.value === linkedSection)) sectionSelect.value = linkedSection ?? '';
+        linkedSection = null;
         renderBars();
     }
 
@@ -35,12 +40,24 @@
         if (!barSelect) return;
         const bars = currentSong()?.sections.find(section => section.id === (sectionSelect as HTMLSelectElement).value)?.bars ?? 0;
         fill(barSelect, Array.from({ length: bars }, (_, index) => ({ value: (index + 1).toString(), label: `Bar ${index + 1}` })));
+        if (barSelect instanceof HTMLSelectElement && Array.from(barSelect.options).some(option => option.value === linkedBar)) barSelect.value = linkedBar ?? '';
+        linkedBar = null;
         void loadSuggestions();
     }
 
     function parseNotes(suggestion: Suggestion): PhraseNote[] {
         const value: { notes?: PhraseNote[] } = JSON.parse(suggestion.value);
         return value.notes ?? [];
+    }
+
+    function addEditorLink(suggestion: Suggestion, item: HTMLElement) {
+        const link = document.createElement('a');
+        link.className = 'btn';
+        link.dataset.variant = 'secondary';
+        link.dataset.size = 'small';
+        link.href = `/app/editor?${new URLSearchParams({ song: songSelect instanceof HTMLSelectElement ? songSelect.value : '', section: suggestion.sectionId, bar: suggestion.bar.toString() }).toString()}`;
+        link.textContent = `Open bar ${suggestion.bar} in the editor`;
+        item.append(link);
     }
 
     function describe(notes: PhraseNote[]): string {
@@ -60,6 +77,7 @@
         item.querySelectorAll('button, input').forEach(control => control.setAttribute('disabled', ''));
         const outcome = item.querySelector('.autofill__outcome');
         if (outcome) outcome.textContent = decision === 'accepted' ? 'Accepted and written into the song.' : 'Rejected. The song is unchanged.';
+        if (decision === 'accepted') addEditorLink(suggestion, item);
         say(decision === 'accepted' && result.skipped ? `Phrase accepted. ${result.skipped} notes were skipped because those beats already have a note.` : `Phrase ${decision}.`);
     }
 
@@ -117,6 +135,7 @@
         if (suggestion.status !== 'pending') {
             item.querySelectorAll('button, input').forEach(control => control.setAttribute('disabled', ''));
             outcome.textContent = suggestion.status === 'accepted' ? 'Accepted and written into the song.' : 'Rejected. The song is unchanged.';
+            if (suggestion.status === 'accepted') addEditorLink(suggestion, item);
         }
 
         return item;
@@ -159,5 +178,6 @@
         say(`${result.suggestions?.length ?? 0} ideas are ready. Accept, edit or reject each one.`);
     });
 
+    if (songSelect instanceof HTMLSelectElement && Array.from(songSelect.options).some(option => option.value === params.get('song'))) songSelect.value = params.get('song') ?? '';
     renderSections();
 </script>

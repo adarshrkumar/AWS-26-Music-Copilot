@@ -15,7 +15,7 @@ const signedIn = Boolean(Astro.locals.session);
         </div>
 
         <p class="songs__intro">
-            Your songs are kept on this device. A song is copied to your account only when you press its sync button.
+            Your songs are kept on this device. A song is copied to your account only when you press its sync button. Synced songs open in the chord, note and autofill tools.
             {!signedIn && <span> <a href="/user/sign-in">Sign in</a> if you want to sync.</span>}
         </p>
 
@@ -86,6 +86,9 @@ const signedIn = Boolean(Astro.locals.session);
                 <p class="songs__sync" data-field="sync"></p>
             </div>
             <div class="songs__actions">
+                <a class="btn" data-variant="secondary" data-size="small" data-link="progression">Chords</a>
+                <a class="btn" data-variant="secondary" data-size="small" data-link="editor">Notes</a>
+                <a class="btn" data-variant="secondary" data-size="small" data-link="autofill">Autofill</a>
                 <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="edit">Edit</button>
                 <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="sync">Sync to account</button>
                 <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="unsync">Remove synced copy</button>

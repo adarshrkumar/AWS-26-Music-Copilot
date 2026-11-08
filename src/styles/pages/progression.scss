@@ -216,6 +216,20 @@
         color: $text-secondary;
     }
 
+    &__chord .btn {
+        margin-top: space(3);
+    }
+
+    &__next {
+        flex-wrap: wrap;
+        gap: space(3);
+        display: flex;
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
     &__save {
         flex-wrap: wrap;
         align-items: center;

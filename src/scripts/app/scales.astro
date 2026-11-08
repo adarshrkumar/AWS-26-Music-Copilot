@@ -261,6 +261,21 @@
         update();
     });
 
+    const params = new URLSearchParams(window.location.search);
+    const linkedKey = parseKey(params.get('key') ?? '');
+
+    if (linkedKey) {
+        for (const option of keyField.options) {
+            const candidate = parseKey(option.value);
+            if (candidate?.root.pitch === linkedKey.root.pitch && candidate.minor === linkedKey.minor) keyField.value = option.value;
+        }
+    }
+
+    if (params.has('chord')) {
+        chordField.value = params.get('chord') ?? '';
+        nextField.value = params.get('next') ?? '';
+    }
+
     buildChordButtons();
     update();
 

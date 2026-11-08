@@ -1,9 +1,10 @@
 <script>
     import { nanoid } from 'nanoid';
     import { z } from 'zod';
-    import { progressionDraftSchema, progressionSectionSchema } from '@/db/validations';
+    import { progressionDraftSchema, progressionSectionSchema, songInputSchema } from '@/db/validations';
     import type { ProgressionDraft } from '@/db/validations';
     import progressionConfig from '@/lib/progression.config';
+    import songsConfig from '@/lib/songs.config';
     import { parseChord } from '@/lib/theory/chords';
     import { analyzeProgression } from '@/lib/theory/engine';
     import { parseKey } from '@/lib/theory/keys';
@@ -24,6 +25,7 @@
     const saveResponseSchema = z.object({ data: z.object({ songId: z.string() }) });
     const explainResponseSchema = z.object({ data: z.object({ text: z.string() }) });
     const errorResponseSchema = z.object({ error: z.string() });
+    const localSongsSchema = z.array(songInputSchema.extend({ syncedAt: z.string().max(40).nullable() }));
 
     const tonicSelect = document.querySelector('#key-tonic');
     const modeSelect = document.querySelector('#key-mode');
@@ -41,6 +43,9 @@
     const message = document.querySelector('#progression-message')!;
     const saveButton = document.querySelector('#save-button');
     const saveMessage = document.querySelector('#save-message')!;
+    const nextSteps = document.querySelector('#next-steps');
+    const editorLink = document.querySelector('#next-editor');
+    const autofillLink = document.querySelector('#next-autofill');
 
     const explanations = new Map<string, string>();
     const requested = new Set<string>();
@@ -219,7 +224,7 @@
         return details;
     }
 
-    function createChordCard(entry: ChordAnalysis | InvalidChord, keyName: string): HTMLElement {
+    function createChordCard(entry: ChordAnalysis | InvalidChord, keyName: string, nextName: string | null): HTMLElement {
         const bar = document.createElement('span');
         bar.className = 'progression__bar-number';
         bar.textContent = `Bar ${entry.bar.toString()}`;
@@ -274,7 +279,18 @@
             card.append(moves);
         }
 
-        card.append(createOptions(entry));
+        const query = new URLSearchParams({ key: `${draft.tonic}${draft.mode === 'minor' ? 'm' : ''}`, chord: entry.name });
+        if (nextName) query.set('next', nextName);
+
+        const scalesLink = document.createElement('a');
+        scalesLink.className = 'btn';
+        scalesLink.href = `/app/scales?${query.toString()}`;
+        scalesLink.textContent = 'Open in the scale finder';
+        scalesLink.dataset.variant = 'secondary';
+        scalesLink.dataset.size = 'small';
+        scalesLink.setAttribute('aria-label', `Open ${entry.name} in bar ${entry.bar.toString()} in the scale finder`);
+
+        card.append(createOptions(entry), scalesLink);
         return card;
     }
 
@@ -290,8 +306,9 @@
 
         analysisIntro.textContent = `Chord functions are shown in ${result.key.name}. A chord outside the key is labeled and kept as written. Everything here is a suggestion, and the choice is yours.`;
 
-        for (const entry of result.chords) {
-            analysisList?.append(createChordCard(entry, keyName));
+        for (const [index, entry] of result.chords.entries()) {
+            const next = result.chords.slice(index + 1).find(candidate => candidate.valid);
+            analysisList?.append(createChordCard(entry, keyName, next?.name ?? null));
         }
 
         window.clearTimeout(explainTimer);
@@ -319,6 +336,15 @@
         }
     }
 
+    function renderNextSteps(): void {
+        nextSteps?.toggleAttribute('hidden', !draft.songId);
+        if (!draft.songId) return;
+
+        const query = new URLSearchParams({ song: draft.songId, section: getActiveSection().id }).toString();
+        editorLink?.setAttribute('href', `/app/editor?${query}`);
+        autofillLink?.setAttribute('href', `/app/autofill?${query}`);
+    }
+
     function renderAll(): void {
         (tonicSelect as HTMLSelectElement).value = draft.tonic;
         (modeSelect as HTMLSelectElement).value = draft.mode;
@@ -327,6 +353,7 @@
         renderTabs();
         renderBars();
         renderAnalysis();
+        renderNextSteps();
     }
 
     function addChord(rawName: string): void {
@@ -397,7 +424,31 @@
             if (response.ok && result.success) {
                 draft.songId = result.data.data.songId;
                 persist();
+                renderNextSteps();
                 saveMessage.textContent = 'Saved to your account.';
+
+                try {
+                    const parsed = localSongsSchema.safeParse(JSON.parse(localStorage.getItem(songsConfig.storageKey) ?? '[]'));
+                    if (!parsed.success) return;
+
+                    const index = parsed.data.findIndex(song => song.id === result.data.data.songId);
+                    if (index === -1) return;
+
+                    const now = new Date().toISOString();
+                    const sections: z.infer<typeof localSongsSchema>[number]['sections'] = [];
+
+                    for (const section of draft.sections) {
+                        sections.push({ ...section, notes: parsed.data[index].sections.find(candidate => candidate.id === section.id)?.notes ?? [] });
+                    }
+
+                    let syncedAt = parsed.data[index].syncedAt;
+                    if (syncedAt && parsed.data[index].updatedAt <= syncedAt) syncedAt = now;
+
+                    parsed.data[index] = { ...parsed.data[index], key: `${draft.tonic} ${draft.mode}`, tempo: draft.tempo, sampleProgressionId: draft.sampleProgressionId, sections, updatedAt: now, syncedAt };
+                    localStorage.setItem(songsConfig.storageKey, JSON.stringify(parsed.data));
+                } catch {
+                    saveMessage.textContent = 'Saved to your account, but the copy of this song on your device could not be updated.';
+                }
                 return;
             }
 

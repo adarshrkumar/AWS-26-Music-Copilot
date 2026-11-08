@@ -84,6 +84,11 @@ const tonics = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
             <button class="btn" id="save-button" type="button" data-variant="primary">Save progression</button>
             <p class="progression__save-message" id="save-message" role="status" aria-live="polite"></p>
         </div>
+
+        <nav class="progression__next" id="next-steps" aria-label="Continue with this section" hidden>
+            <a class="btn" id="next-editor" data-variant="secondary">Write notes for this section</a>
+            <a class="btn" id="next-autofill" data-variant="secondary">Get phrase ideas for this section</a>
+        </nav>
     </section>
 
     <ProgressionScript />

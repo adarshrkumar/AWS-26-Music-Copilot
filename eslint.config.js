@@ -166,6 +166,7 @@ export default [
         languageOptions: {
             globals: {
                 HTMLTemplateElement: 'readonly',
+                HTMLAnchorElement: 'readonly',
                 Blob: 'readonly',
                 ParentNode: 'readonly',
                 DocumentFragment: 'readonly',

@@ -32,7 +32,7 @@
     const reasons = new Map<string, string>();
 
     let notes = sortNotes(section.notes);
-    let bar = 1;
+    let bar = parseInt(dataElement?.getAttribute('data-bar') ?? '1', 10);
     let editing: Note | null = null;
     let saving = false;
 
@@ -314,6 +314,8 @@
 
         document.querySelector('#entry-bar')?.replaceChildren(bar.toString());
         document.querySelector('#list-bar')?.replaceChildren(bar.toString());
+        document.querySelector('#autofill-bar')?.replaceChildren(bar.toString());
+        document.querySelector('#autofill-link')?.setAttribute('href', `/app/autofill?${new URLSearchParams({ song: dataElement?.getAttribute('data-song') ?? '', section: section.id, bar: bar.toString() }).toString()}`);
 
         for (const button of barButtons) {
             button.setAttribute('aria-pressed', ((button as HTMLButtonElement).dataset.bar === bar.toString()).toString());

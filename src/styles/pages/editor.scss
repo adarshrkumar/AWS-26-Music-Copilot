@@ -25,6 +25,12 @@
         color: $text-secondary;
     }
 
+    &__links {
+        flex-wrap: wrap;
+        gap: space(2);
+        display: flex;
+    }
+
     &__bar {
         gap: space(3);
     }
