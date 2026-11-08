@@ -5,6 +5,9 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
     output: 'server',
+    redirects: {
+        '/music-copilot-deck.html': '/tonepilot-deck.html',
+    },
     security: {
         allowedDomains: [{ hostname: 'tonepilot.adarshrkumar.app', protocol: 'https' }],
     },
