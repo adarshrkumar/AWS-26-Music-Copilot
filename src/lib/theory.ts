@@ -1,237 +1,190 @@
+import type { Chord } from '@/db/types';
+
+export interface Pitch {
+    letter: string;
+    accidental: number;
+    octave: number;
+}
+
 export interface ParsedChord {
     name: string;
-    root: number;
-    quality: ChordQuality;
-    rootName: string;
-    tones: number[];
-    toneLabels: string[];
-    scaleName: string;
-    scale: number[];
+    root: string;
+    rootPitchClass: number;
+    quality: string;
+    pitchClasses: number[];
 }
 
-export interface PhraseNote {
-    beat: number;
-    duration: number;
-    pitch: string;
+export interface Scale {
+    name: string;
+    pitchClasses: number[];
+    diatonic: boolean;
 }
 
-export interface PhraseProposal {
-    title: string;
-    chord: string;
-    scale: string;
-    chordTones: string[];
-    keyLabel: string;
-    notes: PhraseNote[];
-}
+export type NoteStatus = 'chord' | 'scale' | 'outside' | 'none';
 
-type ChordQuality = 'major' | 'minor' | 'dominant7' | 'major7' | 'minor7' | 'halfDiminished' | 'diminished' | 'sus4';
-type PhraseStyle = 'rising' | 'falling' | 'guide';
+export const STRING_COUNT = 6;
+export const MAX_FRET = 24;
 
+const LETTER_PITCH_CLASS: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const LETTER_STEP: Record<string, number> = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+const ACCIDENTAL_OFFSET: Record<string, number> = { '': 0, '#': 1, '\u266F': 1, b: -1, '\u266D': -1 };
 const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const FLAT_NAMES = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
-const NATURAL_PITCH_CLASSES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const OPEN_STRING_MIDI = [64, 59, 55, 50, 45, 40];
+const TREBLE_BOTTOM_LINE_STEP = 30;
 const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11];
-const LOWEST_NOTE = 60;
-const HIGHEST_NOTE = 83;
-const BEATS_PER_BAR = 4;
-const PHRASE_STYLES: PhraseStyle[] = ['rising', 'falling', 'guide'];
+const MODE_NAMES = ['Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'];
 
-const QUALITIES: Record<string, { quality: ChordQuality; tones: number[]; labels: string[]; scaleName: string; scale: number[] }> = {
-    '': { quality: 'major', tones: [0, 4, 7], labels: ['root', '3rd', '5th'], scaleName: 'major', scale: [0, 2, 4, 5, 7, 9, 11] },
-    maj: { quality: 'major', tones: [0, 4, 7], labels: ['root', '3rd', '5th'], scaleName: 'major', scale: [0, 2, 4, 5, 7, 9, 11] },
-    m: { quality: 'minor', tones: [0, 3, 7], labels: ['root', '3rd', '5th'], scaleName: 'dorian', scale: [0, 2, 3, 5, 7, 9, 10] },
-    min: { quality: 'minor', tones: [0, 3, 7], labels: ['root', '3rd', '5th'], scaleName: 'dorian', scale: [0, 2, 3, 5, 7, 9, 10] },
-    '7': { quality: 'dominant7', tones: [0, 4, 7, 10], labels: ['root', '3rd', '5th', '7th'], scaleName: 'mixolydian', scale: [0, 2, 4, 5, 7, 9, 10] },
-    maj7: { quality: 'major7', tones: [0, 4, 7, 11], labels: ['root', '3rd', '5th', '7th'], scaleName: 'major', scale: [0, 2, 4, 5, 7, 9, 11] },
-    m7: { quality: 'minor7', tones: [0, 3, 7, 10], labels: ['root', '3rd', '5th', '7th'], scaleName: 'dorian', scale: [0, 2, 3, 5, 7, 9, 10] },
-    min7: { quality: 'minor7', tones: [0, 3, 7, 10], labels: ['root', '3rd', '5th', '7th'], scaleName: 'dorian', scale: [0, 2, 3, 5, 7, 9, 10] },
-    m7b5: { quality: 'halfDiminished', tones: [0, 3, 6, 10], labels: ['root', '3rd', '5th', '7th'], scaleName: 'locrian', scale: [0, 1, 3, 5, 6, 8, 10] },
-    dim: { quality: 'diminished', tones: [0, 3, 6], labels: ['root', '3rd', '5th'], scaleName: 'whole-half diminished', scale: [0, 2, 3, 5, 6, 8, 9, 11] },
-    sus4: { quality: 'sus4', tones: [0, 5, 7], labels: ['root', '4th', '5th'], scaleName: 'mixolydian', scale: [0, 2, 4, 5, 7, 9, 10] },
+const CHORD_INTERVALS: Record<string, number[]> = {
+    '': [0, 4, 7],
+    m: [0, 3, 7],
+    '7': [0, 4, 7, 10],
+    maj7: [0, 4, 7, 11],
+    m7: [0, 3, 7, 10],
+    m7b5: [0, 3, 6, 10],
+    dim: [0, 3, 6],
+    dim7: [0, 3, 6, 9],
+    aug: [0, 4, 8],
+    sus2: [0, 2, 7],
+    sus4: [0, 5, 7],
+    '6': [0, 4, 7, 9],
+    m6: [0, 3, 7, 9],
+    '9': [0, 4, 7, 10, 14],
+    maj9: [0, 4, 7, 11, 14],
+    m9: [0, 3, 7, 10, 14],
+    add9: [0, 4, 7, 14],
 };
 
-function wrap(value: number): number {
-    return ((value % 12) + 12) % 12;
+const QUALITY_SCALES: Record<string, { name: string; intervals: number[] }> = {
+    '': { name: 'Ionian', intervals: [0, 2, 4, 5, 7, 9, 11] },
+    maj7: { name: 'Ionian', intervals: [0, 2, 4, 5, 7, 9, 11] },
+    '6': { name: 'Ionian', intervals: [0, 2, 4, 5, 7, 9, 11] },
+    maj9: { name: 'Ionian', intervals: [0, 2, 4, 5, 7, 9, 11] },
+    add9: { name: 'Ionian', intervals: [0, 2, 4, 5, 7, 9, 11] },
+    m: { name: 'Dorian', intervals: [0, 2, 3, 5, 7, 9, 10] },
+    m7: { name: 'Dorian', intervals: [0, 2, 3, 5, 7, 9, 10] },
+    m6: { name: 'Dorian', intervals: [0, 2, 3, 5, 7, 9, 10] },
+    m9: { name: 'Dorian', intervals: [0, 2, 3, 5, 7, 9, 10] },
+    '7': { name: 'Mixolydian', intervals: [0, 2, 4, 5, 7, 9, 10] },
+    '9': { name: 'Mixolydian', intervals: [0, 2, 4, 5, 7, 9, 10] },
+    sus2: { name: 'Mixolydian', intervals: [0, 2, 4, 5, 7, 9, 10] },
+    sus4: { name: 'Mixolydian', intervals: [0, 2, 4, 5, 7, 9, 10] },
+    m7b5: { name: 'Locrian', intervals: [0, 1, 3, 5, 6, 8, 10] },
+    dim: { name: 'Diminished (whole-half)', intervals: [0, 2, 3, 5, 6, 8, 9, 11] },
+    dim7: { name: 'Diminished (whole-half)', intervals: [0, 2, 3, 5, 6, 8, 9, 11] },
+    aug: { name: 'Whole tone', intervals: [0, 2, 4, 6, 8, 10] },
+};
+
+function wrap(pitchClass: number): number {
+    return ((pitchClass % 12) + 12) % 12;
 }
 
-function parseRoot(text: string): number | null {
-    const letter = NATURAL_PITCH_CLASSES[text.charAt(0).toUpperCase()];
-    if (letter === undefined) return null;
-    if (text.charAt(1) === '#') return wrap(letter + 1);
-    if (text.charAt(1) === 'b') return wrap(letter - 1);
-    return letter;
-}
-
-function noteName(midi: number, useFlats: boolean): string {
-    const names = useFlats ? FLAT_NAMES : SHARP_NAMES;
-    return `${names[wrap(midi)]}${Math.floor(midi / 12) - 1}`;
-}
-
-function pitchClassName(pitchClass: number, useFlats: boolean): string {
-    return (useFlats ? FLAT_NAMES : SHARP_NAMES)[wrap(pitchClass)];
-}
-
-export function parseChord(name: string): ParsedChord | null {
-    const match = /^([A-Ga-g][#b]?)(.*)$/.exec(name.trim());
+export function parsePitch(text: string): Pitch | null {
+    const match = /^([A-Ga-g])([#b\u266F\u266D]?)(-?\d)$/.exec(text.trim());
     if (!match) return null;
 
-    const root = parseRoot(match[1]);
-    const definition = QUALITIES[match[2]];
-    if (root === null || !definition) return null;
-
-    const rootName = match[1].charAt(0).toUpperCase() + match[1].slice(1);
-
-    return {
-        name: name.trim(),
-        root,
-        quality: definition.quality,
-        rootName,
-        tones: definition.tones.map(interval => wrap(root + interval)),
-        toneLabels: definition.labels,
-        scaleName: `${rootName} ${definition.scaleName}`,
-        scale: definition.scale.map(interval => wrap(root + interval)),
-    };
+    return { letter: match[1].toUpperCase(), accidental: ACCIDENTAL_OFFSET[match[2]], octave: Number(match[3]) };
 }
 
-function keyMajorScale(key: string): number[] | null {
-    const match = /^([A-Ga-g][#b]?)(m|min|minor)?$/.exec(key.trim());
-    if (!match) return null;
-
-    const tonic = parseRoot(match[1]);
-    if (tonic === null) return null;
-
-    const majorTonic = match[2] ? wrap(tonic + 3) : tonic;
-    return MAJOR_SCALE.map(interval => wrap(majorTonic + interval));
+export function formatPitch(pitch: Pitch): string {
+    const accidental = pitch.accidental === 0 ? '' : pitch.accidental > 0 ? '#' : 'b';
+    return `${pitch.letter}${accidental}${pitch.octave}`;
 }
 
-export function describeKeyPosition(key: string, chord: ParsedChord): string {
-    const scale = keyMajorScale(key);
-    if (!scale) return 'key not set';
-
-    return scale.includes(chord.root) ? 'inside the key' : 'borrowed or outside the key';
+export function pitchToMidi(pitch: Pitch): number {
+    return (pitch.octave + 1) * 12 + LETTER_PITCH_CLASS[pitch.letter] + pitch.accidental;
 }
 
-const MODE_NAMES = ['major', 'dorian', 'phrygian', 'lydian', 'mixolydian', 'natural minor', 'locrian'];
-
-function fitToKey(key: string, chord: ParsedChord): ParsedChord {
-    const scale = keyMajorScale(key);
-    if (!scale) return chord;
-
-    const degree = scale.indexOf(chord.root);
-    if (degree === -1 || !chord.tones.every(tone => scale.includes(tone))) return chord;
-
-    return { ...chord, scale, scaleName: `${chord.rootName} ${MODE_NAMES[degree]}` };
+export function midiToPitch(midi: number): Pitch {
+    const name = SHARP_NAMES[wrap(midi)];
+    return { letter: name[0], accidental: name.length > 1 ? 1 : 0, octave: Math.floor(midi / 12) - 1 };
 }
 
-function nearestIndex(candidates: number[], target: number): number {
-    let best = 0;
+export function pitchClassOf(pitch: Pitch): number {
+    return wrap(LETTER_PITCH_CLASS[pitch.letter] + pitch.accidental);
+}
 
-    for (let index = 1; index < candidates.length; index++) {
-        if (Math.abs(candidates[index] - target) < Math.abs(candidates[best] - target)) best = index;
+export function staffPosition(pitch: Pitch): number {
+    return pitch.octave * 7 + LETTER_STEP[pitch.letter] - TREBLE_BOTTOM_LINE_STEP;
+}
+
+export function pitchFromFret(string: number, fret: number): string | null {
+    if (!Number.isInteger(string) || string < 1 || string > STRING_COUNT) return null;
+    if (!Number.isInteger(fret) || fret < 0 || fret > MAX_FRET) return null;
+
+    return formatPitch(midiToPitch(OPEN_STRING_MIDI[string - 1] + fret));
+}
+
+export function fretForPitch(pitch: Pitch): { string: number; fret: number } | null {
+    const midi = pitchToMidi(pitch);
+    let best: { string: number; fret: number } | null = null;
+
+    for (let index = 0; index < STRING_COUNT; index++) {
+        const fret = midi - OPEN_STRING_MIDI[index];
+        if (fret < 0 || fret > MAX_FRET) continue;
+        if (!best || fret < best.fret) best = { string: index + 1, fret };
     }
 
     return best;
 }
 
-function notesInRange(pitchClasses: number[]): number[] {
-    const notes: number[] = [];
+export function parseChord(name: string): ParsedChord | null {
+    const match = /^([A-G])([#b]?)(.*)$/.exec(name.trim());
+    if (!match) return null;
 
-    for (let midi = LOWEST_NOTE; midi <= HIGHEST_NOTE; midi++) {
-        if (pitchClasses.includes(wrap(midi))) notes.push(midi);
-    }
+    const intervals = CHORD_INTERVALS[match[3]];
+    if (!intervals) return null;
 
-    return notes;
+    const rootPitchClass = wrap(LETTER_PITCH_CLASS[match[1]] + ACCIDENTAL_OFFSET[match[2]]);
+
+    return { name: name.trim(), root: match[1] + match[2], rootPitchClass, quality: match[3], pitchClasses: intervals.map(interval => wrap(rootPitchClass + interval)) };
 }
 
-function pickStrongNote(style: PhraseStyle, chord: ParsedChord, chordNotes: number[], index: number, previous: number | null): number {
-    if (style === 'guide') {
-        const guidePitchClasses = chord.tones.length > 3 ? [chord.tones[1], chord.tones[3]] : [chord.tones[1], chord.tones[2]];
-        const target = guidePitchClasses[index % guidePitchClasses.length];
-        const candidates = chordNotes.filter(midi => wrap(midi) === target);
-        return candidates[nearestIndex(candidates, previous ?? 67)];
+export function chordAt(chords: Chord[], bar: number, beat: number): Chord | null {
+    let current: Chord | null = null;
+
+    for (const chord of chords) {
+        if (chord.bar > bar || (chord.bar === bar && chord.beat > beat)) continue;
+        if (!current || chord.bar > current.bar || (chord.bar === current.bar && chord.beat >= current.beat)) current = chord;
     }
 
-    const rootIndex = chordNotes.findIndex(midi => wrap(midi) === chord.root);
-    if (style === 'rising') return chordNotes[Math.min(rootIndex + index, chordNotes.length - 1)];
-
-    const top = chordNotes.findIndex(midi => midi >= chordNotes[rootIndex] + 12);
-    return chordNotes[Math.max(top - index, 0)];
+    return current ?? chords[0] ?? null;
 }
 
-function pickWeakNote(style: PhraseStyle, scaleNotes: number[], previous: number, next: number | null): number {
-    const previousIndex = scaleNotes.indexOf(previous);
-    const goesUp = next === null ? style !== 'falling' : next >= previous;
-    const index = goesUp ? Math.min(previousIndex + 1, scaleNotes.length - 1) : Math.max(previousIndex - 1, 0);
-    return scaleNotes[index];
+function keyScale(key: string): number[] | null {
+    const match = /^([A-G])([#b]?)\s*(minor|min|m)?$/.exec(key.trim());
+    if (!match) return null;
+
+    const rootPitchClass = wrap(LETTER_PITCH_CLASS[match[1]] + ACCIDENTAL_OFFSET[match[2]]);
+    const tonic = match[3] ? wrap(rootPitchClass + 3) : rootPitchClass;
+
+    return MAJOR_SCALE.map(interval => wrap(tonic + interval));
 }
 
-function buildPhrase(style: PhraseStyle, chord: ParsedChord, startBeat: number, endBeat: number, state: { strongCount: number; last: number | null }): { beat: number; midi: number }[] {
-    const scaleNotes = notesInRange(chord.scale);
-    const chordNotes = notesInRange(chord.tones);
-    const beats: { beat: number; midi: number; strong: boolean }[] = [];
+export function isInKey(chord: ParsedChord, key: string): boolean {
+    const scale = keyScale(key);
+    if (!scale) return true;
 
-    for (let beat = startBeat; beat < endBeat; beat++) {
-        const strong = beat === startBeat || beat % 2 === 1;
-        beats.push({ beat, midi: 0, strong });
-    }
-
-    for (const entry of beats) {
-        if (!entry.strong) continue;
-        entry.midi = pickStrongNote(style, chord, chordNotes, state.strongCount, state.last);
-        state.strongCount += 1;
-        state.last = entry.midi;
-    }
-
-    for (let index = 0; index < beats.length; index++) {
-        if (beats[index].strong) continue;
-        const previous = index === 0 ? state.last ?? chordNotes[0] : beats[index - 1].midi;
-        const next = beats.slice(index + 1).find(entry => entry.strong)?.midi ?? null;
-        beats[index].midi = pickWeakNote(style, scaleNotes, previous, next);
-    }
-
-    return beats.map(entry => ({ beat: entry.beat, midi: entry.midi }));
+    return chord.pitchClasses.every(pitchClass => scale.includes(pitchClass));
 }
 
-const STYLE_TITLES: Record<PhraseStyle, string> = {
-    rising: 'Rising chord tones with stepwise passing notes',
-    falling: 'Falling chord tones with stepwise passing notes',
-    guide: 'Guide tones on the strong beats',
-};
+export function scaleFor(chord: ParsedChord, key: string): Scale {
+    const inKey = keyScale(key);
 
-export function proposePhrases(key: string, chords: { beat: number; name: string }[]): PhraseProposal[] | null {
-    const segments: { chord: ParsedChord; start: number; end: number }[] = [];
-    const ordered = [...chords].sort((first, second) => first.beat - second.beat);
-
-    for (let index = 0; index < ordered.length; index++) {
-        const parsed = parseChord(ordered[index].name);
-        if (!parsed) return null;
-        segments.push({ chord: fitToKey(key, parsed), start: ordered[index].beat, end: ordered[index + 1]?.beat ?? BEATS_PER_BAR + 1 });
+    if (inKey && isInKey(chord, key)) {
+        const degree = inKey.indexOf(chord.rootPitchClass);
+        if (degree >= 0) return { name: `${chord.root} ${MODE_NAMES[degree]}`, pitchClasses: inKey, diatonic: true };
     }
 
-    if (!segments.length) return null;
-    if (segments[0].start > 1) segments[0].start = 1;
+    const fallback = QUALITY_SCALES[chord.quality];
 
-    return PHRASE_STYLES.map(style => {
-        const state: { strongCount: number; last: number | null } = { strongCount: 0, last: null };
-        const notes: PhraseNote[] = [];
+    return { name: `${chord.root} ${fallback.name}`, pitchClasses: fallback.intervals.map(interval => wrap(chord.rootPitchClass + interval)), diatonic: false };
+}
 
-        for (const segment of segments) {
-            const useFlats = segment.chord.rootName.includes('b') || segment.chord.rootName === 'F';
-            for (const entry of buildPhrase(style, segment.chord, segment.start, segment.end, state)) {
-                notes.push({ beat: entry.beat, duration: 1, pitch: noteName(entry.midi, useFlats) });
-            }
-        }
+export function noteStatus(pitch: Pitch, chord: ParsedChord | null, scale: Scale | null): NoteStatus {
+    if (!chord || !scale) return 'none';
 
-        const first = segments[0].chord;
-        const useFlats = first.rootName.includes('b') || first.rootName === 'F';
+    const pitchClass = pitchClassOf(pitch);
+    if (chord.pitchClasses.includes(pitchClass)) return 'chord';
 
-        return {
-            title: STYLE_TITLES[style],
-            chord: segments.map(segment => segment.chord.name).join(' → '),
-            scale: segments.map(segment => segment.chord.scaleName).join(' → '),
-            chordTones: first.tones.map(tone => pitchClassName(tone, useFlats)),
-            keyLabel: segments.map(segment => `${segment.chord.name}: ${describeKeyPosition(key, segment.chord)}`).join('; '),
-            notes,
-        };
-    });
+    return scale.pitchClasses.includes(pitchClass) ? 'scale' : 'outside';
 }
