@@ -1,0 +1,17 @@
+<script>
+    import { authClient } from '@/lib/auth/client';
+
+    document.querySelector('.auth__form')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget instanceof HTMLFormElement ? event.currentTarget : undefined);
+        const button = document.querySelector('.auth__form button');
+        const message = document.querySelector('.auth__error');
+        (button as HTMLButtonElement).dataset.state = 'loading';
+
+        const { error } = await authClient.signUp.email({ name: data.get('name')?.toString() ?? '', email: data.get('email')?.toString() ?? '', password: data.get('password')?.toString() ?? '' });
+
+        button?.removeAttribute('data-state');
+        if (!error) return window.location.assign('/');
+        if (message) message.textContent = error.message ?? 'Sign up failed. Please try again.';
+    });
+</script>

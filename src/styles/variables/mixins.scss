@@ -138,6 +138,15 @@
         outline: none;
     }
 
+    &:focus-visible {
+        outline: $focus-ring-width solid $primary-color;
+        outline-offset: $focus-ring-offset;
+    }
+
+    &[aria-invalid="true"] {
+        border-color: $error-color;
+    }
+
     &::placeholder {
         color: $text-light;
     }

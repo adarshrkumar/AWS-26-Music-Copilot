@@ -10,8 +10,8 @@ const signedIn = Boolean(Astro.locals.session);
 <App pageTitle="Songs">
     <section class="songs" data-signed-in={signedIn ? 'true' : 'false'}>
         <div class="songs__heading">
-            <h1 class="songs__title">Songs</h1>
-            <button class="btn" type="button" data-variant="primary" data-action="create">New song</button>
+            <h1 class="songs__title" id="songs-title" tabindex="-1">Songs</h1>
+            <button class="btn songs__create" type="button" data-variant="primary" data-action="create">New song</button>
         </div>
 
         <p class="songs__intro">
@@ -72,8 +72,8 @@ const signedIn = Boolean(Astro.locals.session);
                 <input class="form-input" id="song-tempo" name="tempo" type="number" min="20" max="300" step="1" value="100" required />
             </div>
             <div class="songs__dialog-actions">
-                <button class="btn" type="button" data-variant="secondary" data-action="cancel">Cancel</button>
-                <button class="btn" type="submit" data-variant="primary">Save song</button>
+                <button class="btn songs__dialog-action" type="button" data-variant="secondary" data-action="cancel">Cancel</button>
+                <button class="btn songs__dialog-action" type="submit" data-variant="primary">Save song</button>
             </div>
         </form>
     </dialog>

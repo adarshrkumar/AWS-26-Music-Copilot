@@ -170,6 +170,7 @@ export default [
                 ParentNode: 'readonly',
                 DocumentFragment: 'readonly',
                 HTMLLIElement: 'readonly',
+                CSS: 'readonly',
                 FormData: 'readonly'
             }
         }

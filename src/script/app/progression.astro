@@ -25,22 +25,22 @@
     const explainResponseSchema = z.object({ data: z.object({ text: z.string() }) });
     const errorResponseSchema = z.object({ error: z.string() });
 
-    const tonicSelect = document.querySelector('#key-tonic') as HTMLSelectElement;
-    const modeSelect = document.querySelector('#key-mode') as HTMLSelectElement;
-    const tempoInput = document.querySelector('#tempo') as HTMLInputElement;
-    const barsInput = document.querySelector('#bars') as HTMLInputElement;
-    const sampleSelect = document.querySelector('#sample') as HTMLSelectElement;
-    const sampleButton = document.querySelector('#sample-load') as HTMLButtonElement;
-    const settingsForm = document.querySelector('#settings-form') as HTMLFormElement;
-    const chordForm = document.querySelector('#chord-form') as HTMLFormElement;
-    const chordInput = document.querySelector('#chord-input') as HTMLInputElement;
-    const sectionTabs = document.querySelector('#section-tabs') as HTMLElement;
-    const barList = document.querySelector('#bar-list') as HTMLElement;
-    const analysisList = document.querySelector('#analysis-list') as HTMLElement;
-    const analysisIntro = document.querySelector('#analysis-intro') as HTMLElement;
-    const message = document.querySelector('#progression-message') as HTMLElement;
-    const saveButton = document.querySelector('#save-button') as HTMLButtonElement;
-    const saveMessage = document.querySelector('#save-message') as HTMLElement;
+    const tonicSelect = document.querySelector('#key-tonic');
+    const modeSelect = document.querySelector('#key-mode');
+    const tempoInput = document.querySelector('#tempo');
+    const barsInput = document.querySelector('#bars');
+    const sampleSelect = document.querySelector('#sample');
+    const sampleButton = document.querySelector('#sample-load');
+    const settingsForm = document.querySelector('#settings-form');
+    const chordForm = document.querySelector('#chord-form');
+    const chordInput = document.querySelector('#chord-input');
+    const sectionTabs = document.querySelector('#section-tabs');
+    const barList = document.querySelector('#bar-list');
+    const analysisList = document.querySelector('#analysis-list');
+    const analysisIntro = document.querySelector('#analysis-intro')!;
+    const message = document.querySelector('#progression-message')!;
+    const saveButton = document.querySelector('#save-button');
+    const saveMessage = document.querySelector('#save-message')!;
 
     const explanations = new Map<string, string>();
     const requested = new Set<string>();
@@ -94,7 +94,7 @@
     }
 
     function renderTabs(): void {
-        sectionTabs.replaceChildren();
+        sectionTabs?.replaceChildren();
 
         for (const section of draft.sections) {
             const button = document.createElement('button');
@@ -107,13 +107,13 @@
                 persist();
                 renderAll();
             });
-            sectionTabs.append(button);
+            sectionTabs?.append(button);
         }
     }
 
     function renderBars(): void {
         const section = getActiveSection();
-        barList.replaceChildren();
+        barList?.replaceChildren();
 
         for (let bar = 1; bar <= section.bars; bar++) {
             const label = document.createElement('label');
@@ -154,7 +154,7 @@
             item.className = 'progression__bar';
             item.append(label, input, remove);
 
-            barList.append(item);
+            barList?.append(item);
         }
     }
 
@@ -281,7 +281,7 @@
     function renderAnalysis(): void {
         const keyName = `${draft.tonic} ${draft.mode}`;
         const result = analyzeProgression(keyName, getActiveSection().chords);
-        analysisList.replaceChildren();
+        analysisList?.replaceChildren();
 
         if (!result || result.chords.length === 0) {
             analysisIntro.textContent = 'Add a chord to see its function in the key and the scales that can fit.';
@@ -291,7 +291,7 @@
         analysisIntro.textContent = `Chord functions are shown in ${result.key.name}. A chord outside the key is labeled and kept as written. Everything here is a suggestion, and the choice is yours.`;
 
         for (const entry of result.chords) {
-            analysisList.append(createChordCard(entry, keyName));
+            analysisList?.append(createChordCard(entry, keyName));
         }
 
         window.clearTimeout(explainTimer);
@@ -320,10 +320,10 @@
     }
 
     function renderAll(): void {
-        tonicSelect.value = draft.tonic;
-        modeSelect.value = draft.mode;
-        tempoInput.value = draft.tempo.toString();
-        barsInput.value = getActiveSection().bars.toString();
+        (tonicSelect as HTMLSelectElement).value = draft.tonic;
+        (modeSelect as HTMLSelectElement).value = draft.mode;
+        (tempoInput as HTMLInputElement).value = draft.tempo.toString();
+        (barsInput as HTMLInputElement).value = getActiveSection().bars.toString();
         renderTabs();
         renderBars();
         renderAnalysis();
@@ -333,12 +333,12 @@
         const chord = parseChord(rawName.trim().replace(/^[a-g]/, letter => letter.toUpperCase()));
 
         if (!chord) {
-            chordInput.dataset.state = 'error';
+            (chordInput as HTMLInputElement).dataset.state = 'error';
             message.textContent = `"${rawName.trim()}" is not a chord Music Copilot recognizes. Try a name such as Dm7, G7 or Cmaj7.`;
             return;
         }
 
-        chordInput.removeAttribute('data-state');
+        chordInput?.removeAttribute('data-state');
         let section = getActiveSection();
         let bar = 1;
         while (bar <= section.bars && section.chords.some(existing => existing.bar === bar)) bar++;
@@ -356,14 +356,14 @@
         }
 
         setChordAt(section, bar, chord.name);
-        chordInput.value = '';
+        (chordInput as HTMLInputElement).value = '';
         persist();
         renderAll();
-        chordInput.focus();
+        (chordInput as HTMLInputElement).focus();
     }
 
     function loadSample(): void {
-        const sample = SAMPLE_PROGRESSIONS.find(item => item.id === sampleSelect.value);
+        const sample = SAMPLE_PROGRESSIONS.find(item => item.id === (sampleSelect as HTMLSelectElement).value);
 
         if (!sample) {
             message.textContent = 'Choose a sample progression first.';
@@ -386,7 +386,7 @@
             return;
         }
 
-        saveButton.dataset.state = 'loading';
+        (saveButton as HTMLButtonElement).dataset.state = 'loading';
         saveMessage.textContent = '';
 
         try {
@@ -406,7 +406,7 @@
         } catch {
             saveMessage.textContent = 'The progression could not be saved. Your copy on this device is unchanged.';
         } finally {
-            saveButton.removeAttribute('data-state');
+            saveButton?.removeAttribute('data-state');
         }
     }
 
@@ -439,55 +439,55 @@
         }
     }
 
-    tonicSelect.addEventListener('change', () => {
-        draft.tonic = tonicSelect.value;
+    tonicSelect?.addEventListener('change', () => {
+        draft.tonic = (tonicSelect as HTMLSelectElement).value;
         persist();
         renderAnalysis();
     });
 
-    modeSelect.addEventListener('change', () => {
-        draft.mode = modeSelect.value === 'minor' ? 'minor' : 'major';
+    modeSelect?.addEventListener('change', () => {
+        draft.mode = (modeSelect as HTMLSelectElement).value === 'minor' ? 'minor' : 'major';
         persist();
         renderAnalysis();
     });
 
-    tempoInput.addEventListener('change', () => {
-        const value = parseInt(tempoInput.value, 10);
+    tempoInput?.addEventListener('change', () => {
+        const value = parseInt((tempoInput as HTMLInputElement).value, 10);
         draft.tempo = progressionConfig.defaultTempo;
         if (!Number.isNaN(value)) draft.tempo = Math.min(progressionConfig.maxTempo, Math.max(progressionConfig.minTempo, value));
-        tempoInput.value = draft.tempo.toString();
+        (tempoInput as HTMLInputElement).value = draft.tempo.toString();
         persist();
     });
 
-    barsInput.addEventListener('change', () => {
+    barsInput?.addEventListener('change', () => {
         const section = getActiveSection();
-        const value = parseInt(barsInput.value, 10);
+        const value = parseInt((barsInput as HTMLInputElement).value, 10);
         const minimum = Math.max(1, ...section.chords.map(chord => chord.bar));
 
         if (!Number.isNaN(value) && value < minimum) message.textContent = `Bar ${minimum.toString()} holds a chord, so this section keeps at least ${minimum.toString()} bars. Remove the chord to shorten it.`;
         if (value > progressionConfig.maxSectionBars) message.textContent = `A section holds up to ${progressionConfig.maxSectionBars.toString()} bars. Add a chord to a full section to start a new one.`;
         if (!Number.isNaN(value)) section.bars = Math.min(progressionConfig.maxSectionBars, Math.max(minimum, value));
 
-        barsInput.value = section.bars.toString();
+        (barsInput as HTMLInputElement).value = section.bars.toString();
         persist();
         renderBars();
     });
 
-    settingsForm.addEventListener('submit', event => event.preventDefault());
-    sampleButton.addEventListener('click', loadSample);
+    settingsForm?.addEventListener('submit', event => event.preventDefault());
+    sampleButton?.addEventListener('click', loadSample);
 
-    chordForm.addEventListener('submit', event => {
+    chordForm?.addEventListener('submit', event => {
         event.preventDefault();
 
-        if (chordInput.value.trim() === '') {
+        if ((chordInput as HTMLInputElement).value.trim() === '') {
             message.textContent = 'Type a chord name first.';
             return;
         }
 
-        addChord(chordInput.value);
+        addChord((chordInput as HTMLInputElement).value);
     });
 
-    saveButton.addEventListener('click', save);
+    saveButton?.addEventListener('click', save);
 
     renderAll();
 

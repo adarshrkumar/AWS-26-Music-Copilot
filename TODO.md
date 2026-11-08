@@ -70,7 +70,7 @@ These features of the app should be placed within their existing `src/pages` ast
 
 - [ ] Make every control work with a keyboard and a screen reader, including note entry and scale selection
 - [ ] Make every suggestion readable as text without the diagram
-- [ ] Place the main controls within reach for one-handed use on a phone
+- [x] Place the main controls within reach for one-handed use on a phone
 
 ## Metrics
 
