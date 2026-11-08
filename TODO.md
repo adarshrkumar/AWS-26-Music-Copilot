@@ -52,10 +52,10 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Suggestions Panel
 
-- [ ] Show suggestions in a side panel with a short reason beside each one
-- [ ] Track accepted and rejected suggestions through `setScaleSuggestionStatus`
-- [ ] Add a toggle to turn suggestions off for a session
-- [ ] Never present a suggestion as the only correct choice
+- [x] Show suggestions in a side panel with a short reason beside each one
+- [x] Track accepted and rejected suggestions through `setScaleSuggestionStatus`
+- [x] Add a toggle to turn suggestions off for a session
+- [x] Never present a suggestion as the only correct choice
 
 ## Songs and Storage
 

@@ -1,0 +1,134 @@
+@use '../variables/colors' as *;
+@use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
+
+.scales {
+    align-items: start;
+    gap: space(6);
+    display: grid;
+
+    @include desktop {
+        grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+    }
+
+    &__main {
+        gap: space(4);
+
+        @include flex-column;
+    }
+
+    &__title {
+        @include heading-2;
+    }
+}
+
+.suggestions {
+    padding: space(4);
+    border: 1px solid $border-color;
+    border-radius: radius(lg);
+    gap: space(3);
+
+    @include flex-column;
+
+    @include desktop {
+        position: sticky;
+        top: space(4);
+    }
+
+    &__heading {
+        gap: space(2);
+
+        @include flex-column;
+    }
+
+    &__title {
+        @include heading-3;
+    }
+
+    &__toggle {
+        margin-bottom: 0;
+    }
+
+    &__intro,
+    &__empty {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__status {
+        margin: 0;
+        color: $success-color;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__error {
+        margin: 0;
+        color: $error-color;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        gap: space(3);
+
+        @include flex-column;
+    }
+
+    &__item {
+        padding: space(3);
+        border: 1px solid $border-color;
+        border-radius: radius(lg);
+        gap: space(2);
+
+        @include flex-column;
+
+        &[data-status="accepted"] {
+            border-color: $success-color;
+        }
+
+        &[data-status="rejected"] {
+            border-style: dashed;
+        }
+    }
+
+    &__label,
+    &__reason,
+    &__state {
+        margin: 0;
+    }
+
+    &__label {
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: space(2);
+        display: flex;
+    }
+
+    &__bar,
+    &__kind {
+        color: $text-secondary;
+    }
+
+    &__kind {
+        text-transform: capitalize;
+    }
+
+    &__state {
+        color: $text-secondary;
+    }
+
+    &__actions {
+        flex-wrap: wrap;
+        gap: space(2);
+        display: flex;
+    }
+}

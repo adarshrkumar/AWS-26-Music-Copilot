@@ -188,6 +188,12 @@ export const songInputSchema = z.object({
     updatedAt: z.string().max(40),
 });
 
+export const suggestionStatusInputSchema = z.object({
+    songId: songInputSchema.shape.id,
+    suggestionId: suggestionSchema.shape.id,
+    status: suggestionSchema.shape.status,
+});
+
 export const songIdSchema = songInputSchema.shape.id;
 
 // Type exports for use in application
