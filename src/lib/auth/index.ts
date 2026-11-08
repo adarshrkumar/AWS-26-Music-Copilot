@@ -8,6 +8,7 @@ export default betterAuth({
     database: dynamoAdapter,
     secret: process.env.BETTER_AUTH_SECRET || import.meta.env.BETTER_AUTH_SECRET,
     baseURL: process.env.BETTER_AUTH_URL || import.meta.env.BETTER_AUTH_URL,
+    trustedOrigins: ['https://tonepilot.adarshrkumar.app'],
     emailAndPassword: { enabled: true },
     user: {
         deleteUser: {
