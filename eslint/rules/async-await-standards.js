@@ -13,16 +13,13 @@ export default {
 
         return {
             CallExpression(node) {
-                // Check if this is a .then, .catch, or .finally call
                 if (node.callee.type !== 'MemberExpression') return;
 
                 const methodName = node.callee.property?.name;
                 if (!['then', 'catch', 'finally'].includes(methodName)) return;
 
-                // Check if the object being called on is itself a .then, .catch, or .finally call
                 let current = node.callee.object;
 
-                // Count consecutive chained promise methods
                 let chainCount = 1;
                 while (current && current.type === 'CallExpression' && current.callee?.type === 'MemberExpression') {
                     const parentMethodName = current.callee.property?.name;
@@ -33,7 +30,6 @@ export default {
                     else break;
                 }
 
-                // Flag chains with 2 or more promise methods
                 if (chainCount >= 2) {
                     context.report({
                         node,

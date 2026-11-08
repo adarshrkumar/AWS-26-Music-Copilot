@@ -7,7 +7,6 @@ import '@/styles/pages/songs.scss';
 
 const signedIn = Boolean(Astro.locals.session);
 ---
-
 <App pageTitle="Songs">
     <section class="songs" data-signed-in={signedIn ? 'true' : 'false'}>
         <div class="songs__heading">

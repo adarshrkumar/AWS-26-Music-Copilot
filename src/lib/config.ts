@@ -1,10 +1,6 @@
-// Central configuration for the application that will be rendered on screen
-
-// The core app identifier - change this in ONE place to update everywhere
 const APP_SHORT_NAME = 'TonePilot';
 
-export const siteConfig = {
-    // Used in PWA and compact displays
+export default {
     appShortName: APP_SHORT_NAME,
     appName: APP_SHORT_NAME,
     appDescription:

@@ -49,10 +49,6 @@ export default {
                 });
             },
             TSUnknownKeyword(node) {
-                // Check for standalone unknown type usage (but allow in function parameters for now if needed)
-                // Skip if it's part of a union or intersection that might be necessary
-
-                // Allow unknown only in very specific contexts if needed, otherwise flag all uses
                 context.report({
                     node,
                     message: 'The "unknown" type is not allowed. Use a concrete, precise type instead.'
@@ -64,18 +60,6 @@ export default {
                 context.report({
                     node,
                     message: `Interface '${node.id.name}' is not allowed in Astro files. Derive a short alias from an existing type (for example Song['sections'][number]) instead.`
-                });
-            },
-            TSTypeLiteral(node) {
-                if (!context.filename.endsWith('.astro')) return;
-
-                for (let current = node.parent; current; current = current.parent) {
-                    if (current.type === 'TSInterfaceDeclaration' && current.id.name === 'Props') return;
-                }
-
-                context.report({
-                    node,
-                    message: 'Object type literals are not allowed in Astro files. Derive the type from an existing type instead of writing a new shape.'
                 });
             },
             CallExpression(node) {

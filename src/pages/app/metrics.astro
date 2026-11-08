@@ -1,0 +1,71 @@
+---
+import { getMetricsReport } from '@/lib/metrics';
+
+import App from '@/layouts/App.astro';
+import '@/styles/pages/metrics.scss';
+
+if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+
+const report = await getMetricsReport();
+
+function percent(value: number | null): string {
+    return value === null ? 'No data yet' : `${(value * 100).toFixed(1)}%`;
+}
+
+const rows = [
+    {
+        name: 'Progressions built',
+        shows: 'Share of sessions that produce a saved progression',
+        value: percent(report.progressionsBuilt.share),
+        detail: `${report.progressionsBuilt.savedSessions} of ${report.progressionsBuilt.sessions} sessions`,
+    },
+    {
+        name: 'Suggestions accepted',
+        shows: 'Share of suggestions the songwriter accepts',
+        value: percent(report.suggestionsAccepted.share),
+        detail: `${report.suggestionsAccepted.accepted} accepted, ${report.suggestionsAccepted.rejected} rejected, ${report.suggestionsAccepted.shown} shown`,
+    },
+    {
+        name: 'Theory checks',
+        shows: 'Share of users who open the reason behind a suggestion',
+        value: percent(report.theoryChecks.share),
+        detail: `${report.theoryChecks.openedReason} of ${report.theoryChecks.devices} devices`,
+    },
+    {
+        name: 'Time to first scale',
+        shows: 'Median time from first chord to first scale view',
+        value: report.timeToFirstScale.medianSeconds === null ? 'No data yet' : `${report.timeToFirstScale.medianSeconds.toFixed(1)} seconds`,
+        detail: `${report.timeToFirstScale.sessions} sessions`,
+    },
+];
+---
+<App pageTitle="Metrics">
+    <div class="metrics">
+        <h1 class="metrics__title">Metrics</h1>
+        <p class="metrics__intro">These numbers count events only. They never include chords, notes or melodies, and they are not linked to an account. Targets are placeholders until the pilot runs.</p>
+
+        <table class="metrics__table">
+            <caption class="metrics__caption">Usage metrics, updated {report.generatedAt}</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Metric</th>
+                    <th scope="col">What it shows</th>
+                    <th scope="col">Now</th>
+                    <th scope="col">Based on</th>
+                    <th scope="col">Target</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows.map(row => (
+                    <tr>
+                        <th scope="row">{row.name}</th>
+                        <td>{row.shows}</td>
+                        <td>{row.value}</td>
+                        <td>{row.detail}</td>
+                        <td>Placeholder</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    </div>
+</App>

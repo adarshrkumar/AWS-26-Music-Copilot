@@ -1,0 +1,71 @@
+@use '../variables/colors' as *;
+@use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
+
+.autofill {
+    gap: space(4);
+    display: grid;
+
+    &__title {
+        @include heading-2;
+    }
+
+    &__intro, &__empty {
+        color: $text-secondary;
+    }
+
+    &__status {
+        color: $text-secondary;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        gap: space(4);
+        display: grid;
+    }
+
+    &__item {
+        gap: space(3);
+        display: grid;
+
+        @include card;
+
+        &[data-status="accepted"]::before {
+            content: '\2713  Accepted';
+        }
+
+        &[data-status="rejected"]::before {
+            content: '\2717  Rejected';
+        }
+    }
+
+    &__item-title {
+        @include heading-3;
+    }
+
+    &__notes {
+        font-family: $font-mono;
+        font-weight: $font-weight-medium;
+    }
+
+    &__reason {
+        color: $text-secondary;
+    }
+
+    &__actions {
+        flex-wrap: wrap;
+        gap: space(3);
+        display: flex;
+    }
+
+    &__outcome:empty {
+        display: none;
+    }
+}

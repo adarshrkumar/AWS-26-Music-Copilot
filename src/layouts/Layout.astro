@@ -1,10 +1,5 @@
 ---
-// Demonstrates proper SCSS architecture:
-// - No <style> tags in this file
-// - All styles imported from external SCSS files
-// - Global styles applied via import in the head
-
-import { siteConfig } from '@/lib/config';
+import siteConfig from '@/lib/config';
 
 import '@/styles/globals.scss';
 
@@ -23,8 +18,7 @@ const title = [
     siteConfig.appName,
 ].filter(Boolean).join(' | ');
 ---
-
-<!doctype html>
+<!DOCTYPE HTML>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />

@@ -1,10 +1,53 @@
 ---
+import { queryItems } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
+import type { Song } from '@/db/types';
+
 import App from '@/layouts/App.astro';
 import AutofillScript from '@/script/app/autofill.astro';
+import '@/styles/components/button.scss';
+import '@/styles/components/form.scss';
+import '@/styles/pages/autofill.scss';
 
-if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+if (!Astro.locals.user) return Astro.redirect('/user/sign-in');
+
+const songs = (await queryItems(songTable, { KeyConditionExpression: 'userId = :userId', ExpressionAttributeValues: { ':userId': Astro.locals.user.id } })).map((song: Song) => ({
+    id: song.id,
+    title: song.title,
+    sections: song.sections.map(section => ({ id: section.id, name: section.name, bars: section.bars })),
+}));
 ---
+<App pageTitle="Autofill">
+    <section class="autofill">
+        <h1 class="autofill__title">Autofill</h1>
+        <p class="autofill__intro">Ask for phrase ideas for one bar. Each idea puts chord tones on the strong beats and shows the theory behind it. Nothing is written into your song until you accept it.</p>
 
-<App>
+        {songs.length === 0 ? (
+            <p class="autofill__empty">You have no songs yet. Create a song with a progression first.</p>
+        ) : (
+            <form class="form autofill__form">
+                <div class="form-group">
+                    <label class="form-label" for="autofill-song">Song</label>
+                    <select class="form-select" id="autofill-song" name="song">
+                        {songs.map(song => <option value={song.id}>{song.title}</option>)}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="autofill-section">Section</label>
+                    <select class="form-select" id="autofill-section" name="section"></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="autofill-bar">Bar</label>
+                    <select class="form-select" id="autofill-bar" name="bar"></select>
+                </div>
+                <button class="btn" type="submit" data-variant="primary">Propose phrases</button>
+            </form>
+        )}
+
+        <p class="autofill__status" role="status" aria-live="polite"></p>
+        <ul class="autofill__list" aria-label="Phrase proposals"></ul>
+    </section>
+
+    <script id="autofill-songs" type="application/json" is:inline set:html={JSON.stringify(songs).replace(/</g, '\\u003c')} />
     <AutofillScript />
 </App>

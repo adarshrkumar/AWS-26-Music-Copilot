@@ -62,6 +62,7 @@
         button.setAttribute('aria-label', `${text.replace('?', '')} ${note.pitch} on beat ${note.beat}`);
         button.dataset.variant = 'secondary';
         button.dataset.size = 'small';
+        if (text === 'Why?') button.dataset.metric = 'reason_opened';
         button.addEventListener('click', action);
         return button;
     }

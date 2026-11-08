@@ -1,5 +1,7 @@
 ---
-import { getSongs } from '@/lib/songs';
+import { queryItems } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
+import type { Song } from '@/db/types';
 
 import App from '@/layouts/App.astro';
 import EditorScript from '@/script/app/editor.astro';
@@ -9,11 +11,10 @@ import '@/styles/pages/editor.scss';
 
 if (!Astro.locals.session || !Astro.locals.user) return Astro.redirect('/user/sign-in');
 
-const songs = await getSongs(Astro.locals.user.id);
+const songs: Song[] = await queryItems(songTable, { KeyConditionExpression: 'userId = :userId', ExpressionAttributeValues: { ':userId': Astro.locals.user.id } });
 const song = songs.find(candidate => candidate.id === Astro.url.searchParams.get('song')) ?? songs[0];
 const section = song?.sections.find(candidate => candidate.id === Astro.url.searchParams.get('section')) ?? song?.sections[0];
 ---
-
 <App pageTitle="Write notes">
     <div class="editor">
         <h1 class="editor__title">Write notes</h1>

@@ -1,10 +1,90 @@
 ---
+import { SAMPLE_PROGRESSIONS } from '@/lib/theory/samples';
+
 import App from '@/layouts/App.astro';
 import ProgressionScript from '@/script/app/progression.astro';
+import '@/styles/components/button.scss';
+import '@/styles/components/form.scss';
+import '@/styles/pages/progression.scss';
 
 if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
----
 
-<App>
+const tonics = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+---
+<App pageTitle="Build a progression">
+    <section class="progression" aria-labelledby="progression-title">
+        <header class="progression__intro">
+            <h1 id="progression-title">Build a progression</h1>
+            <p>Set a key, a tempo and a bar count, then add chords one at a time. Copilot explains each chord and offers scales and arpeggios that can fit. You decide what goes into the song.</p>
+        </header>
+
+        <form class="progression__panel progression__settings" id="settings-form" aria-labelledby="settings-title">
+            <h2 id="settings-title">Song settings</h2>
+            <div class="progression__fields">
+                <div class="form-group">
+                    <label class="form-label" for="key-tonic">Key</label>
+                    <select class="form-select" id="key-tonic" name="tonic">
+                        {tonics.map(tonic => <option value={tonic}>{tonic}</option>)}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="key-mode">Mode</label>
+                    <select class="form-select" id="key-mode" name="mode">
+                        <option value="major">Major</option>
+                        <option value="minor">Minor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="tempo">Tempo (BPM)</label>
+                    <input class="form-input" id="tempo" name="tempo" type="number" inputmode="numeric" min="20" max="300" step="1" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="bars">Bars in this section</label>
+                    <input class="form-input" id="bars" name="bars" type="number" inputmode="numeric" min="1" max="16" step="1" aria-describedby="bars-help" />
+                </div>
+            </div>
+            <p class="progression__help" id="bars-help">A section holds up to 16 bars. Adding a chord to a full section starts a new one.</p>
+
+            <div class="progression__sample">
+                <div class="form-group">
+                    <label class="form-label" for="sample">Sample progression</label>
+                    <select class="form-select" id="sample" name="sample">
+                        <option value="">Choose a sample</option>
+                        {SAMPLE_PROGRESSIONS.map(sample => <option value={sample.id}>{sample.title} ({sample.genre}, {sample.key})</option>)}
+                    </select>
+                </div>
+                <button class="btn" id="sample-load" type="button" data-variant="secondary">Load sample</button>
+            </div>
+        </form>
+
+        <section class="progression__panel" aria-labelledby="chords-title">
+            <h2 id="chords-title">Chords</h2>
+            <div class="progression__sections" id="section-tabs" role="group" aria-label="Sections"></div>
+
+            <form class="progression__add" id="chord-form">
+                <div class="form-group">
+                    <label class="form-label" for="chord-input">New chord</label>
+                    <input class="form-input" id="chord-input" name="chord" type="text" autocomplete="off" autocapitalize="characters" maxlength="24" placeholder="Dm7" aria-describedby="chord-help" />
+                </div>
+                <button class="btn" type="submit" data-variant="primary">Add chord</button>
+            </form>
+            <p class="progression__help" id="chord-help">Examples: C, Am, Dm7, G7, Cmaj7, F#m7b5, Bb/D. The chord goes into the first empty bar.</p>
+            <p class="progression__message" id="progression-message" role="status" aria-live="polite"></p>
+
+            <ol class="progression__bars" id="bar-list" aria-label="Bars in this section"></ol>
+        </section>
+
+        <section class="progression__panel" aria-labelledby="analysis-title">
+            <h2 id="analysis-title">What each chord does</h2>
+            <p class="progression__help" id="analysis-intro"></p>
+            <ol class="progression__analysis" id="analysis-list" aria-label="Chord analysis"></ol>
+        </section>
+
+        <div class="progression__save">
+            <button class="btn" id="save-button" type="button" data-variant="primary">Save progression</button>
+            <p class="progression__save-message" id="save-message" role="status" aria-live="polite"></p>
+        </div>
+    </section>
+
     <ProgressionScript />
 </App>

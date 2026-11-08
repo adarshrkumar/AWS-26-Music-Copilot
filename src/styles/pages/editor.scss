@@ -67,8 +67,7 @@
         stroke-width: 1;
     }
 
-    &__label,
-    &__pitch {
+    &__label, &__pitch {
         fill: $text-secondary;
         font: font-weight(semi) #{font-size(xs)} / 1 $font-body;
     }
@@ -83,9 +82,7 @@
         font-size: 60px;
     }
 
-    &__accidental,
-    &__symbol,
-    &__fret {
+    &__accidental, &__symbol, &__fret {
         fill: currentcolor;
         font: font-weight(bold) #{font-size(base)} / 1 $font-body;
     }
@@ -118,8 +115,7 @@
     &__note {
         color: $text-primary;
 
-        &[data-status="chord"],
-        &[data-status="scale"] {
+        &[data-status="chord"], &[data-status="scale"] {
             color: $secondary-color;
         }
 
@@ -140,8 +136,7 @@
         }
     }
 
-    &__help,
-    &__actions {
+    &__help, &__actions {
         margin-top: 0;
         grid-column: 1 / -1;
     }
@@ -202,8 +197,7 @@
             border-left: $border-width-accent $border-style $warning-color;
         }
 
-        &[data-status="chord"],
-        &[data-status="scale"] {
+        &[data-status="chord"], &[data-status="scale"] {
             border-left: $border-width-accent $border-style $secondary-color;
         }
     }

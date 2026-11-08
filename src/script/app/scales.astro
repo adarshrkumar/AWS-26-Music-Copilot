@@ -1,2 +1,442 @@
 <script>
+    import { nanoid } from 'nanoid';
+    import { z } from 'zod';
+    import { songInputSchema } from '@/db/validations';
+    import { buildMarkers, describeMarkers, drawFretboard, drawKeyboard } from '@/lib/diagrams';
+    import { describeGuideTones, getChordFunction, getDiatonicChords, getScaleOptions, parseChord, parseKey } from '@/lib/scale-finder';
+    import type { Chord, ChordFunction, ScaleFinderState, ScaleOption } from '@/lib/scale-finder';
+    import scalesConfig from '@/lib/scales.config';
+    import songsConfig from '@/lib/songs.config';
+    import { analyzeProgression } from '@/lib/theory/engine';
+
+    const localSongsSchema = z.array(songInputSchema.extend({ syncedAt: z.string().max(40).nullable() }));
+
+    type LocalSong = z.infer<typeof localSongsSchema>[number];
+    type Suggestion = LocalSong['suggestions'][number];
+
+    function getLocalSongs(): LocalSong[] {
+        const raw = localStorage.getItem(songsConfig.storageKey);
+        if (!raw) return [];
+
+        try {
+            const parsed = localSongsSchema.safeParse(JSON.parse(raw));
+            if (parsed.success) return parsed.data.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+        } catch {
+            // Fall through to the backup below, the stored text is not valid JSON
+        }
+
+        localStorage.setItem(songsConfig.backupKey, raw);
+        return [];
+    }
+
+    function getLocalSong(id: string): LocalSong | null {
+        return getLocalSongs().find(song => song.id === id) ?? null;
+    }
+
+    function saveLocalSongs(songs: LocalSong[]): void {
+        localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
+    }
+
+    function setLocalSuggestionStatus(songId: string, suggestionId: string, status: Suggestion['status']): LocalSong | null {
+        const songs = getLocalSongs();
+        const index = songs.findIndex(song => song.id === songId);
+        if (index === -1) return null;
+
+        const suggestions: Suggestion[] = [];
+
+        for (const suggestion of songs[index].suggestions) {
+            if (suggestion.id === suggestionId) suggestions.push({ ...suggestion, status });
+            else suggestions.push(suggestion);
+        }
+
+        songs[index] = { ...songs[index], suggestions, updatedAt: new Date().toISOString() };
+        saveLocalSongs(songs);
+        return songs[index];
+    }
+
+    function markLocalSongSynced(id: string, syncedAt: string | null): LocalSong | null {
+        const songs = getLocalSongs();
+        const index = songs.findIndex(song => song.id === id);
+        if (index === -1) return null;
+
+        songs[index] = { ...songs[index], syncedAt };
+        saveLocalSongs(songs);
+        return songs[index];
+    }
+
+    function find<T extends Element>(selector: string): T {
+        const element = document.querySelector<T>(selector);
+        if (!element) throw new Error(`Missing element: ${selector}`);
+        return element;
+    }
+
+    function prepare<T extends HTMLElement>(element: T, className?: string, text?: string): T {
+        if (className) element.className = className;
+        if (text !== undefined) element.textContent = text;
+        return element;
+    }
+
+    const form = find<HTMLElement>('#scales-form');
+    const keyField = find<HTMLSelectElement>('#scales-key');
+    const chordField = find<HTMLInputElement>('#scales-chord');
+    const nextField = find<HTMLInputElement>('#scales-next');
+    const errorText = find<HTMLElement>('#scales-error');
+    const chordButtons = find<HTMLElement>('#scales-chords');
+    const chordInfo = find<HTMLElement>('#scales-chord-info');
+    const guideInfo = find<HTMLElement>('#scales-guide-info');
+    const optionsList = find<HTMLElement>('#scales-options');
+    const keyboard = find<HTMLElement>('#scales-keyboard');
+    const keyboardText = find<HTMLElement>('#scales-keyboard-text');
+    const fretboard = find<HTMLElement>('#scales-fretboard');
+    const fretboardText = find<HTMLElement>('#scales-fretboard-text');
+
+    const answers = new Map<string, Promise<string | null>>();
+    let state: ScaleFinderState | null = null;
+    let renderId = 0;
+
+    function ask(kind: 'feel' | 'reason', chord: Chord, chordFunction: ChordFunction, option: ScaleOption): Promise<string | null> {
+        const cacheKey = [kind, chord.name, chordFunction.label, option.id].join('|');
+        const cached = answers.get(cacheKey);
+        if (cached) return cached;
+
+        const request = fetch('/api/modules/scales', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind, chord: chord.name, chordFunction: chordFunction.label, scale: option.title, notes: option.notes.map(note => note.name) }),
+        })
+            .then(response => response.ok ? response.text() : null)
+            .catch(() => null)
+            .then(text => {
+                if (text === null) answers.delete(cacheKey);
+                return text;
+            });
+
+        answers.set(cacheKey, request);
+        return request;
+    }
+
+    function showError(message: string): void {
+        errorText.textContent = message;
+        chordField.setAttribute('aria-invalid', message ? 'true' : 'false');
+    }
+
+    function drawDiagrams(): void {
+        if (!state) return;
+
+        const current = state;
+        const option = current.options.find(candidate => candidate.id === current.selectedId);
+        if (!option) return;
+
+        const markers = buildMarkers(option, current.chord, current.next);
+        const description = `${option.description} ${describeGuideTones(current.chord, current.next)}${describeMarkers(markers)}`;
+        const keyboardDescription = `Keyboard, two octaves from C. ${description}`;
+        const fretboardDescription = `Guitar fretboard in standard tuning, frets 0 to 12. ${description}`;
+
+        keyboard.replaceChildren(drawKeyboard(markers, keyboardDescription));
+        fretboard.replaceChildren(drawFretboard(markers, fretboardDescription));
+        keyboardText.textContent = keyboardDescription;
+        fretboardText.textContent = fretboardDescription;
+    }
+
+    function selectOption(id: string): void {
+        if (!state) return;
+
+        state.selectedId = id;
+
+        for (const button of optionsList.querySelectorAll<HTMLButtonElement>('.scales__select')) {
+            const selected = button.dataset.id === id;
+            button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+            button.closest('.scales__option')?.toggleAttribute('data-selected', selected);
+        }
+
+        drawDiagrams();
+    }
+
+    function buildOption(option: ScaleOption, current: ScaleFinderState, token: number): HTMLElement {
+        const item = prepare(document.createElement('li'), 'scales__option');
+        const header = prepare(document.createElement('div'), 'scales__option-header');
+        const kind = prepare(document.createElement('span'), 'scales__kind', option.kind === 'scale' ? 'Scale' : 'Arpeggio');
+        const feel = prepare(document.createElement('p'), 'scales__feel');
+        const select = prepare(document.createElement('button'), 'btn scales__select', 'Show on diagrams');
+        const details = prepare(document.createElement('details'), 'scales__reason');
+        const reason = prepare(document.createElement('p'), 'scales__reason-ai');
+
+        header.append(prepare(document.createElement('h3'), 'scales__option-title', option.title), kind);
+        select.type = 'button';
+        select.dataset.id = option.id;
+        select.dataset.variant = 'secondary';
+        select.dataset.size = 'small';
+        select.setAttribute('aria-label', `Show ${option.title} on the diagrams`);
+        select.setAttribute('aria-pressed', 'false');
+        select.addEventListener('click', () => selectOption(option.id));
+
+        details.append(prepare(document.createElement('summary'), undefined, 'Why this fits'), prepare(document.createElement('p'), 'scales__reason-engine', option.reason), reason);
+        details.addEventListener('toggle', async () => {
+            if (!details.open || reason.dataset.loaded) return;
+
+            reason.textContent = 'Loading explanation…';
+            const text = await ask('reason', current.chord, current.chordFunction, option);
+
+            if (text) reason.dataset.loaded = 'true';
+            reason.textContent = text ?? 'The written explanation could not be loaded. The theory above still applies.';
+        });
+
+        if (option.kind === 'scale') ask('feel', current.chord, current.chordFunction, option).then(text => {
+            if (token === renderId && text) feel.textContent = `Feel: ${text.toLowerCase().replace(/\.$/, '')}`;
+        });
+        else feel.textContent = 'Plays only the chord tones.';
+
+        item.append(header, feel, prepare(document.createElement('p'), 'scales__notes', `Notes: ${option.notes.map(note => note.name).join(', ')}`), select, details);
+        return item;
+    }
+
+    function render(): void {
+        if (!state) return;
+
+        const current = state;
+        const token = ++renderId;
+        const status = current.chordFunction.status;
+
+        chordInfo.textContent = `${current.chord.name} is ${current.chordFunction.label}. Its notes are ${current.chord.notes.map(note => note.name).join(', ')}.${status === 'diatonic' ? '' : ' It is labeled, not corrected, because the chord choice is yours.'}`;
+        guideInfo.textContent = describeGuideTones(current.chord, current.next);
+
+        optionsList.replaceChildren(...current.options.map(option => buildOption(option, current, token)));
+        selectOption(current.selectedId);
+
+        for (const button of chordButtons.querySelectorAll<HTMLButtonElement>('button')) {
+            button.setAttribute('aria-pressed', button.dataset.chord === current.chord.name ? 'true' : 'false');
+        }
+    }
+
+    function update(): void {
+        const key = parseKey(keyField.value);
+        const chord = parseChord(chordField.value);
+        const nextText = nextField.value.trim();
+        const next = nextText ? parseChord(nextText) : null;
+
+        if (!key || !chord) return showError(`"${chordField.value.trim()}" is not a chord I can read. Try a name like Dm7, G7, Cmaj7, Am or Bbm7b5.`);
+        if (nextText && !next) return showError(`"${nextText}" is not a chord I can read. Leave the next chord empty or try a name like G7.`);
+
+        showError('');
+
+        const chordFunction = getChordFunction(key, chord);
+        const options = getScaleOptions(key, chord, chordFunction);
+        const keepSelection = state?.chord.name === chord.name && state.key.name === key.name && options.some(option => option.id === state?.selectedId);
+
+        state = { key, chord, next, chordFunction, options, selectedId: keepSelection && state ? state.selectedId : options[0].id };
+        render();
+    }
+
+    function buildChordButtons(): void {
+        const key = parseKey(keyField.value);
+        if (!key) return;
+
+        chordButtons.replaceChildren(...getDiatonicChords(key).map(name => {
+            const button = prepare(document.createElement('button'), 'btn', name);
+
+            button.type = 'button';
+            button.dataset.chord = name;
+            button.dataset.variant = 'secondary';
+            button.dataset.size = 'small';
+            button.setAttribute('aria-pressed', 'false');
+            button.addEventListener('click', () => {
+                chordField.value = name;
+                update();
+            });
+
+            return button;
+        }));
+    }
+
+    keyField.addEventListener('change', () => {
+        buildChordButtons();
+        update();
+    });
+    chordField.addEventListener('change', update);
+    nextField.addEventListener('change', update);
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+        update();
+    });
+
+    buildChordButtons();
+    update();
+
+    const songSelect = find<HTMLSelectElement>('#suggestions-song');
+    const suggestionsToggle = find<HTMLInputElement>('#suggestions-off');
+    const suggestionList = find<HTMLElement>('#suggestions-list');
+    const suggestionsEmpty = find<HTMLElement>('#suggestions-empty');
+    const suggestionsStatus = find<HTMLElement>('#suggestions-status');
+    const suggestionsError = find<HTMLElement>('#suggestions-error');
+    const rowTemplate = find<HTMLTemplateElement>('#suggestion-row');
+    const stateLabels: Record<Suggestion['status'], string> = { pending: '○ Waiting for your decision', accepted: '✓ Accepted', rejected: '✕ Rejected' };
+    const decisionLabels: Record<Suggestion['status'], string> = { pending: 'Cleared your decision for', accepted: 'Accepted', rejected: 'Rejected' };
+
+    function addEngineSuggestions(song: LocalSong): LocalSong {
+        const known = new Set(song.suggestions.map(suggestion => `${suggestion.sectionId}|${suggestion.bar}|${suggestion.kind}|${suggestion.value}`));
+        const added: Suggestion[] = [];
+        const now = new Date().toISOString();
+
+        for (const section of song.sections) {
+            const analysis = analyzeProgression(song.key, section.chords);
+            if (!analysis) continue;
+
+            for (const entry of analysis.chords) {
+                if (!entry.valid) continue;
+
+                const candidates = [...entry.scales.slice(0, scalesConfig.scalesPerChord).map(scale => ({ kind: scale.kind, value: `${scale.root} ${scale.name} over ${entry.name}`, reason: scale.reason })), ...entry.arpeggios.slice(0, scalesConfig.arpeggiosPerChord).map(arpeggio => ({ kind: arpeggio.kind, value: arpeggio.name, reason: arpeggio.reason }))];
+
+                for (const candidate of candidates) {
+                    const signature = `${section.id}|${entry.bar}|${candidate.kind}|${candidate.value.slice(0, 200)}`;
+                    if (known.has(signature)) continue;
+
+                    known.add(signature);
+                    added.push({ id: nanoid(), sectionId: section.id, bar: entry.bar, kind: candidate.kind, value: candidate.value.slice(0, 200), reason: candidate.reason.slice(0, 500), status: 'pending', createdAt: now });
+                }
+            }
+        }
+
+        if (added.length === 0 || scalesConfig.maxSuggestions - song.suggestions.length <= 0) return song;
+
+        const songs = getLocalSongs();
+        const index = songs.findIndex(entry => entry.id === song.id);
+        if (index === -1) return song;
+
+        songs[index] = { ...songs[index], suggestions: [...songs[index].suggestions, ...added.slice(0, scalesConfig.maxSuggestions - song.suggestions.length)], updatedAt: now };
+        saveLocalSongs(songs);
+        return songs[index];
+    }
+
+    function renderSuggestions(): void {
+        const stored = getLocalSong(songSelect.value);
+
+        suggestionsToggle.checked = sessionStorage.getItem(scalesConfig.suggestionsOffKey) === 'true';
+        suggestionList.hidden = suggestionsToggle.checked;
+        suggestionsEmpty.hidden = false;
+        suggestionList.replaceChildren();
+
+        if (suggestionsToggle.checked) {
+            suggestionsEmpty.textContent = 'Suggestions are off for this session. Turn them back on whenever you want ideas.';
+            return;
+        }
+
+        if (!stored) {
+            suggestionsEmpty.textContent = 'Create a song on the Songs page to see suggestions here.';
+            return;
+        }
+
+        let song = stored;
+
+        try {
+            song = addEngineSuggestions(stored);
+        } catch {
+            suggestionsStatus.textContent = '';
+            suggestionsError.textContent = 'This device has no room left to store new suggestions. Export or delete a song and try again.';
+        }
+
+        if (song.suggestions.length === 0) {
+            suggestionsEmpty.textContent = 'This song has no suggestions yet. Add chords to the progression and they appear here.';
+            return;
+        }
+
+        suggestionsEmpty.hidden = true;
+
+        for (const suggestion of [...song.suggestions].sort((a, b) => a.bar - b.bar)) {
+            const fragment = document.importNode(rowTemplate.content, true);
+            const item = fragment.querySelector('li');
+            if (!item) continue;
+
+            item.dataset.id = suggestion.id;
+            item.dataset.status = suggestion.status;
+            item.querySelector('[data-field="bar"]')?.replaceChildren(`Bar ${suggestion.bar}`);
+            item.querySelector('[data-field="kind"]')?.replaceChildren(suggestion.kind);
+            item.querySelector('[data-field="value"]')?.replaceChildren(suggestion.value);
+            item.querySelector('[data-field="reason"]')?.replaceChildren(suggestion.reason);
+            item.querySelector('[data-field="state"]')?.replaceChildren(stateLabels[suggestion.status]);
+
+            for (const button of item.querySelectorAll<HTMLButtonElement>('[data-action]')) {
+                button.setAttribute('aria-label', `${button.textContent} ${suggestion.kind} ${suggestion.value} in bar ${suggestion.bar}`);
+                button.hidden = button.dataset.action === suggestion.status;
+            }
+
+            suggestionList.append(fragment);
+        }
+    }
+
+    async function syncStatus(songId: string, suggestionId: string, nextStatus: Suggestion['status']): Promise<string | null> {
+        try {
+            const response = await fetch('/api/modules/scales', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ songId, suggestionId, status: nextStatus }),
+            });
+
+            if (response.ok) return null;
+            if (response.status === 404) return 'Your choice is saved on this device. Sync this song on the Songs page to copy it to your account.';
+            return 'Your choice is saved on this device, but the synced copy could not be updated.';
+        } catch {
+            return 'Your choice is saved on this device, but the synced copy could not be reached.';
+        }
+    }
+
+    async function decide(suggestionId: string, nextStatus: Suggestion['status']): Promise<void> {
+        const before = getLocalSong(songSelect.value);
+        const target = before?.suggestions.find(suggestion => suggestion.id === suggestionId);
+        if (!before || !target) return;
+
+        try {
+            if (!setLocalSuggestionStatus(before.id, suggestionId, nextStatus)) return;
+        } catch {
+            suggestionsStatus.textContent = '';
+            suggestionsError.textContent = 'This device has no room left to store your choice. Export or delete a song and try again.';
+            return;
+        }
+
+        renderSuggestions();
+        suggestionsError.textContent = '';
+        suggestionsStatus.textContent = `${decisionLabels[nextStatus]} ${target.kind} ${target.value} in bar ${target.bar}.`;
+
+        if (!before.syncedAt) return;
+
+        const problem = await syncStatus(before.id, suggestionId, nextStatus);
+
+        if (problem) {
+            suggestionsStatus.textContent = '';
+            suggestionsError.textContent = problem;
+            return;
+        }
+
+        if (before.updatedAt <= before.syncedAt) markLocalSongSynced(before.id, new Date().toISOString());
+    }
+
+    suggestionList.addEventListener('click', event => {
+        const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('button[data-action]') : null;
+        const id = button?.closest<HTMLElement>('[data-id]')?.dataset.id;
+        const action = button?.dataset.action;
+
+        if (!id || (action !== 'accepted' && action !== 'rejected' && action !== 'pending')) return;
+        void decide(id, action);
+    });
+
+    songSelect.addEventListener('change', () => {
+        suggestionsError.textContent = '';
+        suggestionsStatus.textContent = '';
+        renderSuggestions();
+    });
+
+    suggestionsToggle.addEventListener('change', () => {
+        sessionStorage.setItem(scalesConfig.suggestionsOffKey, suggestionsToggle.checked.toString());
+        suggestionsError.textContent = '';
+        suggestionsStatus.textContent = suggestionsToggle.checked ? 'Suggestions are off for this session.' : 'Suggestions are on.';
+        renderSuggestions();
+    });
+
+    for (const song of getLocalSongs()) {
+        const option = document.createElement('option');
+        option.value = song.id;
+        option.textContent = `${song.title} (${song.key})`;
+        songSelect.append(option);
+    }
+
+    renderSuggestions();
 </script>

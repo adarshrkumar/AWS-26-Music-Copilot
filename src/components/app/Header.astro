@@ -1,12 +1,17 @@
 ---
-import { appLinks } from '@/lib/app-links';
-import { siteConfig } from '@/lib/config';
+import siteConfig from '@/lib/config';
 
 import '@/styles/components/app/header.scss';
 
-const pathname = Astro.url.pathname.replace(/\/$/, '');
+const links = [
+    { href: '/app/songs', label: 'Songs' },
+    { href: '/app/progression', label: 'Progression' },
+    { href: '/app/scales', label: 'Scales' },
+    { href: '/app/editor', label: 'Editor' },
+    { href: '/app/autofill', label: 'Autofill' },
+    { href: '/app/metrics', label: 'Metrics' },
+];
 ---
-
 <header class="app-header">
     <a class="app-header__skip-link" href="#main">Skip to content</a>
     <div class="container app-header__inner">
@@ -16,9 +21,9 @@ const pathname = Astro.url.pathname.replace(/\/$/, '');
         </a>
         <nav class="app-header__nav" aria-label="App">
             <ul class="app-header__list">
-                {appLinks.map(link => (
+                {links.map(link => (
                     <li>
-                        <a class="app-header__link" href={link.href} aria-current={pathname === link.href ? 'page' : undefined}>{link.label}</a>
+                        <a class="app-header__link" href={link.href} aria-current={Astro.url.pathname.replace(/\/$/, '') === link.href ? 'page' : undefined}>{link.label}</a>
                     </li>
                 ))}
             </ul>
