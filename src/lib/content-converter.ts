@@ -1,19 +1,14 @@
-// Provides functions for converting between HTML and Markdown using marked and turndown
-
 import { marked } from 'marked';
 import { gfmHeadingId } from 'marked-gfm-heading-id';
 import TurndownService from 'turndown';
 
-// Configure marked for markdown to HTML conversion
 marked.setOptions({
     gfm: true,       // GitHub Flavored Markdown
     breaks: true,    // Convert \n to <br>
 });
 
-// Add IDs to headings
 marked.use(gfmHeadingId());
 
-// Configure turndown for HTML to markdown conversion
 const turndownService = new TurndownService({
     headingStyle: 'atx',      // Use # for headings
     hr: '---',                // Use --- for horizontal rules
@@ -25,11 +20,6 @@ const turndownService = new TurndownService({
     linkStyle: 'inlined',     // Use [text](url) for links
 });
 
-/**
- * Convert Markdown to HTML
- * @param markdown - The markdown string to convert
- * @returns HTML string
- */
 export async function markdownToHtml(markdown: string): Promise<string> {
     try {
         return await marked.parse(markdown);
@@ -39,11 +29,6 @@ export async function markdownToHtml(markdown: string): Promise<string> {
     }
 }
 
-/**
- * Convert Markdown to HTML synchronously
- * @param markdown - The markdown string to convert
- * @returns HTML string
- */
 export function markdownToHtmlSync(markdown: string): string {
     try {
         return marked.parse(markdown, { async: false });
@@ -53,11 +38,6 @@ export function markdownToHtmlSync(markdown: string): string {
     }
 }
 
-/**
- * Convert HTML to Markdown
- * @param html - The HTML string to convert
- * @returns Markdown string
- */
 export function htmlToMarkdown(html: string): string {
     try {
         return turndownService.turndown(html);
@@ -67,15 +47,8 @@ export function htmlToMarkdown(html: string): string {
     }
 }
 
-/**
- * Sanitize and convert Markdown to HTML
- * Useful for user-generated content
- * @param markdown - The markdown string to convert
- * @returns Sanitized HTML string
- */
 export async function sanitizeMarkdown(markdown: string): Promise<string> {
     try {
-        // Basic sanitization - remove script tags and dangerous attributes
         return await marked.parse(
             markdown
                 .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
@@ -88,11 +61,6 @@ export async function sanitizeMarkdown(markdown: string): Promise<string> {
     }
 }
 
-/**
- * Extract plain text from markdown
- * @param markdown - The markdown string
- * @returns Plain text string
- */
 export function markdownToPlainText(markdown: string): string {
     try {
         return marked.parse(markdown, { async: false })
@@ -109,18 +77,11 @@ export function markdownToPlainText(markdown: string): string {
     }
 }
 
-/**
- * Generate excerpt from markdown
- * @param markdown - The markdown string
- * @param maxLength - Maximum length of the excerpt (default: 200)
- * @returns Excerpt string
- */
 export function generateExcerpt(markdown: string, maxLength: number = 200): string {
     const plainText = markdownToPlainText(markdown);
 
     if (plainText.length <= maxLength) return plainText;
 
-    // Truncate at word boundary
     const truncated = plainText.slice(0, maxLength);
     const lastSpace = truncated.lastIndexOf(' ');
 

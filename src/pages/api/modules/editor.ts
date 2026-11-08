@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { saveNotesSchema, sectionQuerySchema } from '@/db/validations';
 import { getSong } from '@/lib/songs';
-import { getServerError } from '@/lib/status-responses';
+import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { explainNote, setNotes } from '@/lib/modules/editor';
 
-import type { APIRoute } from 'astro';
+import type { APIContext } from 'astro';
 
 const explainNoteSchema = z.object({
     chord: z.string().min(1).max(32),
@@ -13,20 +13,8 @@ const explainNoteSchema = z.object({
     inScale: z.boolean(),
 });
 
-export const GET: APIRoute = async ({ locals, url }) => {
-    if (!locals.user) {
-        return new Response(
-            JSON.stringify({
-                error: 'Unauthorized',
-            }),
-            {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-    }
+export async function GET({ locals, url }: APIContext): Promise<Response> {
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const { songId, sectionId } = sectionQuerySchema.parse({ songId: url.searchParams.get('songId'), sectionId: url.searchParams.get('sectionId') });
@@ -76,22 +64,10 @@ export const GET: APIRoute = async ({ locals, url }) => {
         console.error('GET /api/modules/editor error:', error);
         return getServerError();
     }
-};
+}
 
-export const PUT: APIRoute = async ({ locals, request }) => {
-    if (!locals.user) {
-        return new Response(
-            JSON.stringify({
-                error: 'Unauthorized',
-            }),
-            {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-    }
+export async function PUT({ locals, request }: APIContext): Promise<Response> {
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const { songId, sectionId, notes } = saveNotesSchema.parse(await request.json());
@@ -158,22 +134,10 @@ export const PUT: APIRoute = async ({ locals, request }) => {
         console.error('PUT /api/modules/editor error:', error);
         return getServerError();
     }
-};
+}
 
-export const POST: APIRoute = async ({ locals, request }) => {
-    if (!locals.user) {
-        return new Response(
-            JSON.stringify({
-                error: 'Unauthorized',
-            }),
-            {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-    }
+export async function POST({ locals, request }: APIContext): Promise<Response> {
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const { chord, scale, pitch, inScale } = explainNoteSchema.parse(await request.json());
@@ -208,4 +172,4 @@ export const POST: APIRoute = async ({ locals, request }) => {
         console.error('POST /api/modules/editor error:', error);
         return getServerError();
     }
-};
+}

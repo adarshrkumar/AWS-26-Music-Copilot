@@ -1,2 +1,162 @@
 <script>
+    import type { Song } from '@/db/types';
+
+    type SongOption = Pick<Song, 'id' | 'title'> & { sections: Pick<Song['sections'][number], 'id' | 'name' | 'bars'>[] };
+    type PhraseNote = Pick<Song['sections'][number]['notes'][number], 'beat' | 'pitch'>;
+    type Suggestion = Song['suggestions'][number];
+
+    const form = document.querySelector<HTMLFormElement>('.autofill__form');
+    const songSelect = document.querySelector<HTMLSelectElement>('#autofill-song');
+    const sectionSelect = document.querySelector<HTMLSelectElement>('#autofill-section');
+    const barSelect = document.querySelector<HTMLSelectElement>('#autofill-bar');
+    const list = document.querySelector<HTMLUListElement>('.autofill__list');
+    const status = document.querySelector<HTMLElement>('.autofill__status');
+    const songs: SongOption[] = JSON.parse(document.querySelector('#autofill-songs')?.textContent ?? '[]');
+
+    function say(message: string) {
+        if (status) status.textContent = message;
+    }
+
+    function fill(select: HTMLSelectElement, options: { value: string; label: string }[]) {
+        select.replaceChildren(...options.map(option => new Option(option.label, option.value)));
+    }
+
+    function currentSong(): SongOption | undefined {
+        return songs.find(song => song.id === songSelect?.value);
+    }
+
+    function renderSections() {
+        if (!sectionSelect) return;
+        fill(sectionSelect, (currentSong()?.sections ?? []).map(section => ({ value: section.id, label: section.name })));
+        renderBars();
+    }
+
+    function renderBars() {
+        if (!barSelect) return;
+        const bars = currentSong()?.sections.find(section => section.id === sectionSelect?.value)?.bars ?? 0;
+        fill(barSelect, Array.from({ length: bars }, (_, index) => ({ value: (index + 1).toString(), label: `Bar ${index + 1}` })));
+        void loadSuggestions();
+    }
+
+    function parseNotes(suggestion: Suggestion): PhraseNote[] {
+        const value: { notes?: PhraseNote[] } = JSON.parse(suggestion.value);
+        return value.notes ?? [];
+    }
+
+    function describe(notes: PhraseNote[]): string {
+        return notes.map(note => `beat ${note.beat}: ${note.pitch}`).join(', ');
+    }
+
+    async function decide(suggestion: Suggestion, item: HTMLElement, decision: 'accepted' | 'rejected', input: HTMLInputElement) {
+        const body: { songId: string | undefined; suggestionId: string; status: string; pitches?: string[] } = { songId: songSelect?.value, suggestionId: suggestion.id, status: decision };
+        if (decision === 'accepted') body.pitches = input.value.trim().split(/\s+/);
+
+        const response = await fetch('/api/modules/autofill', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const result: { error?: string; skipped?: number } = await response.json();
+
+        if (!response.ok) return say(result.error ?? 'The change could not be saved.');
+
+        item.dataset.status = decision;
+        item.querySelectorAll('button, input').forEach(control => control.setAttribute('disabled', ''));
+        const outcome = item.querySelector<HTMLElement>('.autofill__outcome');
+        if (outcome) outcome.textContent = decision === 'accepted' ? 'Accepted and written into the song.' : 'Rejected. The song is unchanged.';
+        say(decision === 'accepted' && result.skipped ? `Phrase accepted. ${result.skipped} notes were skipped because those beats already have a note.` : `Phrase ${decision}.`);
+    }
+
+    function renderSuggestion(suggestion: Suggestion): HTMLLIElement {
+        const notes = parseNotes(suggestion);
+        const item = document.createElement('li');
+        item.className = 'autofill__item';
+        item.dataset.status = suggestion.status;
+
+        const heading = document.createElement('h2');
+        heading.className = 'autofill__item-title';
+        heading.textContent = `Idea for bar ${suggestion.bar}`;
+
+        const text = document.createElement('p');
+        text.className = 'autofill__notes';
+        text.textContent = describe(notes);
+
+        const reason = document.createElement('p');
+        reason.className = 'autofill__reason';
+        reason.textContent = suggestion.reason;
+
+        const label = document.createElement('label');
+        label.className = 'form-label';
+        label.textContent = 'Edit pitches before accepting, separated by spaces';
+        const input = document.createElement('input');
+        input.className = 'form-input';
+        input.value = notes.map(note => note.pitch).join(' ');
+        input.id = `pitches-${suggestion.id}`;
+        label.htmlFor = input.id;
+
+        const outcome = document.createElement('p');
+        outcome.className = 'autofill__outcome';
+        outcome.setAttribute('role', 'status');
+
+        const actions = document.createElement('div');
+        actions.className = 'autofill__actions';
+
+        const choices: { decision: 'accepted' | 'rejected'; text: string; variant: string }[] = [
+            { decision: 'accepted', text: 'Accept', variant: 'primary' },
+            { decision: 'rejected', text: 'Reject', variant: 'secondary' },
+        ];
+
+        for (const choice of choices) {
+            const button = document.createElement('button');
+            button.className = 'btn';
+            button.type = 'button';
+            button.dataset.variant = choice.variant;
+            button.textContent = choice.text;
+            button.addEventListener('click', () => decide(suggestion, item, choice.decision, input));
+            actions.append(button);
+        }
+
+        item.append(heading, text, reason, label, input, actions, outcome);
+
+        if (suggestion.status !== 'pending') {
+            item.querySelectorAll('button, input').forEach(control => control.setAttribute('disabled', ''));
+            outcome.textContent = suggestion.status === 'accepted' ? 'Accepted and written into the song.' : 'Rejected. The song is unchanged.';
+        }
+
+        return item;
+    }
+
+    function renderSuggestions(suggestions: Suggestion[]) {
+        list?.replaceChildren(...suggestions.map(renderSuggestion));
+    }
+
+    async function loadSuggestions() {
+        if (!songSelect?.value || !sectionSelect?.value || !barSelect?.value) return renderSuggestions([]);
+        const query = new URLSearchParams({ songId: songSelect.value, sectionId: sectionSelect.value, bar: barSelect.value });
+        const response = await fetch(`/api/modules/autofill?${query}`);
+        if (!response.ok) return say('Earlier proposals could not be loaded.');
+        const result: { suggestions: Suggestion[] } = await response.json();
+        renderSuggestions(result.suggestions);
+    }
+
+    songSelect?.addEventListener('change', renderSections);
+    sectionSelect?.addEventListener('change', renderBars);
+    barSelect?.addEventListener('change', () => void loadSuggestions());
+
+    form?.addEventListener('submit', async event => {
+        event.preventDefault();
+        const button = form.querySelector('button');
+        button?.setAttribute('data-state', 'loading');
+        say('Looking for phrases that fit the chords in this bar.');
+
+        const response = await fetch('/api/modules/autofill', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ songId: songSelect?.value, sectionId: sectionSelect?.value, bar: Number(barSelect?.value) }),
+        });
+        const result: { error?: string; suggestions?: Suggestion[] } = await response.json();
+
+        button?.removeAttribute('data-state');
+        if (!response.ok) return say(result.error ?? 'Phrases could not be proposed.');
+        await loadSuggestions();
+        say(`${result.suggestions?.length ?? 0} ideas are ready. Accept, edit or reject each one.`);
+    });
+
+    renderSections();
 </script>

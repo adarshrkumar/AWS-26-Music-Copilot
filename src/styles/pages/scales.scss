@@ -4,37 +4,281 @@
 @use '../variables/tokens' as *;
 
 .scales {
-    align-items: start;
     gap: space(6);
     display: grid;
 
-    @include desktop {
-        grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+    &__title {
+        @include heading-1;
     }
 
-    &__main {
-        gap: space(4);
+    &__subtitle {
+        @include heading-3;
+    }
 
-        @include flex-column;
+    &__intro, &__note {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__form {
+        max-width: none;
+        gap: space(4);
+        display: grid;
+
+        @include tablet {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-error {
+            margin-top: 0;
+            grid-column: 1 / -1;
+
+            &:empty {
+                display: none;
+            }
+        }
+    }
+
+    &__picker {
+        gap: space(3);
+        display: grid;
+    }
+
+    &__chords {
+        flex-wrap: wrap;
+        gap: space(2);
+        display: flex;
+
+        .btn[aria-pressed="true"] {
+            color: $text-inverse;
+            background-color: $primary-color;
+        }
+    }
+
+    &__summary {
+        padding: space(4);
+        background: $bg-secondary;
+        border: 1px solid $border-color;
+        border-radius: radius(lg);
+        gap: space(2);
+        display: grid;
+
+        p {
+            margin: 0;
+        }
+    }
+
+    &__layout {
+        gap: space(6);
+        display: grid;
+
+        @include desktop {
+            grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+            align-items: start;
+        }
+    }
+
+    &__options {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        gap: space(3);
+        display: grid;
+    }
+
+    &__option {
+        padding: space(4);
+        border: 1px solid $border-color;
+        border-radius: radius(lg);
+        gap: space(2);
+        display: grid;
+
+        &[data-selected] {
+            border-width: 2px;
+            border-color: $primary-color;
+        }
+
+        p {
+            margin: 0;
+        }
+    }
+
+    &__option-header {
+        gap: space(3);
+
+        @include flex-between;
+    }
+
+    &__option-title {
+        margin: 0;
+        font-size: font-size(lg);
+    }
+
+    &__kind {
+        padding: space(1) space(3);
+        border: 1px solid $border-color;
+        border-radius: radius(pill);
+        font-size: font-size(sm);
+    }
+
+    &__feel {
+        color: $text-secondary;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__select {
+        justify-self: start;
+
+        &[aria-pressed="true"] {
+            color: $text-inverse;
+            background-color: $primary-color;
+        }
+    }
+
+    &__reason {
+        summary {
+            font-weight: font-weight(bold);
+            cursor: pointer;
+
+            @include focus-visible;
+        }
+
+        p {
+            margin-top: space(2);
+        }
+    }
+
+    &__reason-ai {
+        color: $text-secondary;
+
+        &:empty {
+            display: none;
+        }
+    }
+}
+
+.diagram {
+    min-width: 0;
+    gap: space(3);
+    display: grid;
+
+    &__legend {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        flex-wrap: wrap;
+        gap: space(2) space(4);
+        display: flex;
+    }
+
+    &__symbol {
+        font-weight: font-weight(bold);
     }
 
     &__title {
-        @include heading-2;
+        margin: 0;
+        font-size: font-size(lg);
+    }
+
+    &__frame {
+        border: 1px solid $border-color;
+        border-radius: radius(lg);
+        overflow-x: auto;
+    }
+
+    &__svg {
+        width: 100%;
+        min-width: 560px;
+        height: auto;
+        font-family: $font-body;
+        font-size: 11px;
+        font-weight: 700;
+        display: block;
+    }
+
+    &__description {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__white-key {
+        fill: #fff;
+        stroke: $text-primary;
+        stroke-width: 1.5;
+    }
+
+    &__black-key {
+        fill: $text-primary;
+    }
+
+    &__nut, &__fret, &__string {
+        stroke: $text-secondary;
+    }
+
+    &__nut {
+        stroke: $text-primary;
+        stroke-width: 4;
+    }
+
+    &__fret-number, &__string-name {
+        fill: $text-secondary;
+        font-size: 12px;
+    }
+
+    &__marker {
+        circle, rect {
+            fill: $bg-primary;
+            stroke: $primary-color;
+            stroke-width: 2;
+        }
+
+        text {
+            fill: $text-primary;
+            pointer-events: none;
+        }
+
+        &[data-role="root"] {
+            rect {
+                fill: $primary-color;
+            }
+
+            text {
+                fill: $text-inverse;
+            }
+        }
+
+        &[data-role="outside"] {
+            circle {
+                stroke: $error-color;
+                stroke-dasharray: 3 2;
+            }
+        }
+
+        &:is([data-guide="current"], [data-guide="both"], [data-guide="next"]) :is(circle, rect) {
+            stroke-width: 4;
+        }
+
+        &[data-guide="next"] :is(circle, rect) {
+            stroke: $secondary-color;
+        }
     }
 }
 
 .suggestions {
+    margin-top: space(6);
     padding: space(4);
     border: 1px solid $border-color;
     border-radius: radius(lg);
     gap: space(3);
 
     @include flex-column;
-
-    @include desktop {
-        position: sticky;
-        top: space(4);
-    }
 
     &__heading {
         gap: space(2);
@@ -50,8 +294,7 @@
         margin-bottom: 0;
     }
 
-    &__intro,
-    &__empty {
+    &__intro, &__empty {
         margin: 0;
         color: $text-secondary;
     }
@@ -100,9 +343,7 @@
         }
     }
 
-    &__label,
-    &__reason,
-    &__state {
+    &__label, &__reason, &__state {
         margin: 0;
     }
 
@@ -113,17 +354,12 @@
         display: flex;
     }
 
-    &__bar,
-    &__kind {
+    &__bar, &__kind, &__state {
         color: $text-secondary;
     }
 
     &__kind {
         text-transform: capitalize;
-    }
-
-    &__state {
-        color: $text-secondary;
     }
 
     &__actions {

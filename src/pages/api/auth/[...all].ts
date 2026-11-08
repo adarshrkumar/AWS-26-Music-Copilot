@@ -1,5 +1,7 @@
 import auth from '@/lib/auth';
 
-import type { APIRoute } from 'astro';
+import type { APIContext } from 'astro';
 
-export const ALL: APIRoute = ({ request }) => auth.handler(request);
+export function ALL({ request }: APIContext): Promise<Response> {
+    return auth.handler(request);
+}

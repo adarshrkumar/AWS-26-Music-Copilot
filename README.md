@@ -148,6 +148,19 @@ const links = extractLinks(html);
 const results = await searchWeb('ii V I progression guide tones');
 ```
 
+## Metrics
+
+Usage metrics count events only. They never store chords, notes or melodies, and their ids are random values that are not linked to an account. Events are stored in the `data` table with the partition key `METRIC`, and the numbers are shown at `/app/metrics`.
+
+| Metric | How it is measured |
+| --- | --- |
+| Progressions built | Sessions with a `progression_saved` event, out of sessions with a `session_start` event |
+| Suggestions accepted | `suggestion_accepted` out of `suggestion_shown`, recorded by the server in `addScaleSuggestion`, `addPhraseSuggestion` and the two status functions |
+| Theory checks | Devices with a `reason_opened` event, out of devices with a `session_start` event |
+| Time to first scale | Median seconds from `first_chord` to `first_scale_view` within one session |
+
+The browser tracker is `src/script/app/metrics.astro`, loaded by the app layout. A control reports an event with an attribute, such as `data-metric="reason_opened"`. A script reports one with `document.dispatchEvent(new CustomEvent('metric', { detail: { name: 'first_chord' } }))`. The progression and scales screens need to send `first_chord`, `progression_saved` and `first_scale_view` when they are built. Targets are placeholders until the pilot runs.
+
 ## Deployment
 
 ```bash
