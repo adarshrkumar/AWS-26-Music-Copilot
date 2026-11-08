@@ -22,7 +22,7 @@ const statusSchema = z.object({
     status: songInputSchema.shape.suggestions.element.shape.status,
 });
 
-export async function PATCH({ locals, request }: APIContext): Promise<Response> {
+export const PATCH = async ({ locals, request }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -74,9 +74,9 @@ export async function PATCH({ locals, request }: APIContext): Promise<Response> 
         console.error('PATCH /api/modules/scales error:', error);
         return getServerError();
     }
-}
+};
 
-export async function POST({ request, locals }: APIContext): Promise<Response> {
+export const POST = async ({ request, locals }: APIContext): Promise<Response> => {
     if (!locals.session) return getUnauthorizedError();
 
     const parsed = requestSchema.safeParse(await request.json());
@@ -90,4 +90,4 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
         console.error('POST /api/modules/scales error:', error);
         return getServerError();
     }
-}
+};

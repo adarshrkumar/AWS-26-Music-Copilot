@@ -10,7 +10,7 @@ import { analyzeChord } from '@/lib/theory/engine';
 
 import type { APIContext } from 'astro';
 
-export async function GET({ locals, url }: APIContext): Promise<Response> {
+export const GET = async ({ locals, url }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -24,9 +24,9 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
         console.error('GET /api/modules/progression error:', error);
         return getServerError();
     }
-}
+};
 
-export async function POST({ locals, request }: APIContext): Promise<Response> {
+export const POST = async ({ locals, request }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -63,4 +63,4 @@ export async function POST({ locals, request }: APIContext): Promise<Response> {
         console.error('POST /api/modules/progression error:', error);
         return getServerError();
     }
-}
+};

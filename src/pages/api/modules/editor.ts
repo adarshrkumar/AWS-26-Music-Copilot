@@ -15,7 +15,7 @@ const explainNoteSchema = z.object({
     inScale: z.boolean(),
 });
 
-export async function GET({ locals, url }: APIContext): Promise<Response> {
+export const GET = async ({ locals, url }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -66,9 +66,9 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
         console.error('GET /api/modules/editor error:', error);
         return getServerError();
     }
-}
+};
 
-export async function PUT({ locals, request }: APIContext): Promise<Response> {
+export const PUT = async ({ locals, request }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -136,9 +136,9 @@ export async function PUT({ locals, request }: APIContext): Promise<Response> {
         console.error('PUT /api/modules/editor error:', error);
         return getServerError();
     }
-}
+};
 
-export async function POST({ locals, request }: APIContext): Promise<Response> {
+export const POST = async ({ locals, request }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -174,4 +174,4 @@ export async function POST({ locals, request }: APIContext): Promise<Response> {
         console.error('POST /api/modules/editor error:', error);
         return getServerError();
     }
-}
+};

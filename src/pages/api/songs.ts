@@ -17,7 +17,7 @@ function failure(method: string, error: Error | null): Response {
     return getServerError();
 }
 
-export async function GET({ locals }: APIContext): Promise<Response> {
+export const GET = async ({ locals }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -25,9 +25,9 @@ export async function GET({ locals }: APIContext): Promise<Response> {
     } catch (error) {
         return failure('GET', error instanceof Error ? error : null);
     }
-}
+};
 
-export async function PUT({ locals, request }: APIContext): Promise<Response> {
+export const PUT = async ({ locals, request }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -40,9 +40,9 @@ export async function PUT({ locals, request }: APIContext): Promise<Response> {
     } catch (error) {
         return failure('PUT', error instanceof Error ? error : null);
     }
-}
+};
 
-export async function DELETE({ locals, url }: APIContext): Promise<Response> {
+export const DELETE = async ({ locals, url }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -51,4 +51,4 @@ export async function DELETE({ locals, url }: APIContext): Promise<Response> {
     } catch (error) {
         return failure('DELETE', error instanceof Error ? error : null);
     }
-}
+};
