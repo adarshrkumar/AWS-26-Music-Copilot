@@ -1,0 +1,12 @@
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
+
+.app {
+    margin-inline: auto;
+    padding: space(6) space(4);
+    width: 100%;
+    max-width: $breakpoint-extra-wide;
+    align-content: start;
+    gap: space(6);
+    display: grid;
+}
