@@ -5,7 +5,7 @@
     import { authClient } from '@/lib/auth/client';
     import songsConfig from '@/lib/songs.config';
 
-    const songFormSchema = songInputSchema.pick({ title: true, key: true, tempo: true, melodyShared: true });
+    const songFormSchema = songInputSchema.pick({ title: true, key: true, tempo: true });
     const localSongsSchema = z.array(songInputSchema.extend({ syncedAt: z.string().max(40).nullable() }));
 
     type LocalSong = z.infer<typeof localSongsSchema>[number];
@@ -194,7 +194,6 @@
             find<HTMLInputElement>(form, '[name="title"]').value = song.title;
             find<HTMLInputElement>(form, '[name="key"]').value = song.key;
             find<HTMLInputElement>(form, '[name="tempo"]').value = song.tempo.toString();
-            find<HTMLInputElement>(form, '[name="melodyShared"]').checked = song.melodyShared;
         }
 
         dialog.showModal();
@@ -203,7 +202,7 @@
 
     function saveForm(): void {
         const data = new FormData(form);
-        const parsed = songFormSchema.safeParse({ title: data.get('title'), key: data.get('key'), tempo: parseInt(data.get('tempo')?.toString() ?? '', 10), melodyShared: data.has('melodyShared') });
+        const parsed = songFormSchema.safeParse({ title: data.get('title'), key: data.get('key'), tempo: parseInt(data.get('tempo')?.toString() ?? '', 10) });
 
         if (!parsed.success) {
             formError.textContent = parsed.error.issues[0]?.message ?? 'Check the song details.';

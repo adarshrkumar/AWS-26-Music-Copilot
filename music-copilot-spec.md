@@ -52,8 +52,7 @@ Music Copilot addresses these by keeping theory next to the writing. The songwri
 ## 5. User Roles
 
 - **Songwriter:** writes a progression, reviews suggestions, and decides what goes into the song. This is the main user.
-- **Student:** a songwriter in a class or course, who may use a teacher's sample progressions. Often the same person as the songwriter.
-- **Teacher:** sets sample progressions for a class and sees which concepts students explored. Optional in v1.
+- **Student:** a songwriter who is learning harmony and may start from sample progressions. Often the same person as the songwriter.
 
 ## 6. Primary Workflows
 
@@ -109,7 +108,6 @@ Suggestions are shown in a side panel with a short reason, such as "This is the 
 
 - **Songs:** kept on the device by default and synced only when the songwriter chooses an account.
 - **Melodies and progressions:** not used to train models, and not shared with other users without an explicit export.
-- **Class data:** a teacher sees which sample progressions a student used and how many suggestions were accepted. The teacher does not see the student's melodies unless the student shares them.
 - **Retention:** songs kept until the songwriter deletes them. Account deletion removes synced copies within thirty days.
 - **Training:** songs are not used to train models without a separate opt-in.
 
@@ -180,7 +178,6 @@ The riskiest parts are the theory engine's handling of borrowed chords and the a
 - Which genres should the first version cover, beyond jazz and instrumental writing?
 - Should the editor support tabs, sheet music, or both in v1?
 - How much theory should a beginner see by default, and how much should be hidden?
-- Should a teacher be able to set a full course, or only sample progressions?
 - Who owns the progression library after the hackathon?
 
 ## 17. Glossary

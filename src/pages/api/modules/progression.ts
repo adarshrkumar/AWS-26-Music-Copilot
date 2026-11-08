@@ -44,7 +44,7 @@ export const POST = async ({ locals, request }: APIContext): Promise<Response> =
 
         if (body.draft.songId && !song) return new Response(JSON.stringify({ error: 'Song not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
         if (!song) {
-            song = { userId: locals.user.id, id: nanoid(), title: 'Untitled progression', key, tempo: body.draft.tempo, sampleProgressionId: body.draft.sampleProgressionId, melodyShared: false, sections: [], suggestions: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+            song = { userId: locals.user.id, id: nanoid(), title: 'Untitled progression', key, tempo: body.draft.tempo, sampleProgressionId: body.draft.sampleProgressionId, sections: [], suggestions: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
             await setItem(songTable, song);
         }
 

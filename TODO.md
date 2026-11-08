@@ -66,12 +66,6 @@ These features of the app should be placed within their existing `src/pages` ast
 - [x] Remove synced copies within thirty days of account deletion
 - [x] Link the app pages from `src/pages/app/index.astro` and the app header
 
-## Teacher
-
-- [x] Let a teacher set sample progressions for a class
-- [x] Show a teacher which sample progressions a student used and how many suggestions were accepted
-- [x] Hide a student's melodies from the teacher unless the student shares them
-
 ## Accessibility
 
 - [ ] Make every control work with a keyboard and a screen reader, including note entry and scale selection
@@ -99,6 +93,5 @@ These features of the app should be placed within their existing `src/pages` ast
 - [ ] Decide which genres the first version covers beyond jazz and instrumental writing
 - [ ] Decide whether the editor supports tabs, sheet music or both in v1
 - [ ] Decide how much theory a beginner sees by default
-- [ ] Decide whether a teacher can set a full course or only sample progressions
 - [ ] Decide who owns the progression library after the hackathon
 - [ ] Finish the competitive review

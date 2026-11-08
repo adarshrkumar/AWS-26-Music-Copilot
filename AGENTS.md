@@ -87,7 +87,6 @@ The language model must not insert notes, chords or phrases without an accepted 
 
 - Songs are kept on the device by default and synced only when the songwriter chooses an account.
 - Melodies and progressions are not used to train models and not shared without an explicit export.
-- A teacher sees which sample progressions a student used and how many suggestions were accepted, but not the student's melodies unless shared.
 
 ### Accessibility
 

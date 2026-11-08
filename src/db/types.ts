@@ -24,7 +24,6 @@ export interface Song {
     key: string;
     tempo: number;
     sampleProgressionId: string | null;
-    melodyShared: boolean;
     sections: {
         id: string;
         name: string;
@@ -44,22 +43,6 @@ export interface Song {
     }[];
     createdAt: string;
     updatedAt: string;
-}
-
-export interface ClassRoom {
-    teacherId: string;
-    id: string;
-    name: string;
-    joinCode: string;
-    sampleProgressionIds: string[];
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface ClassMember {
-    classId: string;
-    studentId: string;
-    joinedAt: string;
 }
 
 export interface Comment {
