@@ -1,0 +1,220 @@
+@use '../variables/colors' as *;
+@use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
+
+.editor {
+    gap: space(6);
+    display: grid;
+
+    &__title {
+        color: $primary-color;
+
+        @include display-heading;
+    }
+
+    &__heading {
+        color: $primary-color;
+
+        @include display-heading('lg');
+    }
+
+    &__meta {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__bar {
+        gap: space(3);
+    }
+
+    &__bars {
+        flex-wrap: wrap;
+        gap: space(2);
+        display: flex;
+    }
+
+    &__chords {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        gap: space(1);
+        display: grid;
+    }
+
+    &__views {
+        gap: space(4);
+        display: grid;
+
+        @include desktop {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    &__view {
+        gap: space(2);
+        display: grid;
+    }
+
+    &__svg {
+        width: 100%;
+        height: auto;
+    }
+
+    &__line {
+        stroke: $border-color;
+        stroke-width: 1;
+    }
+
+    &__label,
+    &__pitch {
+        fill: $text-secondary;
+        font: font-weight(semi) #{font-size(xs)} / 1 $font-body;
+    }
+
+    &__chord-name {
+        fill: $primary-color;
+        font: font-weight(bold) #{font-size(md)} / 1 $font-display;
+    }
+
+    &__clef {
+        fill: $text-primary;
+        font-size: 60px;
+    }
+
+    &__accidental,
+    &__symbol,
+    &__fret {
+        fill: currentcolor;
+        font: font-weight(bold) #{font-size(base)} / 1 $font-body;
+    }
+
+    &__tab-back {
+        fill: $bg-secondary;
+    }
+
+    &__head {
+        fill: currentcolor;
+
+        &[data-hollow="true"] {
+            fill: $bg-secondary;
+            stroke: currentcolor;
+            stroke-width: 2;
+        }
+    }
+
+    &__stem {
+        stroke: $text-primary;
+        stroke-width: 1.5;
+    }
+
+    &__selected {
+        fill: none;
+        stroke: $primary-color;
+        stroke-width: 3;
+    }
+
+    &__note {
+        color: $text-primary;
+
+        &[data-status="chord"],
+        &[data-status="scale"] {
+            color: $secondary-color;
+        }
+
+        &[data-status="outside"] {
+            color: $warning-color;
+        }
+    }
+
+    &__form {
+        max-width: none;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        align-items: start;
+        gap: space(3) space(4);
+        display: grid;
+
+        .form-group {
+            margin-bottom: 0;
+        }
+    }
+
+    &__help,
+    &__actions {
+        margin-top: 0;
+        grid-column: 1 / -1;
+    }
+
+    &__actions {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: space(3);
+    }
+
+    &__error {
+        margin: 0;
+        color: $error-color;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__status {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__notes {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        gap: space(3);
+        display: grid;
+    }
+
+    &__item {
+        padding: padding(callout);
+        background: $bg-primary;
+        border: $border-width $border-style $border-color;
+        border-radius: radius(md);
+        gap: space(2);
+        display: grid;
+
+        &[data-status="outside"] {
+            border-left: $border-width-accent $border-style $warning-color;
+        }
+
+        &[data-status="chord"],
+        &[data-status="scale"] {
+            border-left: $border-width-accent $border-style $secondary-color;
+        }
+    }
+
+    &__item-text {
+        margin: 0;
+    }
+
+    &__item-actions {
+        flex-wrap: wrap;
+        gap: space(2);
+        display: flex;
+
+        .btn {
+            min-height: $control-height;
+        }
+    }
+
+    &__empty {
+        color: $text-secondary;
+    }
+
+    &__reason {
+        gap: space(2);
+        display: grid;
+
+        p {
+            margin: 0;
+        }
+    }
+}

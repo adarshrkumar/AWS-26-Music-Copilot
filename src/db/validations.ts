@@ -209,3 +209,31 @@ export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type UpdateCommentInput = z.infer<typeof updateCommentSchema>;
 export type ModerateCommentInput = z.infer<typeof moderateCommentSchema>;
 export type CommentQueryInput = z.infer<typeof commentQuerySchema>;
+
+export const noteSchema = z.object({
+    bar: z.number().int().min(1).max(16),
+    beat: z.number().min(1).lt(5),
+    duration: z.number().min(0.25).max(4),
+    pitch: z.string().regex(/^[A-G][#b]?-?\d$/),
+    string: z.number().int().min(1).max(6).nullable(),
+    fret: z.number().int().min(0).max(24).nullable(),
+});
+
+export const sectionQuerySchema = z.object({
+    songId: z.string().min(1),
+    sectionId: z.string().min(1),
+});
+
+export const saveNotesSchema = sectionQuerySchema.extend({
+    notes: z.array(noteSchema).max(512),
+});
+
+export const explainNoteSchema = z.object({
+    chord: z.string().min(1).max(32),
+    scale: z.string().min(1).max(64),
+    pitch: z.string().regex(/^[A-G][#b]?-?\d$/),
+    inScale: z.boolean(),
+});
+
+export type SaveNotesInput = z.infer<typeof saveNotesSchema>;
+export type ExplainNoteInput = z.infer<typeof explainNoteSchema>;
