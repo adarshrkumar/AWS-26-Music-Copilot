@@ -1,56 +1,45 @@
-import { createGateway, streamText } from 'ai';
 import { z } from 'zod';
+import { streamText } from '@/lib/bedrock';
 
 import type { APIRoute } from 'astro';
 
-// Uses the Vercel AI Gateway - no provider-specific packages needed!
-// Just pass model strings like 'openai/gpt-4o' or 'anthropic/claude-3-5-sonnet-20241022'
-//
-// Environment variables required:
-// - AI_GATEWAY_API_KEY: Your Vercel AI Gateway API key
-
-// Validate request schema
 const requestSchema = z.object({
     messages: z.array(
         z.object({
-            role: z.enum(['user', 'assistant', 'system']),
+            role: z.enum(['user', 'assistant']),
             content: z.string(),
         })
-    ),
-    model: z.string().optional().default('openai/gpt-4o'),
-    temperature: z.number().min(0).max(2).optional().default(0.7),
+    ).min(1),
+    system: z.string().optional(),
+    modelId: z.string().optional(),
+    temperature: z.number().min(0).max(1).optional().default(0.7),
     maxTokens: z.number().positive().optional().default(1000),
 });
 
 export const POST: APIRoute = async ({ request }) => {
     try {
-        // Validate API key
-        if (!import.meta.env.AI_GATEWAY_API_KEY && !process.env.AI_GATEWAY_API_KEY) {
-            return new Response(
-                JSON.stringify({
-                    error: 'AI_GATEWAY_API_KEY is not configured',
-                }),
-                {
-                    status: 500,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-        }
+        const { messages, system, modelId, temperature, maxTokens } = requestSchema.parse(await request.json());
+        const stream = streamText({ system, messages: messages.map(message => ({ role: message.role, content: [{ text: message.content }] })), modelId, temperature, maxTokens });
+        const encoder = new TextEncoder();
 
-        // Parse and validate request body
-        const validatedData = requestSchema.parse(await request.json());
-
-        // Stream the response using Vercel AI SDK with AI Gateway
-        return streamText({
-            model: createGateway({ apiKey: import.meta.env.AI_GATEWAY_API_KEY || process.env.AI_GATEWAY_API_KEY })(validatedData.model), // Model string routed through the gateway (e.g., 'openai/gpt-4o')
-            messages: validatedData.messages,
-            temperature: validatedData.temperature,
-            maxOutputTokens: validatedData.maxTokens,
-        }).toUIMessageStreamResponse();
+        return new Response(
+            new ReadableStream({
+                async start(controller) {
+                    try {
+                        for await (const text of stream) controller.enqueue(encoder.encode(text));
+                        controller.close();
+                    } catch (error) {
+                        controller.error(error);
+                    }
+                },
+            }),
+            {
+                headers: {
+                    'Content-Type': 'text/plain; charset=utf-8',
+                },
+            }
+        );
     } catch (error) {
-        // Handle Zod validation errors
         if (error instanceof z.ZodError) {
             return new Response(
                 JSON.stringify({
@@ -66,7 +55,6 @@ export const POST: APIRoute = async ({ request }) => {
             );
         }
 
-        // Handle other errors
         console.error('Chat API error:', error);
         return new Response(
             JSON.stringify({
