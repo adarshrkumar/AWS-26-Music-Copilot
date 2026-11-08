@@ -83,6 +83,15 @@ export default [
         }
     },
     {
+        files: ['src/lib/diagrams.ts'],
+        languageOptions: {
+            globals: {
+                document: 'readonly',
+                SVGElement: 'readonly'
+            }
+        }
+    },
+    {
         files: ['src/**/*.astro'],
         languageOptions: {
             parser: parsers.astroParser,
@@ -120,6 +129,8 @@ export default [
                 HTMLFormElement: 'readonly',
                 HTMLSelectElement: 'readonly',
                 HTMLUListElement: 'readonly',
+                HTMLLIElement: 'readonly',
+                Option: 'readonly',
                 HTMLElementTagNameMap: 'readonly',
                 SVGSVGElement: 'readonly',
                 SVGElementTagNameMap: 'readonly',

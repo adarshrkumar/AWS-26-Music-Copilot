@@ -3,16 +3,15 @@
     import { z } from 'zod';
     import { songInputSchema } from '@/db/validations';
     import { authClient } from '@/lib/auth/client';
+    import songsConfig from '@/lib/songs.config';
 
     const songFormSchema = songInputSchema.pick({ title: true, key: true, tempo: true });
     const localSongsSchema = z.array(songInputSchema.extend({ syncedAt: z.string().max(40).nullable() }));
-    const storageKey = 'tonepilot:songs';
-    const backupKey = 'tonepilot:songs:backup';
 
     type LocalSong = z.infer<typeof localSongsSchema>[number];
 
     function getLocalSongs(): LocalSong[] {
-        const raw = localStorage.getItem(storageKey);
+        const raw = localStorage.getItem(songsConfig.storageKey);
         if (!raw) return [];
 
         try {
@@ -22,7 +21,7 @@
             // Fall through to the backup below, the stored text is not valid JSON
         }
 
-        localStorage.setItem(backupKey, raw);
+        localStorage.setItem(songsConfig.backupKey, raw);
         return [];
     }
 
@@ -31,7 +30,7 @@
     }
 
     function saveLocalSongs(songs: LocalSong[]): void {
-        localStorage.setItem(storageKey, JSON.stringify(songs));
+        localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
     }
 
     function createLocalSong(form: z.infer<typeof songFormSchema>): LocalSong {

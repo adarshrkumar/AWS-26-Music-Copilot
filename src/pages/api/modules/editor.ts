@@ -1,7 +1,9 @@
 import { z } from 'zod';
+import { getItem } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
+import type { Song } from '@/db/types';
 import { saveNotesSchema, sectionQuerySchema } from '@/db/validations';
-import { getSong } from '@/lib/songs';
-import { getServerError } from '@/lib/status-responses';
+import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { explainNote, setNotes } from '@/lib/modules/editor';
 
 import type { APIContext } from 'astro';
@@ -14,23 +16,11 @@ const explainNoteSchema = z.object({
 });
 
 export async function GET({ locals, url }: APIContext): Promise<Response> {
-    if (!locals.user) {
-        return new Response(
-            JSON.stringify({
-                error: 'Unauthorized',
-            }),
-            {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-    }
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const { songId, sectionId } = sectionQuerySchema.parse({ songId: url.searchParams.get('songId'), sectionId: url.searchParams.get('sectionId') });
-        const section = (await getSong(locals.user.id, songId))?.sections.find(candidate => candidate.id === sectionId);
+        const section: Song['sections'][number] | undefined = (await getItem(songTable, { userId: locals.user.id, id: songId }))?.sections.find((candidate: Song['sections'][number]) => candidate.id === sectionId);
 
         if (!section) {
             return new Response(
@@ -79,23 +69,11 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
 }
 
 export async function PUT({ locals, request }: APIContext): Promise<Response> {
-    if (!locals.user) {
-        return new Response(
-            JSON.stringify({
-                error: 'Unauthorized',
-            }),
-            {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-    }
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const { songId, sectionId, notes } = saveNotesSchema.parse(await request.json());
-        const section = (await getSong(locals.user.id, songId))?.sections.find(candidate => candidate.id === sectionId);
+        const section: Song['sections'][number] | undefined = (await getItem(songTable, { userId: locals.user.id, id: songId }))?.sections.find((candidate: Song['sections'][number]) => candidate.id === sectionId);
 
         if (!section) {
             return new Response(
@@ -161,19 +139,7 @@ export async function PUT({ locals, request }: APIContext): Promise<Response> {
 }
 
 export async function POST({ locals, request }: APIContext): Promise<Response> {
-    if (!locals.user) {
-        return new Response(
-            JSON.stringify({
-                error: 'Unauthorized',
-            }),
-            {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-    }
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const { chord, scale, pitch, inScale } = explainNoteSchema.parse(await request.json());

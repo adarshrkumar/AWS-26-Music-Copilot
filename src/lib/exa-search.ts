@@ -1,10 +1,5 @@
-// Provides AI-powered search capabilities using Exa
-// Documentation: https://docs.exa.ai
-
 import Exa, { type RegularSearchOptions } from 'exa-js';
 
-// Initialize Exa client
-// Requires EXA_API_KEY environment variable
 function getExaClient(): Exa {
     const apiKey = import.meta.env.EXA_API_KEY || process.env.EXA_API_KEY;
 
@@ -13,47 +8,24 @@ function getExaClient(): Exa {
     return new Exa(apiKey);
 }
 
-// Search options for Exa
 export interface ExaSearchOptions {
-    // Number of results to return (1-10, default: 10)
-    numResults?: number;
-
-    // Type of search: 'neural', 'keyword', or 'auto' (default: 'auto')
-    type?: 'neural' | 'keyword' | 'auto';
-
-    // Whether to use autoprompt to expand query (default: false)
-    useAutoprompt?: boolean;
-
-    // Category of content to search
-    category?: RegularSearchOptions['category'];
-
-    // Start crawl date (YYYY-MM-DD)
-    startCrawlDate?: string;
-
-    // End crawl date (YYYY-MM-DD)
-    endCrawlDate?: string;
-
-    // Start published date (YYYY-MM-DD)
-    startPublishedDate?: string;
-
-    // End published date (YYYY-MM-DD)
-    endPublishedDate?: string;
-
-    // Include domains (whitelist)
-    includeDomains?: string[];
-
-    // Exclude domains (blacklist)
-    excludeDomains?: string[];
-
-    // Whether to include page content
+    numResults?: number;                         // Number of results to return (1-10, default: 10)
+    type?: 'neural' | 'keyword' | 'auto';        // Type of search: 'neural', 'keyword', or 'auto' (default: 'auto')
+    useAutoprompt?: boolean;                     // Whether to use autoprompt to expand query (default: false)
+    category?: RegularSearchOptions['category']; // Category of content to search
+    startCrawlDate?: string;                     // Start crawl date (YYYY-MM-DD)
+    endCrawlDate?: string;                       // End crawl date (YYYY-MM-DD)
+    startPublishedDate?: string;                 // Start published date (YYYY-MM-DD)
+    endPublishedDate?: string;                   // End published date (YYYY-MM-DD)
+    includeDomains?: string[];                   // Include domains (whitelist)
+    excludeDomains?: string[];                   // Exclude domains (blacklist)
     contents?: {
         text?: true | { maxCharacters?: number };
         highlights?: true | { numSentences?: number; highlightsPerUrl?: number };
         summary?: true | { query?: string };
-    };
+    };                                           // Whether to include page content
 }
 
-// Exa search result
 export interface ExaResult {
     url: string;
     title: string | null;
@@ -66,12 +38,6 @@ export interface ExaResult {
     summary?: string;
 }
 
-/**
- * Search the web using Exa
- * @param query - The search query
- * @param options - Search options
- * @returns Array of search results
- */
 export async function searchWeb(
     query: string,
     options: ExaSearchOptions = {}
@@ -87,12 +53,6 @@ export async function searchWeb(
     }
 }
 
-/**
- * Find similar content to a given URL
- * @param url - The URL to find similar content for
- * @param options - Search options
- * @returns Array of similar results
- */
 export async function findSimilar(
     url: string,
     options: Omit<ExaSearchOptions, 'type' | 'useAutoprompt'> = {}
@@ -108,12 +68,6 @@ export async function findSimilar(
     }
 }
 
-/**
- * Get full page content for a list of URLs
- * @param urls - Array of URLs to get content for
- * @param options - Content options
- * @returns Array of results with content
- */
 export async function getContents(
     urls: string[],
     options: ExaSearchOptions['contents'] = {}
@@ -126,12 +80,6 @@ export async function getContents(
     }
 }
 
-/**
- * Search for recent news articles
- * @param query - The search query
- * @param daysBack - Number of days to look back (default: 7)
- * @returns Array of news results
- */
 export async function searchNews(query: string, daysBack: number = 7): Promise<ExaResult[]> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - daysBack);
@@ -148,12 +96,6 @@ export async function searchNews(query: string, daysBack: number = 7): Promise<E
     });
 }
 
-/**
- * Search for research papers
- * @param query - The search query
- * @param options - Additional search options
- * @returns Array of research paper results
- */
 export async function searchResearch(
     query: string,
     options: ExaSearchOptions = {}
@@ -169,12 +111,6 @@ export async function searchResearch(
     });
 }
 
-/**
- * Search GitHub repositories
- * @param query - The search query
- * @param options - Additional search options
- * @returns Array of GitHub results
- */
 export async function searchGitHub(
     query: string,
     options: ExaSearchOptions = {}

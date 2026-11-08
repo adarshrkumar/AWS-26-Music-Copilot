@@ -1,4 +1,3 @@
-// OpenProps - CSS design tokens
 @use 'open-props/normalize' as *;
 @use 'open-props/style' as *;
 @use './reset' as *;
@@ -8,9 +7,7 @@
 @use './variables/system' as *;
 @use './variables/tokens' as *;
 
-// Global styles
 :root {
-    // CSS custom properties for runtime theming
     --color-primary: #{$primary-color};
     --color-primary-hover: #{state-hover($primary-color)};
     --color-secondary: #{$secondary-color};
@@ -34,7 +31,6 @@ body {
     overflow-x: hidden;
 }
 
-// Typography
 h1 {
     margin-bottom: space(6);
 
@@ -59,7 +55,6 @@ p {
     line-height: $line-height-relaxed;
 }
 
-// Links
 a {
     color: $primary-color;
     transition: color $transition-fast;
@@ -71,7 +66,6 @@ a {
     }
 }
 
-// Utility classes
 .container {
     @include container;
 }
@@ -96,7 +90,6 @@ a {
     @include visually-hidden;
 }
 
-// Spacing utilities
 .mt-small { margin-top: space(4); }
 .mt-medium { margin-top: space(5); }
 .mt-large { margin-top: space(6); }
@@ -117,7 +110,6 @@ a {
 .pb-large { padding-bottom: space(6); }
 .pb-extra-large { padding-bottom: $spacing-extra-large; }
 
-// Text utilities
 .text-center {
     text-align: center;
 }

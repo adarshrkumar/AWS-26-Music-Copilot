@@ -1,11 +1,13 @@
+import { getItem, setItem } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
 import type { Song } from '@/db/types';
 import { generateText } from '@/lib/bedrock';
-import { getSong, setSong } from '@/lib/songs';
+import { recordMetric, recordSuggestionStatus } from '@/lib/metrics';
 
 type Suggestion = Song['suggestions'][number];
 
 export async function getPhraseSuggestions(userId: string, songId: string, sectionId: string, bar: number): Promise<Suggestion[]> {
-    const song = await getSong(userId, songId);
+    const song: Song | null = await getItem(songTable, { userId, id: songId });
     if (!song) return [];
 
     const suggestions: Suggestion[] = [];
@@ -19,24 +21,32 @@ export async function getPhraseSuggestions(userId: string, songId: string, secti
 }
 
 export async function addPhraseSuggestion(userId: string, songId: string, suggestion: Suggestion): Promise<void> {
-    const song = await getSong(userId, songId);
+    const song: Song | null = await getItem(songTable, { userId, id: songId });
     if (!song) return;
 
-    await setSong({ ...song, suggestions: [...song.suggestions, suggestion], updatedAt: new Date().toISOString() });
+    await setItem(songTable, { ...song, suggestions: [...song.suggestions, suggestion], updatedAt: new Date().toISOString() });
+    await recordMetric('suggestion_shown');
 }
 
 export async function setPhraseSuggestionStatus(userId: string, songId: string, suggestionId: string, status: Suggestion['status']): Promise<void> {
-    const song = await getSong(userId, songId);
+    const song: Song | null = await getItem(songTable, { userId, id: songId });
     if (!song) return;
 
     const suggestions: Suggestion[] = [];
+    let changed = false;
 
     for (const suggestion of song.suggestions) {
-        if (suggestion.id === suggestionId) suggestions.push({ ...suggestion, status });
-        else suggestions.push(suggestion);
+        if (suggestion.id !== suggestionId) {
+            suggestions.push(suggestion);
+            continue;
+        }
+
+        suggestions.push({ ...suggestion, status });
+        changed = suggestion.status !== status;
     }
 
-    await setSong({ ...song, suggestions, updatedAt: new Date().toISOString() });
+    await setItem(songTable, { ...song, suggestions, updatedAt: new Date().toISOString() });
+    if (changed) await recordSuggestionStatus(status);
 }
 
 export async function explainPhrase(chord: string, scale: string, phrase: string, chordTones: string[]): Promise<string> {

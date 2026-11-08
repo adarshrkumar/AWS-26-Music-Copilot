@@ -4,13 +4,9 @@
 @use '../variables/tokens' as *;
 @use 'sass:color';
 
-// Usage (preferred): <button class="btn" data-variant="primary" data-size="lg">Click me</button>
-// Usage (alternative): <button class="btn primary lg">Class chaining</button>
-
 .btn {
     @include button-base;
 
-    // Variant modifiers using data attributes (preferred for state/variants)
     &[data-variant="primary"] {
         @include button-primary;
     }
@@ -37,7 +33,6 @@
         }
     }
 
-    // Size modifiers using data attributes
     &[data-size="small"] {
         padding: space(2) space(4);
         font-size: font-size(base);
@@ -48,7 +43,6 @@
         font-size: $font-size-large;
     }
 
-    // State modifiers using data attributes
     &[data-state="loading"] {
         position: relative;
         color: transparent;
@@ -74,7 +68,6 @@
         box-shadow: inset 0 2px 4px rgb(0 0 0 / 10%);
     }
 
-    // Layout modifiers using data attributes
     &[data-width="full"] {
         width: 100%;
     }
@@ -90,8 +83,6 @@
         }
     }
 
-    // Alternative: Class chaining for variants when data attributes aren't appropriate
-    // Use this when you need CSS-only solutions or when data attributes feel verbose
     &.primary {
         @include button-primary;
     }
@@ -118,7 +109,6 @@
         }
     }
 
-    // Size class chaining alternatives
     &.small {
         padding: space(2) space(4);
         font-size: font-size(base);
@@ -129,7 +119,6 @@
         font-size: $font-size-large;
     }
 
-    // Layout class chaining alternatives
     &.full {
         width: 100%;
     }

@@ -1,0 +1,50 @@
+<script>
+    import { nanoid } from 'nanoid';
+    import type { ClientMetricName } from '@/db/types';
+    import metricsConfig from '@/lib/metrics.config';
+
+    async function track(name: ClientMetricName): Promise<void> {
+        try {
+            if (metricsConfig.oncePerSession.includes(name)) {
+                if (sessionStorage.getItem(`${metricsConfig.sentPrefix}${name}`)) return;
+                sessionStorage.setItem(`${metricsConfig.sentPrefix}${name}`, '1');
+            }
+
+            let clientId = localStorage.getItem(metricsConfig.clientKey);
+            let sessionId = sessionStorage.getItem(metricsConfig.sessionKey);
+
+            if (!clientId) {
+                clientId = nanoid();
+                localStorage.setItem(metricsConfig.clientKey, clientId);
+            }
+
+            if (!sessionId) {
+                sessionId = nanoid();
+                sessionStorage.setItem(metricsConfig.sessionKey, sessionId);
+            }
+
+            await fetch('/api/modules/metrics', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, sessionId, clientId }),
+                keepalive: true,
+            });
+        } catch {
+            // Metrics are optional. When storage is blocked or the request fails, the app carries on without them.
+        }
+    }
+
+    document.addEventListener('click', event => {
+        const value = event.target instanceof Element ? event.target.closest('[data-metric]')?.getAttribute('data-metric') : null;
+        const name = metricsConfig.clientNames.find(candidate => candidate === value);
+        if (name) void track(name);
+    });
+
+    document.addEventListener('metric', event => {
+        const value = event instanceof CustomEvent ? event.detail?.name : null;
+        const name = metricsConfig.clientNames.find(candidate => candidate === value);
+        if (name) void track(name);
+    });
+
+    void track('session_start');
+</script>

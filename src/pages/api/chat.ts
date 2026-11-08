@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { streamText } from '@/lib/bedrock';
+import { getServerError } from '@/lib/status-responses';
 
 import type { APIContext } from 'astro';
 
@@ -56,17 +57,6 @@ export async function POST({ request }: APIContext): Promise<Response> {
         }
 
         console.error('Chat API error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-                message: error instanceof Error ? error.message : 'Unknown error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError(error instanceof Error ? error.message : 'Unknown error');
     }
 }

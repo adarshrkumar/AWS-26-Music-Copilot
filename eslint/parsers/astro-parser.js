@@ -1,6 +1,5 @@
 import tsParser from '@typescript-eslint/parser';
 
-// Parser for .astro files that extracts and parses frontmatter and script contents
 export default function parse(code) {
     const parsedCode = code.split('').map(char => char === '\n' || char === '\r' ? char : ' ');
     const frontmatter = code.match(/^---\r?\n([\s\S]*?)\r?\n---/);
@@ -26,7 +25,6 @@ export default function parse(code) {
             }
         });
 
-        // Create a new visitorKeys object with additional keys
         const visitorKeys = {
             ...result.visitorKeys,
             ImportDeclaration: ['specifiers', 'source'],
