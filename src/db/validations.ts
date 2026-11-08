@@ -149,7 +149,7 @@ export type UpdateCommentInput = z.infer<typeof updateCommentSchema>;
 export type ModerateCommentInput = z.infer<typeof moderateCommentSchema>;
 export type CommentQueryInput = z.infer<typeof commentQuerySchema>;
 
-export const noteSchema = z.object({
+const noteSchema = z.object({
     bar: z.number().int().min(1).max(16),
     beat: z.number().min(1).lt(5),
     duration: z.number().min(0.25).max(4),
