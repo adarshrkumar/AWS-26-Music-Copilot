@@ -43,12 +43,12 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Autofill
 
-- [ ] Build rule-based phrase proposals that use chord tones on strong beats
-- [ ] Add an autofill request for a bar in `src/pages/app/autofill.astro`
-- [ ] Show the theory behind each phrase from `explainPhrase`
-- [ ] Let the songwriter accept, edit or reject a phrase, and write it into the song only after acceptance
-- [ ] Save proposals and their status through `addPhraseSuggestion` and `setPhraseSuggestionStatus`
-- [ ] Test the autofill rules on the sample progressions
+- [X] Build rule-based phrase proposals that use chord tones on strong beats
+- [X] Add an autofill request for a bar in `src/pages/app/autofill.astro`
+- [X] Show the theory behind each phrase from `explainPhrase`
+- [X] Let the songwriter accept, edit or reject a phrase, and write it into the song only after acceptance
+- [X] Save proposals and their status through `addPhraseSuggestion` and `setPhraseSuggestionStatus`
+- [X] Test the autofill rules on the sample progressions
 
 ## Suggestions Panel
 
