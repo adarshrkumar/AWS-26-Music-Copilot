@@ -1,5 +1,5 @@
 import { betterAuth } from 'better-auth';
-import { dynamoAdapter } from '@/db/auth-adapter';
+import { dynamoAdapter } from '@/lib/auth/adapter';
 
 export const auth = betterAuth({
     database: dynamoAdapter,
