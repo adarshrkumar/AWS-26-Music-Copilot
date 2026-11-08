@@ -19,7 +19,7 @@ These features of the app should be placed within their existing `src/pages` ast
 - [x] Show each chord's name, function in the key and a short note from `explainChord`
 - [x] Update suggestions whenever a chord changes
 - [x] Limit a progression to sixteen bars and split longer progressions into sections
-- [x] Save progressions through `setProgression` in `src/script/app/progression.astro`
+- [x] Save progressions through `setProgression` in `src/scripts/app/progression.astro`
 
 ## Find Scales and Notes
 
@@ -39,7 +39,7 @@ These features of the app should be placed within their existing `src/pages` ast
 - [x] Mark notes outside the scale with a symbol as well as a color, and never remove them
 - [x] Show the reason for a note from `explainNote`
 - [x] Let the songwriter keep, change or remove any note
-- [x] Save notes through `setNotes` in `src/script/app/editor.astro`
+- [x] Save notes through `setNotes` in `src/scripts/app/editor.astro`
 
 ## Autofill
 

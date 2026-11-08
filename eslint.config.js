@@ -162,7 +162,7 @@ export default [
         }
     },
     {
-        files: ['src/script/**/*.astro'],
+        files: ['src/scripts/**/*.astro'],
         languageOptions: {
             globals: {
                 HTMLTemplateElement: 'readonly',

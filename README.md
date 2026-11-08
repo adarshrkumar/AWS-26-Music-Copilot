@@ -159,7 +159,7 @@ Usage metrics count events only. They never store chords, notes or melodies, and
 | Theory checks | Devices with a `reason_opened` event, out of devices with a `session_start` event |
 | Time to first scale | Median seconds from `first_chord` to `first_scale_view` within one session |
 
-The browser tracker is `src/script/app/metrics.astro`, loaded by the app layout. A control reports an event with an attribute, such as `data-metric="reason_opened"`. A script reports one with `document.dispatchEvent(new CustomEvent('metric', { detail: { name: 'first_chord' } }))`. The progression and scales screens need to send `first_chord`, `progression_saved` and `first_scale_view` when they are built. Targets are placeholders until the pilot runs.
+The browser tracker is `src/scripts/app/metrics.astro`, loaded by the app layout. A control reports an event with an attribute, such as `data-metric="reason_opened"`. A script reports one with `document.dispatchEvent(new CustomEvent('metric', { detail: { name: 'first_chord' } }))`. The progression and scales screens need to send `first_chord`, `progression_saved` and `first_scale_view` when they are built. Targets are placeholders until the pilot runs.
 
 ## Deployment
 
