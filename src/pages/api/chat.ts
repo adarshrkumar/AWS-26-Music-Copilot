@@ -7,7 +7,7 @@ import { streamText } from '@/lib/bedrock';
 const requestSchema = z.object({
     messages: z.array(
         z.object({
-            role: z.enum(['system', 'user', 'assistant']),
+            role: z.enum(['user', 'assistant']),
             content: z.string(),
         })
     ).min(1),
@@ -20,7 +20,7 @@ const requestSchema = z.object({
 export const POST: APIRoute = async ({ request }) => {
     try {
         const { messages, system, modelId, temperature, maxTokens } = requestSchema.parse(await request.json());
-        const stream = streamText({ system, prompt: messages[messages.length - 1].content, history: messages.slice(0, -1), modelId, temperature, maxTokens });
+        const stream = streamText({ system, messages: messages.map(message => ({ role: message.role, content: [{ text: message.content }] })), modelId, temperature, maxTokens });
         const encoder = new TextEncoder();
 
         return new Response(
