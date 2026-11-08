@@ -533,10 +533,11 @@
       <h2>A rule-based engine, with a text layer</h2>
       <div class="staff">INPUT → THEORY ENGINE → SUGGESTIONS → EDITOR → AUTOFILL → EXPLAIN → STORE</div>
       <ul class="rules">
-        <li><strong>App:</strong> Astro 5 with server rendering, deployed on Vercel.</li>
-        <li><strong>Data:</strong> Amazon DynamoDB for accounts and saved songs. Songs on the songs page stay on the device unless synced.</li>
-        <li><strong>Explanations:</strong> Claude on Amazon Bedrock, given the theory engine's results as input.</li>
-        <li><strong>Accounts:</strong> Better Auth.</li>
+        <li><strong>App:</strong> Astro 5 with server rendering and TypeScript, deployed on Vercel.</li>
+        <li><strong>AWS:</strong> Amazon Bedrock for explanation text and Amazon DynamoDB for storage, covered on the next slide.</li>
+        <li><strong>Accounts:</strong> Better Auth with email and password, Google and GitHub sign-in.</li>
+        <li><strong>Validation:</strong> Zod for API request and database record validation.</li>
+        <li><strong>Styles:</strong> SCSS with the Music Copilot design system and Open Props.</li>
       </ul></div></section>` },
             {
                 title: "Built on AWS", html: `
