@@ -144,7 +144,7 @@ Two pilots, as in the source draft:
 
 Notation software handles tabs and sheet music but does not explain theory. Online theory courses teach scales and chords in isolation, away from the writing. Chord-finder tools suggest chords, and some, such as Scaler 3, show the scales that fit them, but they rarely show the guide tones that connect one chord to the next. The closest competitor, Hookpad, does put theory inside the writing, so Music Copilot's gap is narrower than "theory beside the notes": it is a written reason for every suggestion, guide tones between chords, and out-of-key chords labeled rather than hidden.
 
-Competitors were reviewed in November 2026 from each product's own documentation.
+Competitors were reviewed in November 2026 from each product's own pages, plus KVR Audio, Plugin Boutique and the App Store for Scaler 3.
 
 | Product | Category | What it does | Where Music Copilot differs |
 | --- | --- | --- | --- |
@@ -173,7 +173,9 @@ INPUT (chords, key, tempo, bars)
 
 The theory engine is rule-based. It has no automated tests yet, and the sample progressions are the planned test set. The language model writes only the explanation and feel text, and it is given rule-based theory results as input. Audio playback is out of scope for v1 and would use a separate module.
 
-The riskiest parts are the theory engine's handling of borrowed chords and the autofill rules. Both are tested on the sample progressions before the editor is built.
+The theory rules live in three places: `src/lib/theory/` (progression and scales pages), `src/lib/scale-finder.ts` (the scales page's options list) and `src/lib/theory.ts` (editor and autofill). They rank scales and label chords differently.
+
+The riskiest parts are the theory engine's handling of borrowed chords and the autofill rules. The editor is already built, and neither part has automated tests yet.
 
 ## 15. Risks and Mitigations
 
@@ -207,7 +209,7 @@ These were open questions. They are now decided for v1.
 
 ## 18. Appendix: Example Jazz Progression
 
-A songwriter enters a common jazz progression in C major: Dm7, G7, Cmaj7, Am7. They set the tempo to a medium swing and the progression to four bars. Copilot labels Dm7 as a supertonic minor chord and G7 as the dominant. It suggests the dorian scale over Dm7 and the mixolydian scale over G7, with a short reason for each. It marks the third of G7 and the seventh of Dm7 as guide tones, because they move by step into the next chord. The songwriter views the scales on a keyboard diagram and writes a short melody. Copilot marks two notes outside the mixolydian scale, which the songwriter keeps as a deliberate chromatic approach.
+A songwriter enters a common jazz progression in C major: Dm7, G7, Cmaj7, Am7. They set the tempo to a medium swing and the progression to four bars. Copilot labels Dm7 as a subdominant chord (ii7) and G7 as the dominant. It suggests the dorian scale over Dm7 and the mixolydian scale over G7, with a short reason for each. It marks the third of G7 and the seventh of Dm7 as guide tones, because they move by step into the next chord. The songwriter views the scales on a keyboard diagram and writes a short melody. Copilot marks two notes outside the mixolydian scale, which the songwriter keeps as a deliberate chromatic approach.
 
 ## 19. Appendix: Example Instrumental Writing Session
 
