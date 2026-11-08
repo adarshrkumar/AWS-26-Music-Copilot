@@ -1,11 +1,10 @@
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
-import { DeleteCommand, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DeleteCommand, GetCommand, PutCommand, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import type { NativeAttributeValue } from '@aws-sdk/lib-dynamodb';
 import { createAdapterFactory } from 'better-auth/adapters';
 import type { CleanedWhere, CustomAdapter } from 'better-auth/adapters';
-import { docClient, tableName } from '@/db';
-
-// Every auth record is stored with pk "AUTH#<model>" and sk set to the record's id. DynamoDB can only look items up by key, so any lookup other than by id queries the model's partition and filters here, which is fine for auth tables of this size.
+import { account, session, user, verification } from '@/db';
+import { docClient } from '@/db/helpers';
 
 type Row = Record<string, NativeAttributeValue>;
 type Scalar = string | number | boolean | null;
@@ -15,14 +14,6 @@ type FindManyArgs = Parameters<CustomAdapter['findMany']>[0];
 type UpdateArgs = Parameters<CustomAdapter['update']>[0];
 type ConsumeArgs = Parameters<NonNullable<CustomAdapter['consumeOne']>>[0];
 type IncrementArgs = Parameters<NonNullable<CustomAdapter['incrementOne']>>[0];
-
-function partition(model: string): string {
-    return `AUTH#${model}`;
-}
-
-function toRow(item: Row): Row {
-    return Object.fromEntries(Object.entries(item).filter(([key]) => key !== 'pk' && key !== 'sk'));
-}
 
 function pick(row: Row, select?: string[]): Row {
     return select?.length ? Object.fromEntries(select.map(field => [field, row[field]])) : row;
@@ -82,50 +73,53 @@ function matchesWhere(row: Row, where: CleanedWhere[]): boolean {
     );
 }
 
-async function queryModel(model: string): Promise<Row[]> {
-    const rows: Row[] = [];
-    let startKey: Row | undefined;
-
-    do {
-        const page = await docClient.send(
-            new QueryCommand({
-                TableName: tableName,
-                KeyConditionExpression: 'pk = :pk',
-                ExpressionAttributeValues: { ':pk': partition(model) },
-                ExclusiveStartKey: startKey,
-                ConsistentRead: true,
-            }),
-        );
-        rows.push(...(page.Items ?? []).map(toRow));
-        startKey = page.LastEvaluatedKey;
-    } while (startKey);
-
-    return rows;
-}
-
 async function findRows(model: string, where: CleanedWhere[] = []): Promise<Row[]> {
     const [first] = where;
 
     if (where.length === 1 && first.field === 'id' && first.operator === 'eq' && typeof first.value === 'string') {
-        const { Item } = await docClient.send(
-            new GetCommand({
-                TableName: tableName,
-                Key: { pk: partition(model), sk: first.value },
-                ConsistentRead: true,
-            }),
-        );
-        return Item ? [toRow(Item)] : [];
+        const { Item } = await docClient.send(new GetCommand({ TableName: model, Key: { id: first.value }, ConsistentRead: true }));
+        return Item ? [Item] : [];
     }
 
-    return (await queryModel(model)).filter(row => matchesWhere(row, where));
+    const indexed = where.find(
+        clause =>
+            clause.connector === 'AND' &&
+            clause.operator === 'eq' &&
+            clause.mode === 'sensitive' &&
+            typeof clause.value === 'string' &&
+            [user, session, account, verification]
+                .find(table => table.TableName === model)
+                ?.GlobalSecondaryIndexes?.some(index => index.IndexName === clause.field),
+    );
+    const rows: Row[] = [];
+    let startKey: Row | undefined;
+
+    do {
+        const page = indexed
+            ? await docClient.send(
+                new QueryCommand({
+                    TableName: model,
+                    IndexName: indexed.field,
+                    KeyConditionExpression: '#field = :value',
+                    ExpressionAttributeNames: { '#field': indexed.field },
+                    ExpressionAttributeValues: { ':value': indexed.value },
+                    ExclusiveStartKey: startKey,
+                }),
+            )
+            : await docClient.send(new ScanCommand({ TableName: model, ExclusiveStartKey: startKey, ConsistentRead: true }));
+        rows.push(...(page.Items ?? []));
+        startKey = page.LastEvaluatedKey;
+    } while (startKey);
+
+    return rows.filter(row => matchesWhere(row, where));
 }
 
 async function writeRow(model: string, row: Row): Promise<void> {
-    await docClient.send(new PutCommand({ TableName: tableName, Item: { ...row, pk: partition(model), sk: row.id } }));
+    await docClient.send(new PutCommand({ TableName: model, Item: row }));
 }
 
 async function removeRow(model: string, row: Row): Promise<void> {
-    await docClient.send(new DeleteCommand({ TableName: tableName, Key: { pk: partition(model), sk: row.id } }));
+    await docClient.send(new DeleteCommand({ TableName: model, Key: { id: row.id } }));
 }
 
 async function createRow({ model, data, select }: CreateArgs): Promise<NativeAttributeValue> {
@@ -168,9 +162,9 @@ async function consumeRow({ model, where }: ConsumeArgs): Promise<NativeAttribut
     try {
         await docClient.send(
             new DeleteCommand({
-                TableName: tableName,
-                Key: { pk: partition(model), sk: row.id },
-                ConditionExpression: 'attribute_exists(pk)',
+                TableName: model,
+                Key: { id: row.id },
+                ConditionExpression: 'attribute_exists(id)',
             }),
         );
         return row;
@@ -198,8 +192,8 @@ async function incrementRow({ model, where, increment, set }: IncrementArgs): Pr
     try {
         await docClient.send(
             new PutCommand({
-                TableName: tableName,
-                Item: { ...next, pk: partition(model), sk: row.id },
+                TableName: model,
+                Item: next,
                 ConditionExpression: conditions.length ? conditions.join(' AND ') : undefined,
                 ExpressionAttributeNames: conditions.length ? names : undefined,
                 ExpressionAttributeValues: Object.keys(values).length ? values : undefined,
