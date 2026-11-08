@@ -1,7 +1,7 @@
-@use '../variables/colors' as *;
-@use '../variables/mixins' as *;
-@use '../variables/system' as *;
-@use '../variables/tokens' as *;
+@use '../../variables/colors' as *;
+@use '../../variables/mixins' as *;
+@use '../../variables/system' as *;
+@use '../../variables/tokens' as *;
 @use 'sass:map';
 
 body {
