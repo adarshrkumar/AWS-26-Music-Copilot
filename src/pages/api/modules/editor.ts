@@ -4,7 +4,7 @@ import { getSong } from '@/lib/songs';
 import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { explainNote, setNotes } from '@/lib/modules/editor';
 
-import type { APIRoute } from 'astro';
+import type { APIContext } from 'astro';
 
 const explainNoteSchema = z.object({
     chord: z.string().min(1).max(32),
@@ -13,7 +13,7 @@ const explainNoteSchema = z.object({
     inScale: z.boolean(),
 });
 
-export const GET: APIRoute = async ({ locals, url }) => {
+export async function GET({ locals, url }: APIContext): Promise<Response> {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -64,9 +64,9 @@ export const GET: APIRoute = async ({ locals, url }) => {
         console.error('GET /api/modules/editor error:', error);
         return getServerError();
     }
-};
+}
 
-export const PUT: APIRoute = async ({ locals, request }) => {
+export async function PUT({ locals, request }: APIContext): Promise<Response> {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -134,9 +134,9 @@ export const PUT: APIRoute = async ({ locals, request }) => {
         console.error('PUT /api/modules/editor error:', error);
         return getServerError();
     }
-};
+}
 
-export const POST: APIRoute = async ({ locals, request }) => {
+export async function POST({ locals, request }: APIContext): Promise<Response> {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -172,4 +172,4 @@ export const POST: APIRoute = async ({ locals, request }) => {
         console.error('POST /api/modules/editor error:', error);
         return getServerError();
     }
-};
+}

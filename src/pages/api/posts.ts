@@ -10,14 +10,15 @@ import {
     type CreatePostInput,
     type UpdatePostInput,
 } from '@/db/validations';
+import { getServerError } from '@/lib/status-responses';
 
-import type { APIRoute } from 'astro';
+import type { APIContext } from 'astro';
 
 async function getPost(id: string): Promise<Post | null> {
     return getItem(dataTable, { pk: 'POST', sk: id });
 }
 
-export const GET: APIRoute = async ({ url }) => {
+export async function GET({ url }: APIContext): Promise<Response> {
     try {
         const validated = postQuerySchema.parse({
             page: url.searchParams.get('page'),
@@ -76,21 +77,11 @@ export const GET: APIRoute = async ({ url }) => {
         }
 
         console.error('GET /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
-};
+}
 
-export const POST: APIRoute = async ({ request }) => {
+export async function POST({ request }: APIContext): Promise<Response> {
     try {
         const validated: CreatePostInput = createPostSchema.parse(await request.json());
 
@@ -137,21 +128,11 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         console.error('POST /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
-};
+}
 
-export const PUT: APIRoute = async ({ request }) => {
+export async function PUT({ request }: APIContext): Promise<Response> {
     try {
         const { id, ...updateData }: UpdatePostInput = updatePostSchema.parse(await request.json());
 
@@ -229,21 +210,11 @@ export const PUT: APIRoute = async ({ request }) => {
         }
 
         console.error('PUT /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
-};
+}
 
-export const DELETE: APIRoute = async ({ url }) => {
+export async function DELETE({ url }: APIContext): Promise<Response> {
     try {
         const id = url.searchParams.get('id');
 
@@ -304,16 +275,6 @@ export const DELETE: APIRoute = async ({ url }) => {
         );
     } catch (error) {
         console.error('DELETE /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
-};
+}

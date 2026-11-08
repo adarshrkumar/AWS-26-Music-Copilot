@@ -80,10 +80,10 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Metrics
 
-- [ ] Track the share of sessions that produce a saved progression
-- [ ] Track the share of suggestions accepted
-- [ ] Track the share of users who open the reason behind a suggestion
-- [ ] Track the median time from first chord to first scale view
+- [x] Track the share of sessions that produce a saved progression
+- [x] Track the share of suggestions accepted
+- [x] Track the share of users who open the reason behind a suggestion
+- [x] Track the median time from first chord to first scale view
 - [ ] Set metric targets after the pilot
 
 ## Pilot

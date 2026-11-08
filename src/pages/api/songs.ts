@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { songInputSchema } from '@/db/validations';
 import { deleteSong, getSong, getSongs, setSong } from '@/lib/songs';
-import { getUnauthorizedError } from '@/lib/status-responses';
+import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 
 import type { APIContext } from 'astro';
 
@@ -12,7 +12,7 @@ function json(body: object, status = 200): Response {
 function failure(method: string, error: Error | null): Response {
     if (error instanceof z.ZodError) return json({ error: 'Validation error', details: error.errors }, 400);
     console.error(`${method} /api/songs error:`, error);
-    return json({ error: 'Internal server error' }, 500);
+    return getServerError();
 }
 
 export async function GET({ locals }: APIContext): Promise<Response> {

@@ -59,3 +59,24 @@ export interface Comment {
     createdAt: string;
     updatedAt: string;
 }
+
+// Metric events hold counts and timestamps only. They never hold chords, notes or melodies, and the ids are random values that are not linked to an account.
+export type ClientMetricName = 'session_start' | 'first_chord' | 'first_scale_view' | 'progression_saved' | 'reason_opened';
+
+export type MetricName = ClientMetricName | 'suggestion_shown' | 'suggestion_accepted' | 'suggestion_rejected';
+
+export interface MetricEvent {
+    name: MetricName;
+    sessionId: string | null;
+    clientId: string | null;
+    count: number;
+    at: string;
+}
+
+export interface MetricsReport {
+    generatedAt: string;
+    progressionsBuilt: { sessions: number; savedSessions: number; share: number | null };
+    suggestionsAccepted: { shown: number; accepted: number; rejected: number; share: number | null };
+    theoryChecks: { devices: number; openedReason: number; share: number | null };
+    timeToFirstScale: { sessions: number; medianSeconds: number | null };
+}

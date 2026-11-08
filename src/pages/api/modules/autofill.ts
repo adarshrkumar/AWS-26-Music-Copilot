@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 import { z } from 'zod';
 import type { Song } from '@/db/types';
 import { getSong } from '@/lib/songs';
-import { getUnauthorizedError } from '@/lib/status-responses';
+import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { proposePhrases } from '@/lib/theory';
 import { addPhraseSuggestion, explainPhrase, getPhraseSuggestions, setPhraseSuggestionStatus } from '@/lib/modules/autofill';
 import { setNotes } from '@/lib/modules/editor';
@@ -64,7 +64,7 @@ function fallbackReason(chord: string, scale: string, chordTones: string[]): str
 function errorResponse(error: Error): Response {
     if (error instanceof z.ZodError) return json({ error: 'Validation error', details: error.errors }, 400);
     console.error('Autofill API error:', error);
-    return json({ error: 'Internal server error' }, 500);
+    return getServerError();
 }
 
 export const GET: APIRoute = async ({ locals, url }) => {

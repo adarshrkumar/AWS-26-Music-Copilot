@@ -200,3 +200,19 @@ export const saveNotesSchema = sectionQuerySchema.extend({
 });
 
 export type SaveNotesInput = z.infer<typeof saveNotesSchema>;
+
+export const clientMetricSchema = z.object({
+    name: z.enum(['session_start', 'first_chord', 'first_scale_view', 'progression_saved', 'reason_opened']),
+    sessionId: z.string().min(8).max(64),
+    clientId: z.string().min(8).max(64),
+});
+
+export const metricRecordSchema = z.object({
+    name: z.enum(['session_start', 'first_chord', 'first_scale_view', 'progression_saved', 'reason_opened', 'suggestion_shown', 'suggestion_accepted', 'suggestion_rejected']),
+    sessionId: z.string().max(64).nullable(),
+    clientId: z.string().max(64).nullable(),
+    count: z.number().int().min(1).max(1000),
+    at: z.string().max(40),
+});
+
+export type ClientMetricInput = z.infer<typeof clientMetricSchema>;
