@@ -1,4 +1,7 @@
 ---
+import { queryItems } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
+import type { Song } from '@/db/types';
 import { SAMPLE_PROGRESSIONS } from '@/lib/theory/samples';
 
 import App from '@/layouts/App.astro';
@@ -7,7 +10,9 @@ import '@/styles/components/button.scss';
 import '@/styles/components/form.scss';
 import '@/styles/pages/progression.scss';
 
-if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+if (!Astro.locals.session || !Astro.locals.user) return Astro.redirect('/user/sign-in');
+
+const songs: Song[] = await queryItems(songTable, { KeyConditionExpression: 'userId = :userId', ExpressionAttributeValues: { ':userId': Astro.locals.user.id } });
 
 const tonics = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 ---
@@ -17,6 +22,18 @@ const tonics = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']
             <h1 id="progression-title">Build a progression</h1>
             <p>Set a key, a tempo and a bar count, then add chords one at a time. Copilot explains each chord and offers scales and arpeggios that can fit. You decide what goes into the song.</p>
         </header>
+
+        {songs.length > 0 && (
+            <form class="progression__panel progression__song-picker" method="get">
+                <div class="form-group">
+                    <label class="form-label" for="progression-song">Song</label>
+                    <select class="form-select" id="progression-song" name="song">
+                        {songs.map(song => <option value={song.id} selected={song.id === Astro.url.searchParams.get('song')}>{song.title}</option>)}
+                    </select>
+                </div>
+                <button class="btn" type="submit" data-variant="secondary">Open song</button>
+            </form>
+        )}
 
         <form class="progression__panel progression__settings" id="settings-form" aria-labelledby="settings-title">
             <h2 id="settings-title">Song settings</h2>

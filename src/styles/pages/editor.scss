@@ -25,6 +25,17 @@
         color: $text-secondary;
     }
 
+    &__song-picker {
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: space(3);
+        display: grid;
+
+        .form-group {
+            margin-bottom: 0;
+        }
+    }
+
     &__links {
         flex-wrap: wrap;
         gap: space(2);

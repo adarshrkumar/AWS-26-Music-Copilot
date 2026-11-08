@@ -46,6 +46,7 @@
     const nextSteps = document.querySelector('#next-steps');
     const editorLink = document.querySelector('#next-editor');
     const autofillLink = document.querySelector('#next-autofill');
+    const songPicker = document.querySelector('#progression-song');
 
     const explanations = new Map<string, string>();
     const requested = new Set<string>();
@@ -350,6 +351,7 @@
         (modeSelect as HTMLSelectElement).value = draft.mode;
         (tempoInput as HTMLInputElement).value = draft.tempo.toString();
         (barsInput as HTMLInputElement).value = getActiveSection().bars.toString();
+        if (songPicker instanceof HTMLSelectElement && draft.songId) songPicker.value = draft.songId;
         renderTabs();
         renderBars();
         renderAnalysis();

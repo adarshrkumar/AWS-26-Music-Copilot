@@ -1,4 +1,5 @@
 import { CreateTableCommand, DynamoDBClient, ResourceInUseException, waitUntilTableExists } from '@aws-sdk/client-dynamodb';
+import 'dotenv/config';
 
 import * as schemas from '../src/db/schemas.ts';
 

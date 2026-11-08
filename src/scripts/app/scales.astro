@@ -393,7 +393,7 @@
             });
 
             if (response.ok) return null;
-            if (response.status === 404) return 'Your choice is saved on this device. Sync this song on the Songs page to copy it to your account.';
+            if (response.status === 404) return 'Your choice is saved on this device and is copied to your account when the song syncs.';
             return 'Your choice is saved on this device, but the synced copy could not be updated.';
         } catch {
             return 'Your choice is saved on this device, but the synced copy could not be reached.';

@@ -17,6 +17,13 @@
     --color-text-secondary: #{$text-secondary};
     --color-bg-primary: #{$bg-primary};
     --color-bg-secondary: #{$bg-secondary};
+    --text-1: #{$text-primary};
+    --text-2: #{$text-secondary};
+    --surface-1: #{$bg-primary};
+    --surface-2: #{$bg-secondary};
+    --surface-3: #{$bg-secondary};
+    --surface-4: #{$border-color};
+    color-scheme: light;
 }
 
 html {

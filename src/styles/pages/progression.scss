@@ -32,6 +32,21 @@
         }
     }
 
+    &__song-picker {
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: space(3);
+        display: grid;
+
+        @include below(md) {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+    }
+
     &__fields {
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
         gap: space(4);
@@ -127,18 +142,29 @@
     }
 
     &__chord {
+        position: relative;
         padding: padding(panel);
         background: $bg-primary;
         border: $border-width $border-style $border-color;
-        border-left: $border-width-accent $border-style $secondary-color;
         border-radius: radius(md);
+        overflow: clip;
 
-        &[data-status="borrowed"] {
-            border-left-color: $primary-color;
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: $border-width-accent;
+            height: 100%;
+            background-color: $secondary-color;
         }
 
-        &[data-status="outside"], &[data-status="invalid"] {
-            border-left-color: $warning-color;
+        &[data-status="borrowed"]::before {
+            background-color: $primary-color;
+        }
+
+        &[data-status="outside"]::before, &[data-status="invalid"]::before {
+            background-color: $warning-color;
         }
 
         p {

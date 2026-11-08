@@ -2,6 +2,7 @@
 import Header from '@/components/app/Header.astro';
 import Layout from '@/layouts/Layout.astro';
 import MetricsScript from '@/scripts/app/metrics.astro';
+import SyncScript from '@/scripts/app/sync.astro';
 import '@/styles/layouts/app.scss';
 ---
 <Layout {...Astro.props}>
@@ -13,4 +14,5 @@ import '@/styles/layouts/app.scss';
         </main>
     </div>
     <MetricsScript />
+    <SyncScript />
 </Layout>

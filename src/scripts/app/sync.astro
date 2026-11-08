@@ -1,0 +1,40 @@
+<script>
+    import { z } from 'zod';
+    import { songInputSchema } from '@/db/validations';
+    import songsConfig from '@/lib/songs.config';
+
+    const localSongsSchema = z.array(songInputSchema.extend({ syncedAt: z.string().max(40).nullable() }));
+
+    function getLocalSongs(): z.infer<typeof localSongsSchema> {
+        try {
+            const parsed = localSongsSchema.safeParse(JSON.parse(localStorage.getItem(songsConfig.storageKey) ?? '[]'));
+            if (parsed.success) return parsed.data;
+        } catch {
+            // Unreadable storage leaves nothing to sync
+        }
+
+        return [];
+    }
+
+    async function syncLocalSongs(): Promise<void> {
+        for (const song of getLocalSongs()) {
+            if (song.syncedAt !== null && song.updatedAt <= song.syncedAt) continue;
+
+            try {
+                const response = await fetch('/api/songs', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(song) });
+                if (!response.ok) continue;
+
+                const songs = getLocalSongs();
+                const index = songs.findIndex(candidate => candidate.id === song.id);
+                if (index === -1) continue;
+
+                songs[index] = { ...songs[index], syncedAt: new Date().toISOString() };
+                localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
+            } catch {
+                continue;
+            }
+        }
+    }
+
+    void syncLocalSongs();
+</script>

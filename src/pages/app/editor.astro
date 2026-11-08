@@ -1,7 +1,9 @@
 ---
-import { queryItems } from '@/db/helpers';
+import { nanoid } from 'nanoid';
+import { queryItems, setItem } from '@/db/helpers';
 import { songTable } from '@/db/schemas';
 import type { Song } from '@/db/types';
+import progressionConfig from '@/lib/progression.config';
 
 import App from '@/layouts/App.astro';
 import EditorScript from '@/scripts/app/editor.astro';
@@ -13,6 +15,11 @@ if (!Astro.locals.session || !Astro.locals.user) return Astro.redirect('/user/si
 
 const songs: Song[] = await queryItems(songTable, { KeyConditionExpression: 'userId = :userId', ExpressionAttributeValues: { ':userId': Astro.locals.user.id } });
 const song = songs.find(candidate => candidate.id === Astro.url.searchParams.get('song')) ?? songs[0];
+
+if (song && song.sections.length === 0) {
+    song.sections = [{ id: nanoid(), name: 'Section 1', bars: progressionConfig.defaultBars, chords: [], notes: [] }];
+    await setItem(songTable, { ...song, updatedAt: new Date().toISOString() });
+}
 const section = song?.sections.find(candidate => candidate.id === Astro.url.searchParams.get('section')) ?? song?.sections[0];
 const requestedBar = parseInt(Astro.url.searchParams.get('bar') ?? '', 10);
 const startBar = section && requestedBar >= 1 && requestedBar <= section.bars ? requestedBar : 1;
@@ -20,6 +27,18 @@ const startBar = section && requestedBar >= 1 && requestedBar <= section.bars ? 
 <App pageTitle="Write notes">
     <div class="editor">
         <h1 class="editor__title">Write notes</h1>
+
+        {songs.length > 0 && (
+            <form class="editor__song-picker" method="get">
+                <div class="form-group">
+                    <label class="form-label" for="editor-song">Song</label>
+                    <select class="form-select" id="editor-song" name="song">
+                        {songs.map(candidate => <option value={candidate.id} selected={candidate.id === song?.id}>{candidate.title}</option>)}
+                    </select>
+                </div>
+                <button class="btn" type="submit" data-variant="secondary">Open song</button>
+            </form>
+        )}
 
         {song && section ? (
             <>

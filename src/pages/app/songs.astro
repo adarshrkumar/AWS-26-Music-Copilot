@@ -5,18 +5,17 @@ import '@/styles/components/button.scss';
 import '@/styles/components/form.scss';
 import '@/styles/pages/songs.scss';
 
-const signedIn = Boolean(Astro.locals.session);
+if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
 ---
 <App pageTitle="Songs">
-    <section class="songs" data-signed-in={signedIn ? 'true' : 'false'}>
+    <section class="songs">
         <div class="songs__heading">
             <h1 class="songs__title" id="songs-title" tabindex="-1">Songs</h1>
             <button class="btn songs__create" id="song-create" type="button" data-variant="primary">New song</button>
         </div>
 
         <p class="songs__intro">
-            Your songs are kept on this device. A song is copied to your account only when you press its sync button. Synced songs open in the chord, note and autofill tools.
-            {!signedIn && <span> <a href="/user/sign-in">Sign in</a> if you want to sync.</span>}
+            Your songs are kept on this device and copied to your account automatically. Synced songs open in the chord, note and autofill tools.
         </p>
 
         <p class="songs__status" role="status" data-role="status"></p>
@@ -35,20 +34,18 @@ const signedIn = Boolean(Astro.locals.session);
             <button class="btn" id="export-all" type="button" data-variant="secondary">Export all songs</button>
         </section>
 
-        {signedIn && (
-            <section class="songs__panel" aria-labelledby="account-title">
-                <h2 class="songs__subtitle" id="account-title">Delete account</h2>
-                <p>Deleting your account removes every song synced to it. Songs on this device stay here.</p>
-                <form class="form songs__form" data-role="delete-account">
-                    <div class="form-group">
-                        <label class="form-label" for="account-password">Password</label>
-                        <input class="form-input" id="account-password" name="password" type="password" autocomplete="current-password" />
-                        <p class="form-helper">Leave this empty if you signed in with Google or GitHub.</p>
-                    </div>
-                    <button class="btn" type="submit" data-variant="danger">Delete my account</button>
-                </form>
-            </section>
-        )}
+        <section class="songs__panel" aria-labelledby="account-title">
+            <h2 class="songs__subtitle" id="account-title">Delete account</h2>
+            <p>Deleting your account removes every song synced to it. Songs on this device stay here.</p>
+            <form class="form songs__form" data-role="delete-account">
+                <div class="form-group">
+                    <label class="form-label" for="account-password">Password</label>
+                    <input class="form-input" id="account-password" name="password" type="password" autocomplete="current-password" />
+                    <p class="form-helper">Leave this empty if you signed in with Google or GitHub.</p>
+                </div>
+                <button class="btn" type="submit" data-variant="danger">Delete my account</button>
+            </form>
+        </section>
     </section>
 
     <dialog class="songs__dialog" aria-labelledby="song-dialog-title" data-role="dialog">
