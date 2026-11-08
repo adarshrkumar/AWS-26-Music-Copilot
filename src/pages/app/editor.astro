@@ -1,5 +1,4 @@
 ---
-import type { EditorData } from '@/db/types';
 import { getSongs } from '@/lib/songs';
 
 import App from '@/layouts/App.astro';
@@ -13,29 +12,22 @@ if (!Astro.locals.session || !Astro.locals.user) return Astro.redirect('/user/si
 const songs = await getSongs(Astro.locals.user.id);
 const song = songs.find(candidate => candidate.id === Astro.url.searchParams.get('song')) ?? songs[0];
 const section = song?.sections.find(candidate => candidate.id === Astro.url.searchParams.get('section')) ?? song?.sections[0];
-
-const data: EditorData | null = song && section
-    ? { songId: song.id, sectionId: section.id, key: song.key, bars: section.bars, chords: section.chords, notes: section.notes }
-    : null;
-
-const bars = Array.from({ length: section?.bars ?? 0 }, (_, index) => index + 1);
-const durations = [{ value: 4, label: 'Whole' }, { value: 2, label: 'Half' }, { value: 1, label: 'Quarter' }, { value: 0.5, label: 'Eighth' }, { value: 0.25, label: 'Sixteenth' }];
 ---
 
 <App pageTitle="Write notes">
     <div class="editor">
         <h1 class="editor__title">Write notes</h1>
 
-        {data && song && section ? (
+        {song && section ? (
             <>
                 <p class="editor__meta">{song.title} &middot; {section.name} &middot; Key of {song.key} &middot; {song.tempo} BPM</p>
-                <script type="application/json" id="editor-data" is:inline set:html={JSON.stringify(data).replaceAll('<', '\\u003c')}></script>
+                <script type="application/json" id="editor-data" data-song={song.id} data-key={song.key} is:inline set:html={JSON.stringify(section).replaceAll('<', '\\u003c')}></script>
 
                 <section class="bar editor__bar" aria-labelledby="bar-heading">
                     <span class="sign">Bar</span>
                     <h2 id="bar-heading" class="editor__heading">Choose a bar</h2>
                     <div class="editor__bars" role="group" aria-label="Bars">
-                        {bars.map(bar => <button class="chord" type="button" data-bar={bar} aria-pressed={bar === 1 ? 'true' : 'false'}>{bar}</button>)}
+                        {Array.from({ length: section.bars }, (_, index) => index + 1).map(bar =><button class="chord" type="button" data-bar={bar} aria-pressed={bar === 1 ? 'true' : 'false'}>{bar}</button>)}
                     </div>
                     <ul class="editor__chords" id="chord-readout" aria-live="polite"></ul>
                 </section>
@@ -64,7 +56,11 @@ const durations = [{ value: 4, label: 'Whole' }, { value: 2, label: 'Half' }, { 
                         <div class="form-group">
                             <label class="form-label" for="note-duration">Length</label>
                             <select class="form-select" id="note-duration" name="duration">
-                                {durations.map(duration => <option value={duration.value} selected={duration.value === 1}>{duration.label}</option>)}
+                                <option value="4">Whole</option>
+                                <option value="2">Half</option>
+                                <option value="1" selected>Quarter</option>
+                                <option value="0.5">Eighth</option>
+                                <option value="0.25">Sixteenth</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -100,11 +96,11 @@ const durations = [{ value: 4, label: 'Whole' }, { value: 2, label: 'Half' }, { 
                 </section>
 
                 <section class="suggestion editor__reason" id="reason" aria-live="polite" hidden></section>
+
+                <EditorScript />
             </>
         ) : (
             <p class="note-blocked" role="status">You have no songs yet. Create a song with a section to start writing notes.</p>
         )}
     </div>
-
-    <EditorScript />
 </App>
