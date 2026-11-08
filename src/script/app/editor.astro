@@ -1,2 +1,495 @@
 <script>
+    import type { EditorData, Note } from '@/db/types';
+    import { chordAt, formatPitch, fretForPitch, isInKey, noteStatus, parseChord, parsePitch, pitchFromFret, pitchToMidi, scaleFor, staffPosition } from '@/lib/theory';
+    import type { NoteStatus, ParsedChord, Pitch, Scale } from '@/lib/theory';
+
+    interface Placed {
+        note: Note;
+        pitch: Pitch;
+        chordName: string;
+        chord: ParsedChord | null;
+        scale: Scale | null;
+        status: NoteStatus;
+    }
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const STAFF_LEFT = 56;
+    const STAFF_RIGHT = 624;
+    const TAB_TOP = 24;
+    const TAB_GAP = 14;
+    const SHEET_BOTTOM = 100;
+    const SHEET_STEP = 5;
+    const DURATION_NAMES: Record<string, string> = { '4': 'whole', '2': 'half', '1': 'quarter', '0.5': 'eighth', '0.25': 'sixteenth' };
+    const STATUS_LABELS: Record<NoteStatus, string> = { chord: 'chord tone', scale: 'in the scale', outside: 'outside the scale', none: 'no chord to check against' };
+    const STATUS_SYMBOLS: Record<NoteStatus, string> = { chord: '\u2713', scale: '\u2713', outside: '!', none: '' };
+
+    function find<T extends Element>(selector: string, type: new () => T): T {
+        const element = document.querySelector(selector);
+        if (!(element instanceof type)) throw new Error(`Missing ${selector}`);
+        return element;
+    }
+
+    function svg<K extends keyof SVGElementTagNameMap>(tag: K, attributes: Record<string, string | number>, text = ''): SVGElementTagNameMap[K] {
+        const element = document.createElementNS(SVG_NS, tag);
+        for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value.toString());
+        if (text) element.textContent = text;
+        return element;
+    }
+
+    function html<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = ''): HTMLElementTagNameMap[K] {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (text) element.textContent = text;
+        return element;
+    }
+
+    function midiOf(note: Note): number {
+        const pitch = parsePitch(note.pitch);
+        return pitch ? pitchToMidi(pitch) : 0;
+    }
+
+    function sortNotes(notes: Note[]): Note[] {
+        return [...notes].sort((a, b) => a.bar - b.bar || a.beat - b.beat || midiOf(a) - midiOf(b));
+    }
+
+    function beatX(beat: number): number {
+        return STAFF_LEFT + 20 + ((beat - 1) / 4) * (STAFF_RIGHT - STAFF_LEFT - 40);
+    }
+
+    function durationName(duration: number): string {
+        return DURATION_NAMES[duration.toString()] ?? `${duration}-beat`;
+    }
+
+    async function readError(response: Response): Promise<string> {
+        try {
+            const body: { error?: string } = await response.json();
+            return body.error ?? `Request failed (${response.status}).`;
+        } catch {
+            return `Request failed (${response.status}).`;
+        }
+    }
+
+    function init(data: EditorData): void {
+        const form = find('#note-form', HTMLFormElement);
+        const beatInput = find('#note-beat', HTMLInputElement);
+        const durationSelect = find('#note-duration', HTMLSelectElement);
+        const pitchInput = find('#note-pitch', HTMLInputElement);
+        const stringSelect = find('#note-string', HTMLSelectElement);
+        const fretInput = find('#note-fret', HTMLInputElement);
+        const submitButton = find('#note-submit', HTMLButtonElement);
+        const cancelButton = find('#note-cancel', HTMLButtonElement);
+        const entryVerb = find('#entry-verb', HTMLElement);
+        const entryBar = find('#entry-bar', HTMLElement);
+        const listBar = find('#list-bar', HTMLElement);
+        const listHeading = find('#notes-heading', HTMLElement);
+        const noteList = find('#note-list', HTMLUListElement);
+        const chordList = find('#chord-readout', HTMLUListElement);
+        const tab = find('#tab', SVGSVGElement);
+        const sheet = find('#sheet', SVGSVGElement);
+        const tabDescription = find('#tab-description', HTMLElement);
+        const sheetDescription = find('#sheet-description', HTMLElement);
+        const reasonPanel = find('#reason', HTMLElement);
+        const errorLine = find('#editor-error', HTMLElement);
+        const statusLine = find('#editor-status', HTMLElement);
+        const barButtons = document.querySelectorAll<HTMLButtonElement>('[data-bar]');
+
+        let notes = sortNotes(data.notes);
+        let bar = 1;
+        let editing: Note | null = null;
+        let saving = false;
+        const reasons = new Map<string, string>();
+
+        function place(note: Note): Placed | null {
+            const pitch = parsePitch(note.pitch);
+            if (!pitch) return null;
+
+            const chordRef = chordAt(data.chords, note.bar, note.beat);
+            const chord = chordRef ? parseChord(chordRef.name) : null;
+            const scale = chord ? scaleFor(chord, data.key) : null;
+
+            return { note, pitch, chordName: chordRef?.name ?? '', chord, scale, status: noteStatus(pitch, chord, scale) };
+        }
+
+        function placedInBar(): Placed[] {
+            const placed: Placed[] = [];
+            for (const note of notes) {
+                if (note.bar !== bar) continue;
+                const item = place(note);
+                if (item) placed.push(item);
+            }
+            return placed;
+        }
+
+        function describe(item: Placed): string {
+            return `beat ${item.note.beat}, ${item.note.pitch}`;
+        }
+
+        function setStatus(message: string): void {
+            statusLine.textContent = message;
+        }
+
+        function setError(message: string): void {
+            errorLine.textContent = message;
+        }
+
+        function renderChords(): void {
+            chordList.replaceChildren();
+
+            const own = data.chords.filter(chord => chord.bar === bar);
+            const carried = chordAt(data.chords, bar, 1);
+            const shown = own.length > 0 ? own : carried ? [carried] : [];
+
+            if (shown.length === 0) {
+                chordList.append(html('li', '', 'No chord is set for this bar, so notes are not checked against a scale.'));
+                return;
+            }
+
+            for (const chord of shown) {
+                const parsed = parseChord(chord.name);
+                const prefix = own.length > 0 ? `Beat ${chord.beat}` : `Carried from bar ${chord.bar}`;
+                let detail = 'Chord not recognized, so notes are not checked.';
+
+                if (parsed) {
+                    const scale = scaleFor(parsed, data.key);
+                    detail = `Scale: ${scale.name}. ${isInKey(parsed, data.key) ? 'In the key.' : 'Borrowed or outside the key.'}`;
+                }
+
+                chordList.append(html('li', '', `${prefix}: ${chord.name}. ${detail}`));
+            }
+        }
+
+        function drawBarLines(root: SVGSVGElement, top: number, bottom: number): void {
+            root.append(svg('line', { x1: STAFF_LEFT - 16, x2: STAFF_LEFT - 16, y1: top, y2: bottom, class: 'editor__line' }));
+            root.append(svg('line', { x1: STAFF_RIGHT, x2: STAFF_RIGHT, y1: top, y2: bottom, class: 'editor__line' }));
+        }
+
+        function renderTab(placed: Placed[]): void {
+            tab.replaceChildren();
+
+            for (let index = 0; index < 6; index++) {
+                const y = TAB_TOP + index * TAB_GAP;
+                tab.append(svg('line', { x1: STAFF_LEFT - 16, x2: STAFF_RIGHT, y1: y, y2: y, class: 'editor__line' }));
+            }
+
+            drawBarLines(tab, TAB_TOP, TAB_TOP + 5 * TAB_GAP);
+            tab.append(svg('text', { x: 6, y: TAB_TOP + 3 * TAB_GAP, class: 'editor__label' }, 'TAB'));
+
+            const described: string[] = [];
+
+            for (const item of placed) {
+                const { string, fret } = item.note;
+
+                if (string === null || fret === null) {
+                    described.push(`${describe(item)} is outside guitar range, so it is only on the sheet music`);
+                    continue;
+                }
+
+                const x = beatX(item.note.beat);
+                const y = TAB_TOP + (string - 1) * TAB_GAP;
+                const group = svg('g', { class: 'editor__note', 'data-status': item.status });
+                if (item.note === editing) group.append(svg('rect', { x: x - 15, y: y - 12, width: 30, height: 24, rx: 8, class: 'editor__selected' }));
+                group.append(svg('rect', { x: x - 11, y: y - 8, width: 22, height: 16, rx: 6, class: 'editor__tab-back' }));
+                group.append(svg('text', { x, y: y + 5, 'text-anchor': 'middle', class: 'editor__fret' }, fret.toString()));
+                group.append(svg('text', { x, y: 114, 'text-anchor': 'middle', class: 'editor__symbol' }, STATUS_SYMBOLS[item.status]));
+                tab.append(group);
+
+                described.push(`beat ${item.note.beat}, string ${string}, fret ${fret} (${item.note.pitch}, ${STATUS_LABELS[item.status]})`);
+            }
+
+            tabDescription.textContent = described.length > 0 ? `Tab for bar ${bar}: ${described.join('; ')}.` : `Tab for bar ${bar}: no notes yet.`;
+        }
+
+        function renderSheet(placed: Placed[]): void {
+            sheet.replaceChildren();
+
+            for (let index = 0; index < 5; index++) {
+                const y = SHEET_BOTTOM - index * 2 * SHEET_STEP;
+                sheet.append(svg('line', { x1: STAFF_LEFT - 16, x2: STAFF_RIGHT, y1: y, y2: y, class: 'editor__line' }));
+            }
+
+            drawBarLines(sheet, SHEET_BOTTOM - 8 * SHEET_STEP, SHEET_BOTTOM);
+            sheet.append(svg('text', { x: 4, y: SHEET_BOTTOM + 6, class: 'editor__clef', 'aria-hidden': 'true' }, '\u{1D11E}'));
+
+            const own = data.chords.filter(chord => chord.bar === bar);
+            const carried = chordAt(data.chords, bar, 1);
+            for (const chord of own.length > 0 ? own : carried ? [{ ...carried, beat: 1 }] : []) {
+                sheet.append(svg('text', { x: beatX(chord.beat) - 12, y: 28, class: 'editor__chord-name' }, chord.name));
+            }
+
+            const described: string[] = [];
+
+            for (const item of placed) {
+                const x = beatX(item.note.beat);
+                const position = staffPosition(item.pitch);
+                const y = SHEET_BOTTOM - position * SHEET_STEP;
+                const group = svg('g', { class: 'editor__note', 'data-status': item.status });
+                if (item.note === editing) group.append(svg('ellipse', { cx: x, cy: y, rx: 12, ry: 10, class: 'editor__selected' }));
+
+                if (position < 0) for (let step = -2; step >= position; step -= 2) group.append(svg('line', { x1: x - 11, x2: x + 11, y1: SHEET_BOTTOM - step * SHEET_STEP, y2: SHEET_BOTTOM - step * SHEET_STEP, class: 'editor__line' }));
+                if (position > 8) for (let step = 10; step <= position; step += 2) group.append(svg('line', { x1: x - 11, x2: x + 11, y1: SHEET_BOTTOM - step * SHEET_STEP, y2: SHEET_BOTTOM - step * SHEET_STEP, class: 'editor__line' }));
+
+                if (item.pitch.accidental !== 0) group.append(svg('text', { x: x - 20, y: y + 5, class: 'editor__accidental' }, item.pitch.accidental > 0 ? '\u266F' : '\u266D'));
+
+                group.append(svg('ellipse', { cx: x, cy: y, rx: 6.5, ry: 4.5, class: 'editor__head', 'data-hollow': item.note.duration >= 2 ? 'true' : 'false' }));
+
+                if (item.note.duration < 4) {
+                    const up = position < 4;
+                    const stemX = up ? x + 6 : x - 6;
+                    const stemEnd = up ? y - 30 : y + 30;
+                    group.append(svg('line', { x1: stemX, x2: stemX, y1: y, y2: stemEnd, class: 'editor__stem' }));
+
+                    const flags = item.note.duration === 0.5 ? 1 : item.note.duration === 0.25 ? 2 : 0;
+                    for (let flag = 0; flag < flags; flag++) {
+                        const flagY = up ? stemEnd + flag * 6 : stemEnd - flag * 6;
+                        group.append(svg('line', { x1: stemX, x2: stemX + 9, y1: flagY, y2: up ? flagY + 10 : flagY - 10, class: 'editor__stem' }));
+                    }
+                }
+
+                group.append(svg('text', { x, y: 150, 'text-anchor': 'middle', class: 'editor__pitch' }, item.note.pitch));
+                group.append(svg('text', { x, y: 164, 'text-anchor': 'middle', class: 'editor__symbol' }, STATUS_SYMBOLS[item.status]));
+                sheet.append(group);
+
+                described.push(`beat ${item.note.beat}, ${item.note.pitch}, ${durationName(item.note.duration)} note, ${STATUS_LABELS[item.status]}`);
+            }
+
+            sheetDescription.textContent = described.length > 0 ? `Sheet music for bar ${bar}: ${described.join('; ')}.` : `Sheet music for bar ${bar}: no notes yet.`;
+        }
+
+        function renderList(placed: Placed[]): void {
+            noteList.replaceChildren();
+
+            if (placed.length === 0) {
+                noteList.append(html('li', 'editor__empty', 'No notes in this bar yet.'));
+                return;
+            }
+
+            for (const item of placed) {
+                const row = html('li', 'editor__item');
+                row.dataset.status = item.status;
+
+                const text = html('p', 'editor__item-text', `Beat ${item.note.beat} \u00B7 ${item.note.pitch} \u00B7 ${durationName(item.note.duration)} \u00B7 `);
+                text.append(html('span', item.status === 'outside' ? 'note-out' : item.status === 'none' ? '' : 'note-in', STATUS_LABELS[item.status]));
+                row.append(text);
+
+                const actions = html('div', 'editor__item-actions');
+                const label = `${item.note.pitch} on beat ${item.note.beat}`;
+                const buttons: { text: string; name: string; disabled: boolean }[] = [
+                    { text: 'Why?', name: 'why', disabled: item.status === 'none' },
+                    { text: 'Keep', name: 'keep', disabled: false },
+                    { text: 'Change', name: 'change', disabled: false },
+                    { text: 'Remove', name: 'remove', disabled: false },
+                ];
+
+                for (const button of buttons) {
+                    const element = html('button', 'btn', button.text);
+                    element.type = 'button';
+                    element.dataset.variant = 'secondary';
+                    element.dataset.size = 'small';
+                    element.dataset.action = button.name;
+                    element.disabled = button.disabled;
+                    element.setAttribute('aria-label', `${button.name === 'why' ? 'Why' : button.text} ${label}`);
+                    element.addEventListener('click', () => handleAction(button.name, item));
+                    actions.append(element);
+                }
+
+                row.append(actions);
+                noteList.append(row);
+            }
+        }
+
+        function render(): void {
+            const placed = placedInBar();
+            entryBar.textContent = bar.toString();
+            listBar.textContent = bar.toString();
+            for (const button of barButtons) button.setAttribute('aria-pressed', button.dataset.bar === bar.toString() ? 'true' : 'false');
+
+            renderChords();
+            renderTab(placed);
+            renderSheet(placed);
+            renderList(placed);
+        }
+
+        function resetForm(): void {
+            editing = null;
+            pitchInput.value = '';
+            stringSelect.value = '';
+            fretInput.value = '';
+            submitButton.textContent = 'Add note';
+            cancelButton.hidden = true;
+            entryVerb.textContent = 'Add a note';
+        }
+
+        function startChange(item: Placed): void {
+            editing = item.note;
+            beatInput.value = item.note.beat.toString();
+            durationSelect.value = item.note.duration.toString();
+            pitchInput.value = item.note.pitch;
+            stringSelect.value = item.note.string?.toString() ?? '';
+            fretInput.value = item.note.fret?.toString() ?? '';
+            submitButton.textContent = 'Save change';
+            cancelButton.hidden = false;
+            entryVerb.textContent = 'Change a note';
+            render();
+            pitchInput.focus();
+        }
+
+        async function save(next: Note[], message: string): Promise<boolean> {
+            if (saving) return false;
+
+            saving = true;
+            setError('');
+
+            try {
+                const response = await fetch('/api/modules/editor', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ songId: data.songId, sectionId: data.sectionId, notes: next }),
+                });
+
+                if (!response.ok) {
+                    setError(`${await readError(response)} Your notes were not saved.`);
+                    return false;
+                }
+
+                notes = sortNotes(next);
+                setStatus(message);
+                return true;
+            } catch {
+                setError('Could not reach the server. Your notes were not saved.');
+                return false;
+            } finally {
+                saving = false;
+            }
+        }
+
+        async function explain(item: Placed): Promise<void> {
+            if (!item.chord || !item.scale) return;
+
+            const cacheKey = `${item.chordName}|${item.scale.name}|${item.note.pitch}`;
+            const inScale = item.status !== 'outside';
+
+            reasonPanel.hidden = false;
+            reasonPanel.replaceChildren(html('h2', 'editor__heading', `Why ${item.note.pitch} over ${item.chordName}`), html('p', '', 'Loading the reason...'));
+
+            let reason = reasons.get(cacheKey);
+
+            if (!reason) {
+                try {
+                    const response = await fetch('/api/modules/editor', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chord: item.chordName, scale: item.scale.name, pitch: item.note.pitch, inScale }),
+                    });
+
+                    if (!response.ok) {
+                        reasonPanel.replaceChildren(html('h2', 'editor__heading', `Why ${item.note.pitch} over ${item.chordName}`), html('p', 'editor__error', await readError(response)));
+                        return;
+                    }
+
+                    const body: { data: string } = await response.json();
+                    reason = body.data;
+                    reasons.set(cacheKey, reason);
+                } catch {
+                    reasonPanel.replaceChildren(html('h2', 'editor__heading', `Why ${item.note.pitch} over ${item.chordName}`), html('p', 'editor__error', 'Could not reach the server to explain this note.'));
+                    return;
+                }
+            }
+
+            reasonPanel.replaceChildren(
+                html('h2', 'editor__heading', `Why ${item.note.pitch} over ${item.chordName}`),
+                html('p', '', reason),
+                html('p', 'indicative-note', `Scale used: ${item.scale.name}. This is one way to hear the note, not the only correct one.`),
+            );
+        }
+
+        async function handleAction(action: string, item: Placed): Promise<void> {
+            if (action === 'why') return explain(item);
+            if (action === 'change') return startChange(item);
+
+            if (action === 'keep') {
+                setStatus(`Kept ${describe(item)}.${item.status === 'outside' ? ' It stays marked as outside the scale.' : ''}`);
+                return;
+            }
+
+            if (action !== 'remove') return;
+
+            const next = notes.filter(note => note !== item.note);
+            if (!(await save(next, `Removed ${describe(item)}.`))) return;
+
+            if (editing === item.note) resetForm();
+            render();
+            listHeading.focus();
+        }
+
+        function readNote(): Note | string {
+            const beat = Number(beatInput.value);
+            const duration = Number(durationSelect.value);
+
+            if (!Number.isFinite(beat) || beat < 1 || beat >= 5 || (beat * 4) % 1 !== 0) return 'Beat must be between 1 and 4.75 in steps of 0.25.';
+
+            if (stringSelect.value && fretInput.value !== '') {
+                const text = pitchFromFret(Number(stringSelect.value), Number(fretInput.value));
+                const pitch = text ? parsePitch(text) : null;
+                if (!text || !pitch) return 'Fret must be a whole number from 0 to 24.';
+
+                return { bar, beat, duration, pitch: text, string: Number(stringSelect.value), fret: Number(fretInput.value) };
+            }
+
+            if (stringSelect.value || fretInput.value !== '') return 'Pick both a string and a fret, or write a pitch instead.';
+
+            const pitch = parsePitch(pitchInput.value);
+            if (!pitch) return 'Write a pitch such as C4, F#3 or Bb4, or pick a string and fret.';
+
+            const position = fretForPitch(pitch);
+
+            return { bar, beat, duration, pitch: formatPitch(pitch), string: position?.string ?? null, fret: position?.fret ?? null };
+        }
+
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+
+            const note = readNote();
+            if (typeof note === 'string') {
+                setError(note);
+                pitchInput.focus();
+                return;
+            }
+
+            if (notes.some(existing => existing !== editing && existing.bar === note.bar && existing.beat === note.beat && existing.pitch === note.pitch)) {
+                setError(`${note.pitch} is already on beat ${note.beat} of bar ${bar}.`);
+                return;
+            }
+
+            const next = editing ? notes.map(existing => existing === editing ? note : existing) : [...notes, note];
+            const changed = editing !== null;
+
+            if (!(await save(next, `${changed ? 'Changed to' : 'Added'} ${note.pitch} on beat ${note.beat} of bar ${bar}.`))) return;
+
+            resetForm();
+            if (!changed && note.beat + note.duration < 5) beatInput.value = (note.beat + note.duration).toString();
+            render();
+            pitchInput.focus();
+        });
+
+        cancelButton.addEventListener('click', () => {
+            resetForm();
+            setStatus('Change cancelled. The note was left as it was.');
+            render();
+        });
+
+        for (const button of barButtons) {
+            button.addEventListener('click', () => {
+                bar = Number(button.dataset.bar);
+                resetForm();
+                setError('');
+                reasonPanel.hidden = true;
+                render();
+            });
+        }
+
+        render();
+    }
+
+    const dataElement = document.getElementById('editor-data');
+    if (dataElement) init(JSON.parse(dataElement.textContent ?? '{}'));
 </script>
