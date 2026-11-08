@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Music Copilot Deck</title>
+    <title>TonePilot Deck</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -452,7 +452,7 @@
 </head>
 
 <body>
-    <main id="deck" aria-label="Music Copilot deck"></main>
+    <main id="deck" aria-label="TonePilot deck"></main>
     <div id="count" aria-live="polite">1 / 1</div>
     <div class="nav"><button id="prev" aria-label="Previous slide">← Back</button><button id="next"
             aria-label="Next slide">Next →</button></div>
@@ -462,9 +462,9 @@
         const SLIDES = [
             {
                 title: "Title", html: `
-    <section class="slide"><div class="bar hero"><span class="sign" style="background:var(--ink)">Music Copilot</span>
+    <section class="slide"><div class="bar hero"><span class="sign" style="background:var(--ink)">TonePilot</span>
       <span class="num" style="color:#e9e7fb">HACKATHON</span>
-      <h1>Music Copilot</h1>
+      <h1>TonePilot</h1>
       <p class="lede">A songwriting environment that explains music theory while you write, with scale suggestions beside each chord.</p>
     </div></section>` },
             {
@@ -495,7 +495,7 @@
       <h2>Build, read, write, accept</h2>
       <ol class="steps">
         <li>Build a chord progression, or pick a sample, and set the key, tempo and bars.</li>
-        <li>Copilot offers the matching scales, arpeggios, and guiding notes.</li>
+        <li>TonePilot offers the matching scales, arpeggios, and guiding notes.</li>
         <li>Write in tabs or sheet music. Notes that fit are highlighted, and notes outside the scale are marked, never removed.</li>
         <li>Accept, edit, or reject any autofill suggestion. Nothing is added without you.</li>
       </ol></div></section>` },
@@ -513,7 +513,7 @@
             {
                 title: "Guardrails", html: `
     <section class="slide"><div class="bar"><span class="sign">Guardrails</span><span class="num">06</span>
-      <h2>What Copilot will not do</h2>
+      <h2>What TonePilot will not do</h2>
       <ul class="rules">
         <li class="bad">Add notes or chords to a song without an accepted action.</li>
         <li class="bad">Claim one scale or chord is the only correct choice.</li>
@@ -536,7 +536,7 @@
                 title: "Competitive landscape", html: `
     <section class="slide"><div class="bar"><span class="sign">Landscape</span><span class="num">08</span>
       <h2>The gap is the reason, not the theory</h2>
-      <table><thead><tr><th>Product</th><th>What it does</th><th>Where Music Copilot differs</th></tr></thead><tbody>
+      <table><thead><tr><th>Product</th><th>What it does</th><th>Where TonePilot differs</th></tr></thead><tbody>
         <tr><td>Hookpad</td><td>Knows the key, hides out-of-key chords by default, and shows note guides.</td><td>Gives a reason with each suggestion, guide tones into the next chord, and labels out-of-key chords instead of hiding them. Edits tab beside notation.</td></tr>
         <tr><td>Scaler 3</td><td>Detects keys and chords, groups chords by genre and feel, as a DAW plugin and app.</td><td>A browser writing tool that explains the theory.</td></tr>
         <tr><td>Captain Chords</td><td>A DAW plugin that generates progressions, some from hit songs.</td><td>Never uses a real artist's song as a template, and explains why each chord fits.</td></tr>
