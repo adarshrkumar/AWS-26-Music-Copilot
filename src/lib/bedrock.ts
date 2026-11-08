@@ -3,7 +3,7 @@ import type { ContentBlock, Message, StopReason, ToolResultBlock, ToolSpecificat
 import { nanoid } from 'nanoid';
 import { z } from 'zod/v4';
 
-const DEFAULT_MODEL_ID = process.env.BEDROCK_MODEL_ID || import.meta.env?.BEDROCK_MODEL_ID || 'us.anthropic.claude-3-5-haiku-20241022-v1:0';
+const DEFAULT_MODEL_ID = 'us.anthropic.claude-haiku-4-5-20251001-v1:0';
 
 const region = process.env.AWS_REGION || import.meta.env?.AWS_REGION || 'us-east-1';
 
