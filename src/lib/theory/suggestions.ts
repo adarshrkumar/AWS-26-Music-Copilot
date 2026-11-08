@@ -1,7 +1,7 @@
 import { getDegreeRole } from './chords.ts';
 import { getInterval, getPitchClass, spellDegree, spellFormula } from './notes.ts';
 import { SCALE_DEFINITIONS, buildScale } from './scales.ts';
-import type { ArpeggioSuggestion, Chord, ChordContext, GuideTone, GuideToneMove, Scale, ScaleSuggestion } from './types.ts';
+import type { Chord, ChordContext, GuideTone, GuideToneMove, Scale, Suggestion } from './types.ts';
 
 const MAX_SCALE_SUGGESTIONS = 5;
 
@@ -17,7 +17,7 @@ function getFit(notes: string[], reference: Scale): number {
     return (notes.length - getOutsideNotes(notes, reference).length) / notes.length;
 }
 
-function isSameSet(scale: Scale, reference: Scale): boolean {
+function getSameSet(scale: Scale, reference: Scale): boolean {
     return scale.pitchClasses.length === reference.pitchClasses.length && scale.pitchClasses.every(pitchClass => reference.pitchClasses.includes(pitchClass));
 }
 
@@ -27,14 +27,14 @@ function describeScaleReason(chord: Chord, scale: Scale, reference: Scale, outsi
 
     let relation: string;
     if (outside.length > 0) relation = `adds ${outside.join(', ')} from outside ${referenceName}`;
-    else if (isSameSet(scale, reference)) relation = scale.root === reference.root ? `matches ${referenceName}` : `is a mode of ${referenceName}`;
+    else if (getSameSet(scale, reference)) relation = scale.root === reference.root ? `matches ${referenceName}` : `is a mode of ${referenceName}`;
     else relation = `uses only notes of ${referenceName}`;
 
     return `${scale.root} ${scale.name} holds the main tones of ${chord.name} (${essential.join(', ')}) and ${relation}. ${character}`;
 }
 
-export function suggestScales(chord: Chord, context: ChordContext): ScaleSuggestion[] {
-    const candidates: ScaleSuggestion[] = [];
+export function suggestScales(chord: Chord, context: ChordContext): Suggestion[] {
+    const candidates: Suggestion[] = [];
 
     for (const definition of SCALE_DEFINITIONS) {
         const priority = definition.families[chord.family];
@@ -44,7 +44,7 @@ export function suggestScales(chord: Chord, context: ChordContext): ScaleSuggest
         if (!chord.essentialPitchClasses.every(pitchClass => scale.pitchClasses.includes(pitchClass))) continue;
 
         const outside = getOutsideNotes(scale.notes, context.reference);
-        const score = round(0.45 * getFit(scale.notes, context.reference) + 0.4 * priority + (isSameSet(scale, context.reference) ? 0.15 : 0));
+        const score = round(0.45 * getFit(scale.notes, context.reference) + 0.4 * priority + (getSameSet(scale, context.reference) ? 0.15 : 0));
 
         candidates.push({
             kind: 'scale',
@@ -68,7 +68,7 @@ function describeArpeggioReason(notes: string[], reference: Scale, outside: stri
     return `The arpeggio spells ${notes.join(', ')}. ${detail}${marked}`;
 }
 
-function createArpeggio(name: string, notes: string[], priority: number, reference: Scale, detail: string): ArpeggioSuggestion {
+function createArpeggio(name: string, notes: string[], priority: number, reference: Scale, detail: string): Suggestion {
     const outside = getOutsideNotes(notes, reference);
 
     return {
@@ -84,7 +84,7 @@ function createArpeggio(name: string, notes: string[], priority: number, referen
     };
 }
 
-function getUpperStructure(chord: Chord): { suffix: string; formula: string[] } | null {
+function getUpperStructure(chord: Chord) {
     if (!chord.hasSeventh) return null;
     if (chord.family === 'minor') return { suffix: 'maj7', formula: ['1', '3', '5', '7'] };
     if (chord.family === 'dominant') return { suffix: 'm7b5', formula: ['1', 'b3', 'b5', 'b7'] };
@@ -92,9 +92,9 @@ function getUpperStructure(chord: Chord): { suffix: string; formula: string[] } 
     return null;
 }
 
-export function suggestArpeggios(chord: Chord, context: ChordContext): ArpeggioSuggestion[] {
+export function suggestArpeggios(chord: Chord, context: ChordContext): Suggestion[] {
     const reference = context.reference;
-    const candidates: ArpeggioSuggestion[] = [];
+    const candidates: Suggestion[] = [];
 
     const chordNotes = chord.notes.filter(note => chord.corePitchClasses.includes(getPitchClass(note) ?? -1));
     candidates.push(createArpeggio(`${chord.name} arpeggio`, chordNotes, 1, reference, `These are the chord tones of ${chord.name}, so every note lands directly on the harmony.`));

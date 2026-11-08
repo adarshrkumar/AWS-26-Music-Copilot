@@ -45,6 +45,6 @@ export function buildDefinedScale(root: string, name: string): Scale | null {
     return null;
 }
 
-export function isNoteInScale(note: string, scale: Scale): boolean {
+export function getNoteInScale(note: string, scale: Scale): boolean {
     return getUniquePitchClasses([note]).some(pitchClass => scale.pitchClasses.includes(pitchClass));
 }

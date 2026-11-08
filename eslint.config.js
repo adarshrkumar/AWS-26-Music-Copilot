@@ -153,6 +153,19 @@ export default [
         }
     },
     {
+        files: ['src/script/**/*.astro'],
+        languageOptions: {
+            globals: {
+                HTMLTemplateElement: 'readonly',
+                Blob: 'readonly',
+                ParentNode: 'readonly',
+                DocumentFragment: 'readonly',
+                HTMLLIElement: 'readonly',
+                FormData: 'readonly'
+            }
+        }
+    },
+    {
         files: ['src/**/*.css'],
         plugins: {
             '@typescript-eslint': tsPlugin,

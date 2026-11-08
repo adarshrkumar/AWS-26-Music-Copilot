@@ -45,14 +45,6 @@ function getDegreeNumber(degree: string): number {
     return Number(degree.replace(/^[#b]+/, ''));
 }
 
-function findQuality(suffix: string): QualityDefinition | null {
-    for (const quality of QUALITIES) {
-        if (quality.aliases.includes(suffix)) return quality;
-    }
-
-    return null;
-}
-
 export function parseChord(name: string): Chord | null {
     const cleaned = name.replace(/\s+/g, '');
     const match = /^([A-G])([#b]?)(.*?)(?:\/([A-G][#b]?))?$/.exec(cleaned);
@@ -60,7 +52,7 @@ export function parseChord(name: string): Chord | null {
 
     const root = match[1] + match[2];
     const bass = match[4] ?? null;
-    const definition = findQuality(match[3]);
+    const definition = QUALITIES.find(quality => quality.aliases.includes(match[3]));
     if (!definition || !parseNote(root) || (bass !== null && !parseNote(bass))) return null;
 
     const notes = spellFormula(root, definition.formula);
@@ -82,6 +74,6 @@ export function parseChord(name: string): Chord | null {
         guideDegrees: definition.guideDegrees,
         romanSuffix: definition.romanSuffix,
         hasSeventh,
-        isMinorThird: definition.formula.includes('b3'),
+        hasMinorThird: definition.formula.includes('b3'),
     };
 }
