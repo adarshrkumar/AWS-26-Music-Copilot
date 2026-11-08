@@ -26,7 +26,7 @@ export default {
                     context.filename.endsWith('.astro') &&
                     node.typeAnnotation?.type === 'TSTypeReference' &&
                     node.typeAnnotation.typeName?.type === 'Identifier' &&
-                    ['HTMLElement', 'HTMLFormElement'].includes(node.typeAnnotation.typeName.name)
+                    ['HTMLElement', 'HTMLFormElement', 'HTMLInputElement', 'HTMLSelectElement', 'HTMLButtonElement'].includes(node.typeAnnotation.typeName.name)
                 ) return;
                 if (node.typeAnnotation?.type === 'TSTypeOperator' && node.typeAnnotation.operator === 'keyof') return;
                 if (node.typeAnnotation?.type === 'TSUnionType' && node.typeAnnotation.types?.some(t => t.type === 'TSTypeQuery') && node.typeAnnotation.types?.some(t => t.type === 'TSLiteralType' && (t.literal === 'honeypot' || t.literal?.value === 'honeypot'))) return;
@@ -49,13 +49,17 @@ export default {
                 });
             },
             TSUnknownKeyword(node) {
-                // Check for standalone unknown type usage (but allow in function parameters for now if needed)
-                // Skip if it's part of a union or intersection that might be necessary
-
-                // Allow unknown only in very specific contexts if needed, otherwise flag all uses
                 context.report({
                     node,
                     message: 'The "unknown" type is not allowed. Use a concrete, precise type instead.'
+                });
+            },
+            TSInterfaceDeclaration(node) {
+                if (!context.filename.endsWith('.astro') || node.id.name === 'Props') return;
+
+                context.report({
+                    node,
+                    message: `Interface '${node.id.name}' is not allowed in Astro files. Derive a short alias from an existing type (for example Song['sections'][number]) instead.`
                 });
             },
             CallExpression(node) {

@@ -154,7 +154,6 @@ async function updateRow({ model, where, update }: UpdateArgs): Promise<NativeAt
     return next;
 }
 
-// A conditional delete makes sure only one caller gets a single-use token when several race for it.
 async function consumeRow({ model, where }: ConsumeArgs): Promise<NativeAttributeValue> {
     const [row] = await findRows(model, where);
     if (!row) return null;
@@ -182,7 +181,7 @@ async function incrementRow({ model, where, increment, set }: IncrementArgs): Pr
     const names: Record<string, string> = {};
     const values: Row = {};
     const conditions = Object.entries(increment).map(([field, delta], index) => {
-        next[field] = Number(row[field] ?? 0) + delta;
+        next[field] = parseFloat((row[field] ?? 0).toString()) + delta;
         names[`#f${index}`] = field;
         if (row[field] === undefined) return `attribute_not_exists(#f${index})`;
         values[`:v${index}`] = row[field];

@@ -1,21 +1,9 @@
 <script>
     import { buildMarkers, describeMarkers, drawFretboard, drawKeyboard } from '@/lib/diagrams';
-    import { describeGuideTones, getChordFunction, getDiatonicChords, getScaleOptions, parseChord, parseKey } from '@/lib/theory';
+    import { describeGuideTones, getChordFunction, getDiatonicChords, getScaleOptions, parseChord, parseKey } from '@/lib/scale-finder';
+    import type { Chord, ChordFunction, Key, ScaleOption } from '@/lib/scale-finder';
 
-    import type { Chord, ChordFunction, Key, ScaleOption } from '@/lib/theory';
-
-    interface State {
-        key: Key;
-        chord: Chord;
-        next: Chord | null;
-        chordFunction: ChordFunction;
-        options: ScaleOption[];
-        selectedId: string;
-    }
-
-    interface ValueElement extends HTMLElement {
-        value: string;
-    }
+    type State = { key: Key; chord: Chord; next: Chord | null; chordFunction: ChordFunction; options: ScaleOption[]; selectedId: string };
 
     function find<T extends Element>(selector: string): T {
         const element = document.querySelector<T>(selector);
@@ -30,7 +18,7 @@
     }
 
     const form = find<HTMLElement>('#scales-form');
-    const keyField = find<ValueElement>('#scales-key');
+    const keyField = find<HTMLSelectElement>('#scales-key');
     const chordField = find<HTMLInputElement>('#scales-chord');
     const nextField = find<HTMLInputElement>('#scales-next');
     const errorText = find<HTMLElement>('#scales-error');

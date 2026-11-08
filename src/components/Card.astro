@@ -1,9 +1,4 @@
 ---
-// Demonstrates proper SCSS architecture:
-// - No <style> tag in this file
-// - Styles imported from external SCSS file
-// - Reusable component with props
-
 interface Props {
     title?: string;
     href?: string;
@@ -12,7 +7,6 @@ interface Props {
 
 const { title, href, class: className = '' } = Astro.props;
 
-// Import component-specific styles
 import '@/styles/components/card.scss';
 ---
 

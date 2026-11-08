@@ -1,4 +1,4 @@
-import type { Chord, Note, ScaleOption } from '@/lib/theory';
+import type { Chord, Note, ScaleOption } from '@/lib/scale-finder';
 
 export type GuideMark = 'current' | 'next' | 'both';
 
@@ -63,24 +63,18 @@ function node(tag: string, attributes: Record<string, string | number>, text?: s
     return element;
 }
 
-function guideSymbol(guide: GuideMark | null): string {
-    if (guide === 'current') return '◆';
-    if (guide === 'next') return '▲';
-    if (guide === 'both') return '◆▲';
-    return '';
-}
-
-function markerLabel(marker: Marker): string {
-    return `${marker.role === 'outside' ? '×' : ''}${marker.name}${guideSymbol(marker.guide)}`;
-}
-
 function drawMarker(parent: SVGElement, marker: Marker, x: number, y: number, radius: number): void {
     const group = node('g', { class: 'diagram__marker', 'data-role': marker.role, 'data-guide': marker.guide ?? 'none' });
-    const shape = marker.role === 'root'
-        ? node('rect', { x: x - radius, y: y - radius, width: radius * 2, height: radius * 2, rx: 3 })
-        : node('circle', { cx: x, cy: y, r: radius });
+    let shape = node('circle', { cx: x, cy: y, r: radius });
+    let label = marker.name;
 
-    group.append(shape, node('text', { x, y: y + 4, 'text-anchor': 'middle' }, markerLabel(marker)));
+    if (marker.role === 'root') shape = node('rect', { x: x - radius, y: y - radius, width: radius * 2, height: radius * 2, rx: 3 });
+    if (marker.role === 'outside') label = `×${label}`;
+    if (marker.guide === 'current') label += '◆';
+    if (marker.guide === 'next') label += '▲';
+    if (marker.guide === 'both') label += '◆▲';
+
+    group.append(shape, node('text', { x, y: y + 4, 'text-anchor': 'middle' }, label));
     parent.append(group);
 }
 

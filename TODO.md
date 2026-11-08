@@ -4,12 +4,12 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Theory Engine
 
-- [ ] Build the rule-based theory engine for chord functions, scale membership, arpeggios and guide tones
-- [ ] Label chords outside the chosen key as borrowed or outside, without correcting them
-- [ ] Rank scale and arpeggio suggestions for each chord
-- [ ] Generate a one or two sentence reason for each suggestion from the engine's output
-- [ ] Test the engine against known progressions, including the jazz (Dm7, G7, Cmaj7, Am7) and instrumental (Am, F, C, G) examples
-- [ ] Test the handling of borrowed chords on the sample progressions
+- [x] Build the rule-based theory engine for chord functions, scale membership, arpeggios and guide tones
+- [x] Label chords outside the chosen key as borrowed or outside, without correcting them
+- [x] Rank scale and arpeggio suggestions for each chord
+- [x] Generate a one or two sentence reason for each suggestion from the engine's output
+- [x] Test the engine against known progressions, including the jazz (Dm7, G7, Cmaj7, Am7) and instrumental (Am, F, C, G) examples
+- [x] Test the handling of borrowed chords on the sample progressions
 
 ## Build a Progression
 
@@ -33,22 +33,22 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Write Notes
 
-- [ ] Build the tab editor in `src/pages/app/editor.astro`
-- [ ] Build the sheet music editor from the same note data as the tabs
-- [ ] Highlight notes that fit the current chord and scale
-- [ ] Mark notes outside the scale with a symbol as well as a color, and never remove them
-- [ ] Show the reason for a note from `explainNote`
-- [ ] Let the songwriter keep, change or remove any note
-- [ ] Save notes through `setNotes` in `src/script/app/editor.astro`
+- [x] Build the tab editor in `src/pages/app/editor.astro`
+- [x] Build the sheet music editor from the same note data as the tabs
+- [x] Highlight notes that fit the current chord and scale
+- [x] Mark notes outside the scale with a symbol as well as a color, and never remove them
+- [x] Show the reason for a note from `explainNote`
+- [x] Let the songwriter keep, change or remove any note
+- [x] Save notes through `setNotes` in `src/script/app/editor.astro`
 
 ## Autofill
 
-- [ ] Build rule-based phrase proposals that use chord tones on strong beats
-- [ ] Add an autofill request for a bar in `src/pages/app/autofill.astro`
-- [ ] Show the theory behind each phrase from `explainPhrase`
-- [ ] Let the songwriter accept, edit or reject a phrase, and write it into the song only after acceptance
-- [ ] Save proposals and their status through `addPhraseSuggestion` and `setPhraseSuggestionStatus`
-- [ ] Test the autofill rules on the sample progressions
+- [X] Build rule-based phrase proposals that use chord tones on strong beats
+- [X] Add an autofill request for a bar in `src/pages/app/autofill.astro`
+- [X] Show the theory behind each phrase from `explainPhrase`
+- [X] Let the songwriter accept, edit or reject a phrase, and write it into the song only after acceptance
+- [X] Save proposals and their status through `addPhraseSuggestion` and `setPhraseSuggestionStatus`
+- [X] Test the autofill rules on the sample progressions
 
 ## Suggestions Panel
 
@@ -59,12 +59,12 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Songs and Storage
 
-- [ ] Keep songs on the device by default
-- [ ] Sync songs to the account only when the songwriter chooses
-- [ ] Add a songs list and song creation, editing and deletion
-- [ ] Add an explicit export for sharing progressions and melodies
-- [ ] Remove synced copies within thirty days of account deletion
-- [ ] Link the app pages from `src/pages/app/index.astro` and the app header
+- [x] Keep songs on the device by default
+- [x] Sync songs to the account only when the songwriter chooses
+- [x] Add a songs list and song creation, editing and deletion
+- [x] Add an explicit export for sharing progressions and melodies
+- [x] Remove synced copies within thirty days of account deletion
+- [x] Link the app pages from `src/pages/app/index.astro` and the app header
 
 ## Teacher
 
@@ -80,10 +80,10 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Metrics
 
-- [ ] Track the share of sessions that produce a saved progression
-- [ ] Track the share of suggestions accepted
-- [ ] Track the share of users who open the reason behind a suggestion
-- [ ] Track the median time from first chord to first scale view
+- [x] Track the share of sessions that produce a saved progression
+- [x] Track the share of suggestions accepted
+- [x] Track the share of users who open the reason behind a suggestion
+- [x] Track the median time from first chord to first scale view
 - [ ] Set metric targets after the pilot
 
 ## Pilot

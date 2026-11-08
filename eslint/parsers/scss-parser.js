@@ -1,5 +1,3 @@
-// Minimal parser for .scss files that doesn't validate syntax that returns a basic Program node so ESLint can run custom text-based rules
-
 export default function parse(code) {
     const lines = code.split('\n');
     return {

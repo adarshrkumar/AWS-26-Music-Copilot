@@ -126,6 +126,14 @@ export default [
                 HTMLButtonElement: 'readonly',
                 HTMLDialogElement: 'readonly',
                 HTMLInputElement: 'readonly',
+                HTMLFormElement: 'readonly',
+                HTMLSelectElement: 'readonly',
+                HTMLUListElement: 'readonly',
+                HTMLLIElement: 'readonly',
+                Option: 'readonly',
+                HTMLElementTagNameMap: 'readonly',
+                SVGSVGElement: 'readonly',
+                SVGElementTagNameMap: 'readonly',
                 KeyboardEvent: 'readonly',
                 TouchEvent: 'readonly',
                 atob: 'readonly',
@@ -151,6 +159,19 @@ export default [
                 }
             ],
             ...ruleConfigs,
+        }
+    },
+    {
+        files: ['src/script/**/*.astro'],
+        languageOptions: {
+            globals: {
+                HTMLTemplateElement: 'readonly',
+                Blob: 'readonly',
+                ParentNode: 'readonly',
+                DocumentFragment: 'readonly',
+                HTMLLIElement: 'readonly',
+                FormData: 'readonly'
+            }
         }
     },
     {

@@ -1,318 +1,319 @@
-export interface Note {
-    name: string;
-    pitch: number;
-}
+import type { Song } from '@/db/types';
 
-export type QualityId = 'major' | 'minor' | 'dominant7' | 'major7' | 'minor7' | 'diminished' | 'diminished7' | 'halfDiminished' | 'augmented' | 'sus4' | 'sus2' | 'sixth';
+type Chord = Song['sections'][number]['chords'][number];
+type Note = Song['sections'][number]['notes'][number];
 
-export interface Chord {
-    name: string;
-    root: Note;
-    quality: QualityId;
-    notes: Note[];
-    guideTones: Note[];
-}
+const LETTERS = 'CDEFGAB';
+const LETTER_SEMITONES = [0, 2, 4, 5, 7, 9, 11];
+const SHARP_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const OPEN_STRINGS = [64, 59, 55, 50, 45, 40];
+const MAX_FRET = 24;
+const MODE_NAMES = ['Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'];
 
-export interface Key {
-    name: string;
-    root: Note;
-    minor: boolean;
-    pitches: number[];
-    parallelPitches: number[];
-    parallelName: string;
-}
-
-export type ChordStatus = 'diatonic' | 'borrowed' | 'outside';
-
-export interface ChordFunction {
-    numeral: string;
-    status: ChordStatus;
-    label: string;
-}
-
-export interface ScaleOption {
-    id: string;
-    kind: 'scale' | 'arpeggio';
-    title: string;
-    notes: Note[];
-    keyFit: number;
-    outsideNotes: Note[];
-    description: string;
-    reason: string;
-}
-
-interface Spelling {
-    letter: number;
-    pitch: number;
-}
-
-interface QualityRule {
-    suffix: string;
-    degrees: string[];
-    guideDegrees: string[];
-    lowerCase: boolean;
-    scales: string[];
-}
-
-const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-const MAJOR_SCALE = [0, 2, 4, 5, 7, 9, 11];
-
-const QUALITIES: Record<QualityId, QualityRule> = {
-    major: { suffix: '', degrees: ['1', '3', '5'], guideDegrees: ['3', '5'], lowerCase: false, scales: ['major', 'Lydian', 'major pentatonic'] },
-    minor: { suffix: 'm', degrees: ['1', 'b3', '5'], guideDegrees: ['b3', '5'], lowerCase: true, scales: ['Dorian', 'natural minor', 'minor pentatonic', 'Phrygian'] },
-    dominant7: { suffix: '7', degrees: ['1', '3', '5', 'b7'], guideDegrees: ['3', 'b7'], lowerCase: false, scales: ['Mixolydian', 'Lydian dominant', 'altered', 'blues'] },
-    major7: { suffix: 'maj7', degrees: ['1', '3', '5', '7'], guideDegrees: ['3', '7'], lowerCase: false, scales: ['major', 'Lydian', 'major pentatonic'] },
-    minor7: { suffix: 'm7', degrees: ['1', 'b3', '5', 'b7'], guideDegrees: ['b3', 'b7'], lowerCase: true, scales: ['Dorian', 'natural minor', 'Phrygian', 'minor pentatonic'] },
-    diminished: { suffix: 'dim', degrees: ['1', 'b3', 'b5'], guideDegrees: ['b3', 'b5'], lowerCase: true, scales: ['Locrian', 'whole-half diminished'] },
-    diminished7: { suffix: 'dim7', degrees: ['1', 'b3', 'b5', 'bb7'], guideDegrees: ['b3', 'bb7'], lowerCase: true, scales: ['whole-half diminished'] },
-    halfDiminished: { suffix: 'm7b5', degrees: ['1', 'b3', 'b5', 'b7'], guideDegrees: ['b3', 'b7'], lowerCase: true, scales: ['Locrian', 'Locrian ♮2'] },
-    augmented: { suffix: 'aug', degrees: ['1', '3', '#5'], guideDegrees: ['3', '#5'], lowerCase: false, scales: ['whole tone', 'Lydian augmented'] },
-    sus4: { suffix: 'sus4', degrees: ['1', '4', '5'], guideDegrees: ['4', '5'], lowerCase: false, scales: ['Mixolydian', 'Dorian', 'minor pentatonic'] },
-    sus2: { suffix: 'sus2', degrees: ['1', '2', '5'], guideDegrees: ['2', '5'], lowerCase: false, scales: ['Mixolydian', 'major pentatonic', 'Dorian'] },
-    sixth: { suffix: '6', degrees: ['1', '3', '5', '6'], guideDegrees: ['3', '6'], lowerCase: false, scales: ['major', 'major pentatonic', 'Lydian'] },
+const CHORD_INTERVALS: Record<string, number[]> = {
+    '': [0, 4, 7],
+    m: [0, 3, 7],
+    '7': [0, 4, 7, 10],
+    maj7: [0, 4, 7, 11],
+    m7: [0, 3, 7, 10],
+    m7b5: [0, 3, 6, 10],
+    dim: [0, 3, 6],
+    dim7: [0, 3, 6, 9],
+    aug: [0, 4, 8],
+    sus2: [0, 2, 7],
+    sus4: [0, 5, 7],
+    '6': [0, 4, 7, 9],
+    m6: [0, 3, 7, 9],
+    '9': [0, 4, 7, 10, 14],
+    maj9: [0, 4, 7, 11, 14],
+    m9: [0, 3, 7, 10, 14],
+    add9: [0, 4, 7, 14],
 };
 
-const QUALITY_ALIASES: Record<string, QualityId> = {
-    '': 'major',
-    maj: 'major',
-    M: 'major',
-    m: 'minor',
-    min: 'minor',
-    '-': 'minor',
-    '7': 'dominant7',
-    maj7: 'major7',
-    M7: 'major7',
-    'Δ': 'major7',
-    'Δ7': 'major7',
-    m7: 'minor7',
-    min7: 'minor7',
-    '-7': 'minor7',
-    dim: 'diminished',
-    '°': 'diminished',
-    dim7: 'diminished7',
-    '°7': 'diminished7',
-    m7b5: 'halfDiminished',
-    'ø': 'halfDiminished',
-    'ø7': 'halfDiminished',
-    aug: 'augmented',
-    '+': 'augmented',
-    sus: 'sus4',
-    sus4: 'sus4',
-    sus2: 'sus2',
-    '6': 'sixth',
+const SCALE_INTERVALS: Record<string, number[]> = {
+    Ionian: [0, 2, 4, 5, 7, 9, 11],
+    Dorian: [0, 2, 3, 5, 7, 9, 10],
+    Mixolydian: [0, 2, 4, 5, 7, 9, 10],
+    Locrian: [0, 1, 3, 5, 6, 8, 10],
+    'Diminished (whole-half)': [0, 2, 3, 5, 6, 8, 9, 11],
+    'Whole tone': [0, 2, 4, 6, 8, 10],
 };
 
-const SCALE_SHAPES: Record<string, string[]> = {
-    major: ['1', '2', '3', '4', '5', '6', '7'],
-    Dorian: ['1', '2', 'b3', '4', '5', '6', 'b7'],
-    Phrygian: ['1', 'b2', 'b3', '4', '5', 'b6', 'b7'],
-    Lydian: ['1', '2', '3', '#4', '5', '6', '7'],
-    Mixolydian: ['1', '2', '3', '4', '5', '6', 'b7'],
-    'natural minor': ['1', '2', 'b3', '4', '5', 'b6', 'b7'],
-    Locrian: ['1', 'b2', 'b3', '4', 'b5', 'b6', 'b7'],
-    'Locrian ♮2': ['1', '2', 'b3', '4', 'b5', 'b6', 'b7'],
-    'Lydian dominant': ['1', '2', '3', '#4', '5', '6', 'b7'],
-    altered: ['1', 'b2', '#2', '3', 'b5', '#5', 'b7'],
-    'whole-half diminished': ['1', '2', 'b3', '4', 'b5', '#5', '6', '7'],
-    'whole tone': ['1', '2', '3', '#4', '#5', 'b7'],
-    'Lydian augmented': ['1', '2', '3', '#4', '#5', '6', '7'],
-    'major pentatonic': ['1', '2', '3', '5', '6'],
-    'minor pentatonic': ['1', 'b3', '4', '5', 'b7'],
-    blues: ['1', 'b3', '4', 'b5', '5', 'b7'],
+const CHORD_SCALES: Record<string, string> = {
+    '': 'Ionian',
+    maj7: 'Ionian',
+    '6': 'Ionian',
+    maj9: 'Ionian',
+    add9: 'Ionian',
+    m: 'Dorian',
+    m7: 'Dorian',
+    m6: 'Dorian',
+    m9: 'Dorian',
+    '7': 'Mixolydian',
+    '9': 'Mixolydian',
+    sus2: 'Mixolydian',
+    sus4: 'Mixolydian',
+    m7b5: 'Locrian',
+    dim: 'Diminished (whole-half)',
+    dim7: 'Diminished (whole-half)',
+    aug: 'Whole tone',
 };
 
-const MAJOR_NUMERALS = ['I', '♭II', 'II', '♭III', 'III', 'IV', '♯IV', 'V', '♭VI', 'VI', '♭VII', 'VII'];
-const MINOR_NUMERALS = ['I', '♭II', 'II', 'III', '♯III', 'IV', '♯IV', 'V', 'VI', '♯VI', 'VII', '♯VII'];
-const NUMERAL_SUFFIXES: Record<QualityId, string> = {
-    major: '',
-    minor: '',
-    dominant7: '7',
-    major7: 'maj7',
-    minor7: '7',
-    diminished: '°',
-    diminished7: '°7',
-    halfDiminished: 'ø7',
-    augmented: '+',
-    sus4: 'sus4',
-    sus2: 'sus2',
-    sixth: '6',
+export const NOTE_STATUSES = {
+    chord: { label: 'chord tone', symbol: '✓' },
+    scale: { label: 'in the scale', symbol: '✓' },
+    outside: { label: 'outside the scale', symbol: '!' },
+    none: { label: 'no chord to check against', symbol: '' },
 };
 
-const DIATONIC_MAJOR = { degrees: ['1', '2', '3', '4', '5', '6', '7'], suffixes: ['maj7', 'm7', 'm7', 'maj7', '7', 'm7', 'm7b5'] };
-const DIATONIC_MINOR = { degrees: ['1', '2', 'b3', '4', '5', 'b6', 'b7'], suffixes: ['m7', 'm7b5', 'maj7', 'm7', 'm7', 'maj7', '7'] };
-
-export const KEY_NAMES = {
-    major: ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'],
-    minor: ['Cm', 'C♯m', 'Dm', 'E♭m', 'Em', 'Fm', 'F♯m', 'Gm', 'G♯m', 'Am', 'B♭m', 'Bm'],
-};
-
-function accidentalName(offset: number): string {
-    if (offset === 0) return '';
-    return offset > 0 ? '♯'.repeat(offset) : '♭'.repeat(-offset);
+function wrap(semitone: number): number {
+    return ((semitone % 12) + 12) % 12;
 }
 
-function wrapOffset(offset: number): number {
-    return (((offset + 6) % 12) + 12) % 12 - 6;
+function getSemitone(letter: string, accidental: string): number {
+    let semitone = LETTER_SEMITONES[LETTERS.indexOf(letter)];
+    if (accidental === '#') semitone++;
+    if (accidental === 'b') semitone--;
+    return semitone;
 }
 
-function parseRoot(text: string): { spelling: Spelling; note: Note; rest: string } | null {
-    const match = /^([A-G])([#♯b♭]?)(.*)$/.exec(text.trim());
+function getPitchName(midi: number): string {
+    return `${SHARP_NAMES[wrap(midi)]}${Math.floor(midi / 12) - 1}`;
+}
+
+function parsePitch(pitch: string): RegExpExecArray | null {
+    return /^([A-G])([#b]?)(-?\d)$/.exec(pitch);
+}
+
+function parseChord(name: string): RegExpExecArray | null {
+    const match = /^([A-G])([#b]?)(.*)$/.exec(name.trim());
+    if (!match || !CHORD_INTERVALS[match[3]]) return null;
+    return match;
+}
+
+function getKeyTones(key: string): number[] {
+    const match = /^([A-G])([#b]?)\s*(minor|min|m)?$/.exec(key.trim());
+    if (!match) return [];
+
+    let tonic = getSemitone(match[1], match[2]);
+    if (match[3]) tonic += 3;
+
+    const tones: number[] = [];
+
+    for (const interval of SCALE_INTERVALS.Ionian) {
+        tones.push(wrap(tonic + interval));
+    }
+
+    return tones;
+}
+
+export function formatPitch(text: string): string | null {
+    const match = /^([A-Ga-g])([#b♯♭]?)(-?\d)$/.exec(text.trim());
     if (!match) return null;
 
-    const letter = LETTERS.indexOf(match[1]);
-    const offset = match[2] === '#' || match[2] === '♯' ? 1 : match[2] === '' ? 0 : -1;
-    const pitch = (MAJOR_SCALE[letter] + offset + 12) % 12;
+    let accidental = match[2];
+    if (accidental === '♯') accidental = '#';
+    if (accidental === '♭') accidental = 'b';
 
-    return { spelling: { letter, pitch }, note: { name: `${match[1]}${accidentalName(offset)}`, pitch }, rest: match[3] };
+    return `${match[1].toUpperCase()}${accidental}${match[3]}`;
 }
 
-function spell(root: Spelling, degree: string): Note {
-    const match = /^([#b]*)(\d)$/.exec(degree);
-    if (!match) throw new Error(`Invalid degree: ${degree}`);
+export function getMidi(pitch: string): number {
+    const match = parsePitch(pitch);
+    if (!match) return 0;
 
-    let offset = 0;
-    for (const accidental of match[1]) offset += accidental === '#' ? 1 : -1;
-
-    const step = Number.parseInt(match[2], 10) - 1;
-    const letter = (root.letter + step) % 7;
-    const pitch = (((root.pitch + MAJOR_SCALE[step] + offset) % 12) + 12) % 12;
-
-    return { name: `${LETTERS[letter]}${accidentalName(wrapOffset(pitch - MAJOR_SCALE[letter]))}`, pitch };
+    return (parseInt(match[3], 10) + 1) * 12 + getSemitone(match[1], match[2]);
 }
 
-function spellAll(root: Spelling, degrees: string[]): Note[] {
-    return degrees.map(degree => spell(root, degree));
+export function getStaffStep(pitch: string): number {
+    const match = parsePitch(pitch);
+    if (!match) return 0;
+
+    return parseInt(match[3], 10) * 7 + LETTERS.indexOf(match[1]) - 30;
 }
 
-function notesText(notes: Note[]): string {
-    return notes.map(note => note.name).join(', ');
+export function getFretPitch(string: number, fret: number): string | null {
+    if (string < 1 || string > OPEN_STRINGS.length) return null;
+    if (!Number.isInteger(fret) || fret < 0 || fret > MAX_FRET) return null;
+
+    return getPitchName(OPEN_STRINGS[string - 1] + fret);
 }
 
-function spellingOf(note: Note): Spelling {
-    return { letter: LETTERS.indexOf(note.name[0]), pitch: note.pitch };
+export function getFretPosition(pitch: string): Pick<Note, 'string' | 'fret'> {
+    const midi = getMidi(pitch);
+    let position: Pick<Note, 'string' | 'fret'> = { string: null, fret: null };
+
+    for (let index = 0; index < OPEN_STRINGS.length; index++) {
+        const fret = midi - OPEN_STRINGS[index];
+        if (fret < 0 || fret > MAX_FRET) continue;
+        if (position.fret === null || fret < position.fret) position = { string: index + 1, fret };
+    }
+
+    return position;
 }
 
-export function parseChord(text: string): Chord | null {
-    const parsed = parseRoot(text);
-    if (!parsed) return null;
+export function getChordAt(chords: Chord[], bar: number, beat: number): Chord | undefined {
+    let current: Chord | undefined;
 
-    const quality = QUALITY_ALIASES[parsed.rest.trim()];
-    if (!quality) return null;
+    for (const chord of chords) {
+        if (chord.bar > bar) continue;
+        if (chord.bar === bar && chord.beat > beat) continue;
+        if (!current || chord.bar > current.bar || (chord.bar === current.bar && chord.beat >= current.beat)) current = chord;
+    }
 
-    const rule = QUALITIES[quality];
-
-    return {
-        name: `${parsed.note.name}${rule.suffix}`,
-        root: parsed.note,
-        quality,
-        notes: spellAll(parsed.spelling, rule.degrees),
-        guideTones: spellAll(parsed.spelling, rule.guideDegrees),
-    };
+    return current ?? chords[0];
 }
 
-export function parseKey(text: string): Key | null {
-    const parsed = parseRoot(text);
-    if (!parsed) return null;
+export function getChordTones(name: string): number[] {
+    const match = parseChord(name);
+    if (!match) return [];
 
-    const minor = parsed.rest === 'm';
-    if (!minor && parsed.rest !== '') return null;
+    const tones: number[] = [];
 
-    const majorPitches = spellAll(parsed.spelling, SCALE_SHAPES.major).map(note => note.pitch);
-    const minorPitches = spellAll(parsed.spelling, SCALE_SHAPES['natural minor']).map(note => note.pitch);
-    const leadingTone = majorPitches[6];
+    for (const interval of CHORD_INTERVALS[match[3]]) {
+        tones.push(wrap(getSemitone(match[1], match[2]) + interval));
+    }
 
-    return {
-        name: `${parsed.note.name} ${minor ? 'minor' : 'major'}`,
-        root: parsed.note,
-        minor,
-        pitches: minor ? [...minorPitches, leadingTone] : majorPitches,
-        parallelPitches: minor ? majorPitches : minorPitches,
-        parallelName: `${parsed.note.name} ${minor ? 'major' : 'minor'}`,
-    };
+    return tones;
 }
 
-export function getDiatonicChords(key: Key): string[] {
-    const table = key.minor ? DIATONIC_MINOR : DIATONIC_MAJOR;
-    const spelling = spellingOf(key.root);
+export function getInKey(name: string, key: string): boolean {
+    const keyTones = getKeyTones(key);
+    if (keyTones.length === 0) return true;
 
-    return table.degrees.map((degree, index) => `${spell(spelling, degree).name}${table.suffixes[index]}`);
+    for (const tone of getChordTones(name)) {
+        if (!keyTones.includes(tone)) return false;
+    }
+
+    return true;
 }
 
-export function getChordFunction(key: Key, chord: Chord): ChordFunction {
-    const interval = (chord.root.pitch - key.root.pitch + 12) % 12;
-    const base = (key.minor ? MINOR_NUMERALS : MAJOR_NUMERALS)[interval];
-    const rule = QUALITIES[chord.quality];
-    const numeral = `${rule.lowerCase ? base.toLowerCase() : base}${NUMERAL_SUFFIXES[chord.quality]}`;
-    const pitches = chord.notes.map(note => note.pitch);
+export function getScaleName(name: string, key: string): string {
+    const match = parseChord(name);
+    if (!match) return '';
 
-    if (pitches.every(pitch => key.pitches.includes(pitch))) return { numeral, status: 'diatonic', label: `${numeral} in ${key.name}, built from the key's own notes` };
-    if (pitches.every(pitch => key.parallelPitches.includes(pitch))) return { numeral, status: 'borrowed', label: `${numeral}, borrowed from ${key.parallelName}` };
+    const keyTones = getKeyTones(key);
+    if (keyTones.length > 0 && getInKey(name, key)) return `${match[1]}${match[2]} ${MODE_NAMES[keyTones.indexOf(wrap(getSemitone(match[1], match[2])))]}`;
 
-    return { numeral, status: 'outside', label: `${numeral}, outside ${key.name}` };
+    return `${match[1]}${match[2]} ${CHORD_SCALES[match[3]]}`;
 }
 
-export function getScaleOptions(key: Key, chord: Chord, chordFunction: ChordFunction): ScaleOption[] {
-    const rootSpelling = spellingOf(chord.root);
-    const chordPitches = chord.notes.map(note => note.pitch);
+function getScaleTones(name: string, key: string): number[] {
+    const match = parseChord(name);
+    if (!match) return [];
 
-    const scales = QUALITIES[chord.quality].scales.map((scaleName, priority) => {
-        const notes = spellAll(rootSpelling, SCALE_SHAPES[scaleName]);
-        const outsideNotes = notes.filter(note => !key.pitches.includes(note.pitch));
-        const held = chordPitches.filter(pitch => notes.some(note => note.pitch === pitch)).length;
-        const title = `${chord.root.name} ${scaleName}`;
-        const outside = outsideNotes.length === 0 ? 'every note is in the key' : `${notesText(outsideNotes)} ${outsideNotes.length === 1 ? 'is' : 'are'} outside the key and will be marked`;
+    const keyTones = getKeyTones(key);
+    if (keyTones.length > 0 && getInKey(name, key)) return keyTones;
 
-        const option: ScaleOption = {
-            id: `scale-${scaleName}`,
-            kind: 'scale',
-            title,
-            notes,
-            keyFit: notes.length - outsideNotes.length,
-            outsideNotes,
-            description: `${title} scale: ${notesText(notes)}.`,
-            reason: `${title} holds ${held} of the ${chordPitches.length} notes of ${chord.name}, the ${chordFunction.label}. Over ${key.name}, ${outside}.`,
-        };
+    const tones: number[] = [];
 
-        return { priority, option };
-    });
+    for (const interval of SCALE_INTERVALS[CHORD_SCALES[match[3]]]) {
+        tones.push(wrap(getSemitone(match[1], match[2]) + interval));
+    }
 
-    scales.sort((a, b) => b.option.outsideNotes.length === a.option.outsideNotes.length ? a.priority - b.priority : a.option.outsideNotes.length - b.option.outsideNotes.length);
-
-    const arpeggio: ScaleOption = {
-        id: 'arpeggio',
-        kind: 'arpeggio',
-        title: `${chord.name} arpeggio`,
-        notes: chord.notes,
-        keyFit: chord.notes.filter(note => key.pitches.includes(note.pitch)).length,
-        outsideNotes: chord.notes.filter(note => !key.pitches.includes(note.pitch)),
-        description: `${chord.name} arpeggio: ${notesText(chord.notes)}.`,
-        reason: `The arpeggio plays the chord tones of ${chord.name} (${notesText(chord.notes)}), so every note states the harmony directly. Chord tones on strong beats make the chord clear.`,
-    };
-
-    return [...scales.map(scale => scale.option), arpeggio];
+    return tones;
 }
 
-export function describeGuideTones(chord: Chord, next: Chord | null): string {
-    const current = `Guide tones of ${chord.name}: ${notesText(chord.guideTones)}.`;
-    if (!next) return current;
+export function getNoteStatus(pitch: string, chord: Chord | undefined, key: string): keyof typeof NOTE_STATUSES {
+    if (!chord) return 'none';
 
-    const moves = chord.guideTones.map(tone => {
-        let target = next.guideTones[0];
-        let distance = 12;
+    const chordTones = getChordTones(chord.name);
+    if (chordTones.length === 0) return 'none';
 
-        for (const candidate of next.guideTones) {
-            const gap = Math.abs(candidate.pitch - tone.pitch);
-            const steps = Math.min(gap, 12 - gap);
+    const pitchClass = wrap(getMidi(pitch));
+    if (chordTones.includes(pitchClass)) return 'chord';
+    if (getScaleTones(chord.name, key).includes(pitchClass)) return 'scale';
 
-            if (steps >= distance) continue;
+    return 'outside';
+}
 
-            distance = steps;
-            target = candidate;
+const PHRASE_TITLES = {
+    rising: 'Rising chord tones with stepwise passing notes',
+    falling: 'Falling chord tones with stepwise passing notes',
+    guide: 'Guide tones on the strong beats',
+};
+
+export function proposePhrases(key: string, chords: Pick<Chord, 'beat' | 'name'>[]) {
+    const ordered = [...chords].sort((first, second) => first.beat - second.beat);
+    const proposals = [];
+
+    if (ordered.length === 0) return null;
+
+    for (const chord of ordered) {
+        if (getChordTones(chord.name).length === 0) return null;
+    }
+
+    for (const [style, title] of Object.entries(PHRASE_TITLES)) {
+        const notes: Pick<Note, 'beat' | 'duration' | 'pitch'>[] = [];
+        let strongCount = 0;
+        let last: number | null = null;
+
+        for (let index = 0; index < ordered.length; index++) {
+            const tones = getChordTones(ordered[index].name);
+            const chordNotes: number[] = [];
+            const scaleNotes: number[] = [];
+            const beats: number[] = [];
+            const midis: number[] = [];
+            let start = ordered[index].beat;
+
+            for (let midi = 60; midi <= 83; midi++) {
+                if (tones.includes(wrap(midi))) chordNotes.push(midi);
+                if (getScaleTones(ordered[index].name, key).includes(wrap(midi))) scaleNotes.push(midi);
+            }
+
+            if (index === 0) start = 1;
+
+            for (let beat = start; beat < (ordered[index + 1]?.beat ?? 5); beat++) {
+                beats.push(beat);
+                midis.push(0);
+            }
+
+            const rootIndex = chordNotes.findIndex(midi => wrap(midi) === tones[0]);
+            let top = chordNotes.findIndex(midi => midi >= chordNotes[rootIndex] + 12);
+            if (top === -1) top = chordNotes.length - 1;
+
+            for (let position = 0; position < beats.length; position++) {
+                if (position > 0 && beats[position] % 2 !== 1) continue;
+
+                if (style === 'rising') midis[position] = chordNotes[Math.min(rootIndex + strongCount, chordNotes.length - 1)];
+                if (style === 'falling') midis[position] = chordNotes[Math.max(top - strongCount, 0)];
+
+                if (style === 'guide') {
+                    for (const midi of chordNotes) {
+                        if (wrap(midi) !== [tones[1], tones[tones.length > 3 ? 3 : 2]][strongCount % 2]) continue;
+                        if (midis[position] === 0 || Math.abs(midi - (last ?? 67)) < Math.abs(midis[position] - (last ?? 67))) midis[position] = midi;
+                    }
+                }
+
+                strongCount++;
+                last = midis[position];
+            }
+
+            for (let position = 1; position < beats.length; position++) {
+                if (midis[position] !== 0) continue;
+
+                const next = midis.slice(position + 1).find(midi => midi !== 0);
+                const previousIndex = scaleNotes.indexOf(midis[position - 1]);
+                let goesUp = style !== 'falling';
+                if (next !== undefined) goesUp = next >= midis[position - 1];
+
+                midis[position] = scaleNotes[goesUp ? Math.min(previousIndex + 1, scaleNotes.length - 1) : Math.max(previousIndex - 1, 0)];
+            }
+
+            for (let position = 0; position < beats.length; position++) {
+                notes.push({ beat: beats[position], duration: 1, pitch: getPitchName(midis[position]) });
+            }
         }
 
-        if (distance === 0) return `${tone.name} stays as ${target.name}`;
-        return `${tone.name} moves to ${target.name} by ${distance === 1 ? 'a half step' : distance === 2 ? 'a whole step' : `${distance} half steps`}`;
-    });
+        proposals.push({
+            title,
+            chord: ordered.map(chord => chord.name).join(' → '),
+            scale: ordered.map(chord => getScaleName(chord.name, key)).join(' → '),
+            chordTones: getChordTones(ordered[0].name).map(tone => SHARP_NAMES[tone]),
+            keyLabel: ordered.map(chord => `${chord.name}: ${getInKey(chord.name, key) ? 'inside the key' : 'borrowed or outside the key'}`).join('; '),
+            notes,
+        });
+    }
 
-    return `${current} Guide tones of the next chord ${next.name}: ${notesText(next.guideTones)}. ${moves.join('; ')}.`;
+    return proposals;
 }

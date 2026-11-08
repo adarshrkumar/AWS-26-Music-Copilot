@@ -1,0 +1,68 @@
+<script>
+    import type { ClientMetricName } from '@/db/types';
+
+    const clientKey = 'tonepilot:client';
+    const sessionKey = 'tonepilot:session';
+    const sentPrefix = 'tonepilot:metric-sent:';
+    const clientNames: ClientMetricName[] = ['session_start', 'first_chord', 'first_scale_view', 'progression_saved', 'reason_opened'];
+    const oncePerSession: ClientMetricName[] = ['session_start', 'first_chord', 'first_scale_view'];
+
+    function getClientMetric(value: string): ClientMetricName | null {
+        return clientNames.find(name => name === value) ?? null;
+    }
+
+    function getClientId(): string {
+        let id = localStorage.getItem(clientKey);
+
+        if (!id) {
+            id = crypto.randomUUID();
+            localStorage.setItem(clientKey, id);
+        }
+
+        return id;
+    }
+
+    function getSessionId(): string {
+        let id = sessionStorage.getItem(sessionKey);
+
+        if (!id) {
+            id = crypto.randomUUID();
+            sessionStorage.setItem(sessionKey, id);
+        }
+
+        return id;
+    }
+
+    async function track(name: ClientMetricName): Promise<void> {
+        try {
+            if (oncePerSession.includes(name)) {
+                if (sessionStorage.getItem(`${sentPrefix}${name}`)) return;
+                sessionStorage.setItem(`${sentPrefix}${name}`, '1');
+            }
+
+            await fetch('/api/modules/metrics', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, sessionId: getSessionId(), clientId: getClientId() }),
+                keepalive: true,
+            });
+        } catch {
+            // Metrics are optional. When storage is blocked or the request fails, the app carries on without them.
+        }
+    }
+
+    // Any control can report an event with data-metric="reason_opened". Scripts can report one with document.dispatchEvent(new CustomEvent('metric', { detail: { name: 'first_chord' } })).
+    document.addEventListener('click', event => {
+        const value = event.target instanceof Element ? event.target.closest('[data-metric]')?.getAttribute('data-metric') : null;
+        const name = value ? getClientMetric(value) : null;
+        if (name) void track(name);
+    });
+
+    document.addEventListener('metric', event => {
+        const value = event instanceof CustomEvent ? event.detail?.name : null;
+        const name = typeof value === 'string' ? getClientMetric(value) : null;
+        if (name) void track(name);
+    });
+
+    void track('session_start');
+</script>

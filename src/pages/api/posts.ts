@@ -10,17 +10,15 @@ import {
     type CreatePostInput,
     type UpdatePostInput,
 } from '@/db/validations';
+import { getServerError } from '@/lib/status-responses';
 
-import type { APIRoute } from 'astro';
-
-// Demonstrates CRUD operations with DynamoDB, Zod validation, and NanoID
+import type { APIContext } from 'astro';
 
 async function getPost(id: string): Promise<Post | null> {
     return getItem(dataTable, { pk: 'POST', sk: id });
 }
 
-// GET /api/posts - List posts with pagination and filtering
-export const GET: APIRoute = async ({ url }) => {
+export async function GET({ url }: APIContext): Promise<Response> {
     try {
         const validated = postQuerySchema.parse({
             page: url.searchParams.get('page'),
@@ -33,7 +31,6 @@ export const GET: APIRoute = async ({ url }) => {
         const offset = (validated.page - 1) * validated.limit;
         const search = validated.search?.toLowerCase();
 
-        // DynamoDB has no ILIKE or ORDER BY on non-key attributes, so filtering, search and sorting happen here
         const results = (await queryItems(dataTable, {
             KeyConditionExpression: 'pk = :pk',
             ExpressionAttributeValues: { ':pk': 'POST' },
@@ -80,22 +77,11 @@ export const GET: APIRoute = async ({ url }) => {
         }
 
         console.error('GET /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
-};
+}
 
-// POST /api/posts - Create a new post
-export const POST: APIRoute = async ({ request }) => {
+export async function POST({ request }: APIContext): Promise<Response> {
     try {
         const validated: CreatePostInput = createPostSchema.parse(await request.json());
 
@@ -142,22 +128,11 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         console.error('POST /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
-};
+}
 
-// PUT /api/posts - Update an existing post
-export const PUT: APIRoute = async ({ request }) => {
+export async function PUT({ request }: APIContext): Promise<Response> {
     try {
         const { id, ...updateData }: UpdatePostInput = updatePostSchema.parse(await request.json());
 
@@ -235,22 +210,11 @@ export const PUT: APIRoute = async ({ request }) => {
         }
 
         console.error('PUT /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
-};
+}
 
-// DELETE /api/posts - Delete a post
-export const DELETE: APIRoute = async ({ url }) => {
+export async function DELETE({ url }: APIContext): Promise<Response> {
     try {
         const id = url.searchParams.get('id');
 
@@ -268,7 +232,6 @@ export const DELETE: APIRoute = async ({ url }) => {
             );
         }
 
-        // Validate ID format (NanoID is 21 characters)
         if (id.length !== 21) {
             return new Response(
                 JSON.stringify({
@@ -312,16 +275,6 @@ export const DELETE: APIRoute = async ({ url }) => {
         );
     } catch (error) {
         console.error('DELETE /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
-};
+}

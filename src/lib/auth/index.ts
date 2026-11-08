@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { deleteSongs } from '@/lib/songs';
 import { dynamoAdapter } from '@/lib/auth/adapter';
 
 export default betterAuth({
@@ -6,6 +7,12 @@ export default betterAuth({
     secret: process.env.BETTER_AUTH_SECRET || import.meta.env.BETTER_AUTH_SECRET,
     baseURL: process.env.BETTER_AUTH_URL || import.meta.env.BETTER_AUTH_URL,
     emailAndPassword: { enabled: true },
+    user: {
+        deleteUser: {
+            enabled: true,
+            beforeDelete: async user => deleteSongs(user.id),
+        },
+    },
     socialProviders: {
         google: {
             clientId: process.env.GOOGLE_CLIENT_ID || import.meta.env.GOOGLE_CLIENT_ID || '',

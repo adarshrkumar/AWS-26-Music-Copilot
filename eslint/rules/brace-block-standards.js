@@ -66,6 +66,13 @@ export default {
                 }
             },
             IfStatement(node) {
+                if (context.filename.replaceAll('\\', '/').includes('/src/') && [node.consequent.type, node.alternate?.type].some(type => ['ForStatement', 'ForOfStatement', 'ForInStatement', 'WhileStatement', 'DoWhileStatement'].includes(type))) {
+                    context.report({
+                        node,
+                        message: 'Do not put a loop on the same line as an if or else. Wrap it in a braced block, or drop the if when the loop condition already covers it.'
+                    });
+                }
+
                 // Check 1: If/else brace placement
                 if (node.alternate) {
                     const elseToken = context.sourceCode.getTokenAfter(context.sourceCode.getLastToken(node.consequent));
