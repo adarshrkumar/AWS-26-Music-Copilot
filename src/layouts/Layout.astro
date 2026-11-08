@@ -24,7 +24,7 @@ const newPageTitle = pageTitle[0]
         : pageTitle
     : null;
 
-const title = newPageTitle ? [...newPageTitle, siteConfig.appName].join(' | ') : siteConfig.appName;
+const title = [...newPageTitle, siteConfig.appName].filter(Boolean).join(' | ');
 ---
 
 <!doctype html>
