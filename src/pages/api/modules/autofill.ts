@@ -1,7 +1,8 @@
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
+import { getItem } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
 import type { Song } from '@/db/types';
-import { getSong } from '@/lib/songs';
 import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { proposePhrases } from '@/lib/theory';
 import { addPhraseSuggestion, explainPhrase, getPhraseSuggestions, setPhraseSuggestionStatus } from '@/lib/modules/autofill';
@@ -83,7 +84,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     if (!parsed.success) return errorResponse(parsed.error);
 
     const { songId, sectionId, bar } = parsed.data;
-    const song = await getSong(locals.user.id, songId);
+    const song: Song | null = await getItem(songTable, { userId: locals.user.id, id: songId });
     const section = song?.sections.find(candidate => candidate.id === sectionId);
     if (!song || !section) return json({ error: 'Song or section not found' }, 404);
     if (bar > section.bars) return json({ error: `This section has ${section.bars} bars.` }, 400);
@@ -131,7 +132,7 @@ export const PUT: APIRoute = async ({ locals, request }) => {
     if (!parsed.success) return errorResponse(parsed.error);
 
     const { songId, suggestionId, status, pitches } = parsed.data;
-    const song = await getSong(locals.user.id, songId);
+    const song: Song | null = await getItem(songTable, { userId: locals.user.id, id: songId });
     const suggestion = song?.suggestions.find(candidate => candidate.id === suggestionId && candidate.kind === 'phrase');
     if (!song || !suggestion) return json({ error: 'Suggestion not found' }, 404);
 

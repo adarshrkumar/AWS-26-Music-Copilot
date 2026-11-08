@@ -1,5 +1,7 @@
 ---
-import { getSongs } from '@/lib/songs';
+import { queryItems } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
+import type { Song } from '@/db/types';
 
 import App from '@/layouts/App.astro';
 import AutofillScript from '@/script/app/autofill.astro';
@@ -9,7 +11,7 @@ import '@/styles/pages/autofill.scss';
 
 if (!Astro.locals.user) return Astro.redirect('/user/sign-in');
 
-const songs = (await getSongs(Astro.locals.user.id)).map(song => ({
+const songs = (await queryItems(songTable, { KeyConditionExpression: 'userId = :userId', ExpressionAttributeValues: { ':userId': Astro.locals.user.id } })).map((song: Song) => ({
     id: song.id,
     title: song.title,
     sections: song.sections.map(section => ({ id: section.id, name: section.name, bars: section.bars })),

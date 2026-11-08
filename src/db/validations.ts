@@ -169,17 +169,31 @@ export const songInputSchema = z.object({
     updatedAt: z.string().max(40),
 });
 
-export type CreatePostInput = z.infer<typeof createPostSchema>;
-export type UpdatePostInput = z.infer<typeof updatePostSchema>;
-export type PublishPostInput = z.infer<typeof publishPostSchema>;
-export type PostQueryInput = z.infer<typeof postQuerySchema>;
+export const progressionSectionSchema = z.object({
+    id: z.string().min(1).max(64),
+    name: z.string().trim().min(1).max(60),
+    bars: z.number().int().min(1).max(16),
+    chords: z.array(z.object({
+        bar: z.number().int().min(1).max(16),
+        beat: z.number().int().min(1).max(4),
+        name: z.string().trim().min(1).max(24),
+    })).max(64),
+});
 
-export type SongInput = z.infer<typeof songInputSchema>;
+export const progressionDraftSchema = z.object({
+    songId: z.string().min(1).max(64).nullable(),
+    sampleProgressionId: z.string().min(1).max(64).nullable(),
+    tonic: z.string().regex(/^[A-G][#b]?$/),
+    mode: z.enum(['major', 'minor']),
+    tempo: z.number().int().min(20).max(300),
+    sections: z.array(progressionSectionSchema).min(1).max(32),
+    activeSectionId: z.string().min(1).max(64),
+});
 
-export type CreateCommentInput = z.infer<typeof createCommentSchema>;
-export type UpdateCommentInput = z.infer<typeof updateCommentSchema>;
-export type ModerateCommentInput = z.infer<typeof moderateCommentSchema>;
-export type CommentQueryInput = z.infer<typeof commentQuerySchema>;
+export const progressionRequestSchema = z.discriminatedUnion('action', [
+    z.object({ action: z.literal('save'), draft: progressionDraftSchema }),
+    z.object({ action: z.literal('explain'), key: z.string().min(1).max(20), chord: z.string().min(1).max(24) }),
+]);
 
 const editorNoteSchema = z.object({
     bar: z.number().int().min(1).max(16),
@@ -199,8 +213,6 @@ export const saveNotesSchema = sectionQuerySchema.extend({
     notes: z.array(editorNoteSchema).max(512),
 });
 
-export type SaveNotesInput = z.infer<typeof saveNotesSchema>;
-
 export const clientMetricSchema = z.object({
     name: z.enum(['session_start', 'first_chord', 'first_scale_view', 'progression_saved', 'reason_opened']),
     sessionId: z.string().min(8).max(64),
@@ -215,4 +227,6 @@ export const metricRecordSchema = z.object({
     at: z.string().max(40),
 });
 
-export type ClientMetricInput = z.infer<typeof clientMetricSchema>;
+export type CreatePostInput = z.infer<typeof createPostSchema>;
+export type UpdatePostInput = z.infer<typeof updatePostSchema>;
+export type ProgressionDraft = z.infer<typeof progressionDraftSchema>;

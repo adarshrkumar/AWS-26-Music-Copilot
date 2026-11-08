@@ -1,6 +1,8 @@
 import { z } from 'zod';
+import { getItem } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
+import type { Song } from '@/db/types';
 import { songInputSchema } from '@/db/validations';
-import { getSong } from '@/lib/songs';
 import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { explainScale, getScaleFeel, setScaleSuggestionStatus } from '@/lib/modules/scales';
 
@@ -20,13 +22,13 @@ const statusSchema = z.object({
     status: songInputSchema.shape.suggestions.element.shape.status,
 });
 
-export async function PATCH({ locals, request }: APIContext): Promise<Response> {
+export const PATCH = async ({ locals, request }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
         const input = statusSchema.parse(await request.json());
 
-        if (!(await getSong(locals.user.id, input.songId))?.suggestions.some(suggestion => suggestion.id === input.suggestionId)) {
+        if (!(await getItem(songTable, { userId: locals.user.id, id: input.songId }))?.suggestions.some((suggestion: Song['suggestions'][number]) => suggestion.id === input.suggestionId)) {
             return new Response(
                 JSON.stringify({
                     error: 'Suggestion not found',
@@ -72,9 +74,9 @@ export async function PATCH({ locals, request }: APIContext): Promise<Response> 
         console.error('PATCH /api/modules/scales error:', error);
         return getServerError();
     }
-}
+};
 
-export async function POST({ request, locals }: APIContext): Promise<Response> {
+export const POST = async ({ request, locals }: APIContext): Promise<Response> => {
     if (!locals.session) return getUnauthorizedError();
 
     const parsed = requestSchema.safeParse(await request.json());
@@ -88,4 +90,4 @@ export async function POST({ request, locals }: APIContext): Promise<Response> {
         console.error('POST /api/modules/scales error:', error);
         return getServerError();
     }
-}
+};

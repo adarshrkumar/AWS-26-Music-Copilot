@@ -1,6 +1,8 @@
 import { z } from 'zod';
+import { getItem } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
+import type { Song } from '@/db/types';
 import { saveNotesSchema, sectionQuerySchema } from '@/db/validations';
-import { getSong } from '@/lib/songs';
 import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { explainNote, setNotes } from '@/lib/modules/editor';
 
@@ -13,12 +15,12 @@ const explainNoteSchema = z.object({
     inScale: z.boolean(),
 });
 
-export async function GET({ locals, url }: APIContext): Promise<Response> {
+export const GET = async ({ locals, url }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
         const { songId, sectionId } = sectionQuerySchema.parse({ songId: url.searchParams.get('songId'), sectionId: url.searchParams.get('sectionId') });
-        const section = (await getSong(locals.user.id, songId))?.sections.find(candidate => candidate.id === sectionId);
+        const section: Song['sections'][number] | undefined = (await getItem(songTable, { userId: locals.user.id, id: songId }))?.sections.find((candidate: Song['sections'][number]) => candidate.id === sectionId);
 
         if (!section) {
             return new Response(
@@ -64,14 +66,14 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
         console.error('GET /api/modules/editor error:', error);
         return getServerError();
     }
-}
+};
 
-export async function PUT({ locals, request }: APIContext): Promise<Response> {
+export const PUT = async ({ locals, request }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
         const { songId, sectionId, notes } = saveNotesSchema.parse(await request.json());
-        const section = (await getSong(locals.user.id, songId))?.sections.find(candidate => candidate.id === sectionId);
+        const section: Song['sections'][number] | undefined = (await getItem(songTable, { userId: locals.user.id, id: songId }))?.sections.find((candidate: Song['sections'][number]) => candidate.id === sectionId);
 
         if (!section) {
             return new Response(
@@ -134,9 +136,9 @@ export async function PUT({ locals, request }: APIContext): Promise<Response> {
         console.error('PUT /api/modules/editor error:', error);
         return getServerError();
     }
-}
+};
 
-export async function POST({ locals, request }: APIContext): Promise<Response> {
+export const POST = async ({ locals, request }: APIContext): Promise<Response> => {
     if (!locals.user) return getUnauthorizedError();
 
     try {
@@ -172,4 +174,4 @@ export async function POST({ locals, request }: APIContext): Promise<Response> {
         console.error('POST /api/modules/editor error:', error);
         return getServerError();
     }
-}
+};

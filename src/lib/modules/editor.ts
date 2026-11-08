@@ -1,11 +1,12 @@
+import { getItem, setItem } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
 import type { Song } from '@/db/types';
 import { generateText } from '@/lib/bedrock';
-import { getSong, setSong } from '@/lib/songs';
 
 type Note = Song['sections'][number]['notes'][number];
 
 export async function getNotes(userId: string, songId: string, sectionId: string): Promise<Note[]> {
-    const song = await getSong(userId, songId);
+    const song: Song | null = await getItem(songTable, { userId, id: songId });
     if (!song) return [];
 
     for (const section of song.sections) {
@@ -16,7 +17,7 @@ export async function getNotes(userId: string, songId: string, sectionId: string
 }
 
 export async function setNotes(userId: string, songId: string, sectionId: string, notes: Note[]): Promise<void> {
-    const song = await getSong(userId, songId);
+    const song: Song | null = await getItem(songTable, { userId, id: songId });
     if (!song) return;
 
     const sections: Song['sections'] = [];
@@ -26,7 +27,7 @@ export async function setNotes(userId: string, songId: string, sectionId: string
         else sections.push(section);
     }
 
-    await setSong({ ...song, sections, updatedAt: new Date().toISOString() });
+    await setItem(songTable, { ...song, sections, updatedAt: new Date().toISOString() });
 }
 
 export async function explainNote(chord: string, scale: string, pitch: string, inScale: boolean): Promise<string> {
