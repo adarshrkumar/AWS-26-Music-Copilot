@@ -1,0 +1,211 @@
+<script>
+    import { authClient } from '@/lib/auth/client';
+    import { songFormSchema } from '@/db/validations';
+    import {
+        createLocalSong,
+        deleteLocalSong,
+        getLocalSong,
+        getLocalSongs,
+        hasUnsyncedChanges,
+        markLocalSongSynced,
+        updateLocalSong,
+    } from '@/lib/local-songs';
+    import { downloadSongExport } from '@/lib/song-export';
+    import type { LocalSong } from '@/db/types';
+
+    function find<T extends Element>(root: ParentNode, selector: string): T {
+        const element = root.querySelector<T>(selector);
+        if (!element) throw new Error(`Missing element: ${selector}`);
+        return element;
+    }
+
+    const root = find<HTMLElement>(document, '.songs');
+    const signedIn = root.dataset.signedIn === 'true';
+    const list = find<HTMLUListElement>(root, '[data-role="list"]');
+    const empty = find<HTMLElement>(root, '[data-role="empty"]');
+    const status = find<HTMLElement>(root, '[data-role="status"]');
+    const errorMessage = find<HTMLElement>(root, '[data-role="error"]');
+    const exportMelody = find<HTMLInputElement>(root, '[data-role="export-melody"]');
+    const dialog = find<HTMLDialogElement>(document, '[data-role="dialog"]');
+    const form = find<HTMLFormElement>(dialog, '[data-role="song-form"]');
+    const formError = find<HTMLElement>(dialog, '[data-role="form-error"]');
+    const dialogTitle = find<HTMLElement>(dialog, '[data-role="dialog-title"]');
+    const rowTemplate = find<HTMLTemplateElement>(document, '#song-row');
+
+    function say(message: string): void {
+        errorMessage.textContent = '';
+        status.textContent = message;
+    }
+
+    function fail(message: string): void {
+        status.textContent = '';
+        errorMessage.textContent = message;
+    }
+
+    function syncLabel(song: LocalSong): string {
+        if (!song.syncedAt) return '\u25CB On this device only';
+        if (hasUnsyncedChanges(song)) return '\u25D0 Synced to your account, with changes on this device not yet synced';
+        return '\u25CF Synced to your account';
+    }
+
+    function buildRow(song: LocalSong): DocumentFragment {
+        const fragment = document.importNode(rowTemplate.content, true);
+        const item = find<HTMLLIElement>(fragment, 'li');
+        const bars = song.sections.reduce((total, section) => total + section.bars, 0);
+
+        item.dataset.id = song.id;
+        find<HTMLElement>(item, '[data-field="title"]').textContent = song.title;
+        find<HTMLElement>(item, '[data-field="meta"]').textContent = `${song.key}, ${song.tempo} BPM, ${bars} ${bars === 1 ? 'bar' : 'bars'}`;
+        find<HTMLElement>(item, '[data-field="sync"]').textContent = syncLabel(song);
+
+        for (const button of item.querySelectorAll<HTMLButtonElement>('[data-action]')) {
+            const action = button.dataset.action;
+            const labels: Record<string, string> = { edit: 'Edit', sync: song.syncedAt ? 'Sync changes' : 'Sync to account', unsync: 'Remove synced copy', export: 'Export', delete: 'Delete' };
+
+            button.textContent = labels[action ?? ''] ?? button.textContent;
+            button.setAttribute('aria-label', `${button.textContent} ${song.title}`);
+            if (action === 'sync') button.hidden = !signedIn || (song.syncedAt !== null && !hasUnsyncedChanges(song));
+            if (action === 'unsync') button.hidden = !signedIn || song.syncedAt === null;
+        }
+
+        return fragment;
+    }
+
+    function render(): void {
+        const songs = getLocalSongs();
+
+        empty.hidden = songs.length > 0;
+        list.replaceChildren(...songs.map(buildRow));
+    }
+
+    async function request(method: 'PUT' | 'DELETE', url: string, body?: LocalSong): Promise<string | null> {
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: body ? { 'Content-Type': 'application/json' } : undefined,
+                body: body ? JSON.stringify(body) : undefined,
+            });
+
+            if (response.ok) return null;
+            return response.status === 401 ? 'Sign in to sync songs.' : 'The server could not save this change. Your song on this device is unchanged.';
+        } catch {
+            return 'Could not reach the server. Your song on this device is unchanged.';
+        }
+    }
+
+    function openDialog(song: LocalSong | null): void {
+        form.reset();
+        formError.textContent = '';
+        dialogTitle.textContent = song ? 'Edit song' : 'New song';
+        find<HTMLInputElement>(form, '[name="id"]').value = song?.id ?? '';
+
+        if (song) {
+            find<HTMLInputElement>(form, '[name="title"]').value = song.title;
+            find<HTMLInputElement>(form, '[name="key"]').value = song.key;
+            find<HTMLInputElement>(form, '[name="tempo"]').value = song.tempo.toString();
+        }
+
+        dialog.showModal();
+        find<HTMLInputElement>(form, '[name="title"]').focus();
+    }
+
+    function saveForm(): void {
+        const data = new FormData(form);
+        const parsed = songFormSchema.safeParse({ title: data.get('title'), key: data.get('key'), tempo: Number(data.get('tempo')) });
+
+        if (!parsed.success) {
+            formError.textContent = parsed.error.issues[0]?.message ?? 'Check the song details.';
+            return;
+        }
+
+        const id = data.get('id');
+
+        try {
+            if (typeof id === 'string' && id) updateLocalSong(id, parsed.data);
+            else createLocalSong(parsed.data);
+        } catch {
+            formError.textContent = 'This device has no room left to store the song. Export or delete a song and try again.';
+            return;
+        }
+
+        dialog.close();
+        render();
+        say(`Saved "${parsed.data.title}" on this device.`);
+    }
+
+    async function syncSong(song: LocalSong): Promise<void> {
+        const problem = await request('PUT', '/api/songs', song);
+
+        if (problem) return fail(problem);
+        markLocalSongSynced(song.id, new Date().toISOString());
+        render();
+        say(`Synced "${song.title}" to your account.`);
+    }
+
+    async function unsyncSong(song: LocalSong): Promise<void> {
+        if (!window.confirm(`Remove the synced copy of "${song.title}"? The copy on this device stays.`)) return;
+        const problem = await request('DELETE', `/api/songs?id=${encodeURIComponent(song.id)}`);
+
+        if (problem) return fail(problem);
+        markLocalSongSynced(song.id, null);
+        render();
+        say(`Removed the synced copy of "${song.title}". It is now on this device only.`);
+    }
+
+    async function removeSong(song: LocalSong): Promise<void> {
+        const warning = song.syncedAt ? ' The synced copy in your account is deleted too.' : '';
+        if (!window.confirm(`Delete "${song.title}"?${warning} This cannot be undone.`)) return;
+
+        if (song.syncedAt) {
+            const problem = await request('DELETE', `/api/songs?id=${encodeURIComponent(song.id)}`);
+            if (problem) return fail(problem);
+        }
+
+        deleteLocalSong(song.id);
+        render();
+        say(`Deleted "${song.title}".`);
+    }
+
+    function exportSongs(songs: LocalSong[]): void {
+        if (songs.length === 0) return fail('There are no songs to export.');
+        downloadSongExport(songs, exportMelody.checked);
+        say(`Exported ${songs.length} ${songs.length === 1 ? 'song' : 'songs'} ${exportMelody.checked ? 'with melodies' : 'without melodies'}.`);
+    }
+
+    root.addEventListener('click', event => {
+        const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('button[data-action]') : null;
+        if (!button) return;
+
+        const action = button.dataset.action;
+        const song = getLocalSong(button.closest<HTMLElement>('[data-id]')?.dataset.id ?? '');
+
+        if (action === 'create') openDialog(null);
+        else if (action === 'export-all') exportSongs(getLocalSongs());
+        else if (!song) return;
+        else if (action === 'edit') openDialog(song);
+        else if (action === 'sync') void syncSong(song);
+        else if (action === 'unsync') void unsyncSong(song);
+        else if (action === 'export') exportSongs([song]);
+        else if (action === 'delete') void removeSong(song);
+    });
+
+    form.addEventListener('submit', event => {
+        event.preventDefault();
+        saveForm();
+    });
+
+    find<HTMLButtonElement>(dialog, '[data-action="cancel"]').addEventListener('click', () => dialog.close());
+
+    root.querySelector<HTMLFormElement>('[data-role="delete-account"]')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!window.confirm('Delete your account? Every synced song is removed. Songs on this device stay.')) return;
+
+        const password = new FormData(event.currentTarget instanceof HTMLFormElement ? event.currentTarget : undefined).get('password');
+        const { error } = await authClient.deleteUser(typeof password === 'string' && password ? { password } : {});
+
+        if (error) return fail(error.message ?? 'Could not delete the account.');
+        window.location.assign('/');
+    });
+
+    render();
+</script>

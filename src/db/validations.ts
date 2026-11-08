@@ -138,11 +138,72 @@ export const commentQuerySchema = z.object({
     authorId: z.string().optional(),
 });
 
+// Song validation schemas
+
+const chordSchema = z.object({
+    bar: z.number().int().min(1).max(16),
+    beat: z.number().min(1).max(16),
+    name: z.string().min(1).max(32),
+});
+
+const noteSchema = z.object({
+    bar: z.number().int().min(1).max(16),
+    beat: z.number().min(1).max(16),
+    duration: z.number().positive().max(64),
+    pitch: z.string().min(1).max(8),
+    string: z.number().int().min(1).max(12).nullable(),
+    fret: z.number().int().min(0).max(36).nullable(),
+});
+
+const sectionSchema = z.object({
+    id: z.string().min(1).max(40),
+    name: z.string().min(1).max(80),
+    bars: z.number().int().min(1, 'A section needs at least one bar').max(16, 'A section holds up to sixteen bars'),
+    chords: z.array(chordSchema).max(256),
+    notes: z.array(noteSchema).max(2048),
+});
+
+const suggestionSchema = z.object({
+    id: z.string().min(1).max(40),
+    sectionId: z.string().min(1).max(40),
+    bar: z.number().int().min(1).max(16),
+    kind: z.enum(['scale', 'arpeggio', 'chord', 'note', 'phrase']),
+    value: z.string().min(1).max(200),
+    reason: z.string().min(1).max(500),
+    status: z.enum(['pending', 'accepted', 'rejected']),
+    createdAt: z.string().max(40),
+});
+
+// The userId is never accepted from the client, it always comes from the session
+export const songInputSchema = z.object({
+    id: z.string().length(21, 'Invalid song ID'),
+    title: z.string().trim().min(1, 'Title is required').max(120, 'Title must be 120 characters or less'),
+    key: z.string().trim().min(1, 'Key is required').max(16),
+    tempo: z.number().int().min(20, 'Tempo must be at least 20 BPM').max(300, 'Tempo must be 300 BPM or less'),
+    sampleProgressionId: z.string().max(40).nullable(),
+    melodyShared: z.boolean(),
+    sections: z.array(sectionSchema).max(20),
+    suggestions: z.array(suggestionSchema).max(500),
+    createdAt: z.string().max(40),
+    updatedAt: z.string().max(40),
+});
+
+export const songFormSchema = songInputSchema.pick({ title: true, key: true, tempo: true });
+
+export const localSongSchema = songInputSchema.extend({ syncedAt: z.string().max(40).nullable() });
+
+export const localSongsSchema = z.array(localSongSchema);
+
+export const songIdSchema = songInputSchema.shape.id;
+
 // Type exports for use in application
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
 export type PublishPostInput = z.infer<typeof publishPostSchema>;
 export type PostQueryInput = z.infer<typeof postQuerySchema>;
+
+export type SongInput = z.infer<typeof songInputSchema>;
+export type SongFormInput = z.infer<typeof songFormSchema>;
 
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type UpdateCommentInput = z.infer<typeof updateCommentSchema>;
