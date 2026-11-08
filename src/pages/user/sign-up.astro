@@ -1,0 +1,56 @@
+---
+import Header from '@/components/Header.astro';
+import Layout from '@/layouts/Layout.astro';
+import '@/styles/components/button.scss';
+import '@/styles/components/form.scss';
+import '@/styles/pages/user/sign-up.scss';
+---
+
+<Layout pageTitle="Sign up">
+    <Header />
+
+    <main id="main" class="auth">
+        <div class="auth__card">
+            <h1 class="auth__title">Create your account</h1>
+            <p class="auth__error" role="alert"></p>
+            <form class="form auth__form">
+                <div class="form-group">
+                    <label class="form-label" for="name">Name</label>
+                    <input class="form-input" id="name" name="name" type="text" autocomplete="name" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email">Email</label>
+                    <input class="form-input" id="email" name="email" type="email" autocomplete="email" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input class="form-input" id="password" name="password" type="password" autocomplete="new-password" minlength="8" aria-describedby="password-help" required />
+                    <p class="form-helper" id="password-help">At least 8 characters.</p>
+                </div>
+                <button class="btn" type="submit" data-variant="primary" data-width="full">Sign up</button>
+            </form>
+            <p class="auth__switch">Already have an account? <a href="/user/sign-in">Sign in</a></p>
+        </div>
+    </main>
+</Layout>
+
+<script>
+    import { authClient } from '@/lib/auth/client';
+
+    function field(name: string): string {
+        return document.querySelector<HTMLInputElement>(`[name="${name}"]`)?.value ?? '';
+    }
+
+    document.querySelector('.auth__form')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        const button = document.querySelector<HTMLButtonElement>('.auth__form button');
+        const message = document.querySelector<HTMLElement>('.auth__error');
+        button?.setAttribute('data-state', 'loading');
+
+        const { error } = await authClient.signUp.email({ name: field('name'), email: field('email'), password: field('password') });
+
+        button?.removeAttribute('data-state');
+        if (!error) return window.location.assign('/');
+        if (message) message.textContent = error.message ?? 'Sign up failed. Please try again.';
+    });
+</script>

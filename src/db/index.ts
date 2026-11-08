@@ -1,66 +1,70 @@
-import { DynamoDBClient, ListTablesCommand } from '@aws-sdk/client-dynamodb';
-import {
-    DeleteCommand,
-    DynamoDBDocumentClient,
-    GetCommand,
-    PutCommand,
-    QueryCommand,
-} from '@aws-sdk/lib-dynamodb';
-import type {
-    DeleteCommandInput,
-    GetCommandInput,
-    GetCommandOutput,
-    PutCommandInput,
-    QueryCommandInput,
-    QueryCommandOutput,
-} from '@aws-sdk/lib-dynamodb';
+import type { CreateTableCommandInput } from '@aws-sdk/client-dynamodb';
 
-const region = process.env.AWS_REGION ?? 'us-east-1';
-const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-const endpoint = process.env.DYNAMODB_ENDPOINT;
+export const dataTable: CreateTableCommandInput = {
+    TableName: 'data',
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+        { AttributeName: 'pk', AttributeType: 'S' },
+        { AttributeName: 'sk', AttributeType: 'S' },
+    ],
+    KeySchema: [
+        { AttributeName: 'pk', KeyType: 'HASH' },
+        { AttributeName: 'sk', KeyType: 'RANGE' },
+    ],
+};
 
-const credentials =
-    accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined;
+export const userTable: CreateTableCommandInput = {
+    TableName: 'user',
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'email', AttributeType: 'S' },
+    ],
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    GlobalSecondaryIndexes: [
+        { IndexName: 'email', KeySchema: [{ AttributeName: 'email', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
+    ],
+};
 
-export const dynamoClient = new DynamoDBClient({
-    region,
-    ...(credentials ? { credentials } : {}),
-    ...(endpoint ? { endpoint } : {}),
-});
+export const sessionTable: CreateTableCommandInput = {
+    TableName: 'session',
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'token', AttributeType: 'S' },
+        { AttributeName: 'userId', AttributeType: 'S' },
+    ],
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    GlobalSecondaryIndexes: [
+        { IndexName: 'token', KeySchema: [{ AttributeName: 'token', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
+        { IndexName: 'userId', KeySchema: [{ AttributeName: 'userId', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
+    ],
+};
 
-export const docClient = DynamoDBDocumentClient.from(dynamoClient, {
-    marshallOptions: { removeUndefinedValues: true },
-});
+export const accountTable: CreateTableCommandInput = {
+    TableName: 'account',
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'userId', AttributeType: 'S' },
+        { AttributeName: 'accountId', AttributeType: 'S' },
+    ],
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    GlobalSecondaryIndexes: [
+        { IndexName: 'userId', KeySchema: [{ AttributeName: 'userId', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
+        { IndexName: 'accountId', KeySchema: [{ AttributeName: 'accountId', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
+    ],
+};
 
-export const tableName = process.env.DYNAMODB_TABLE_NAME ?? 'music-copilot';
-
-export async function getItem(
-    key: GetCommandInput['Key'],
-): Promise<GetCommandOutput['Item'] | null> {
-    return (await docClient.send(new GetCommand({ TableName: tableName, Key: key }))).Item ?? null;
-}
-
-export async function putItem(item: PutCommandInput['Item']): Promise<void> {
-    await docClient.send(new PutCommand({ TableName: tableName, Item: item }));
-}
-
-export async function deleteItem(key: DeleteCommandInput['Key']): Promise<void> {
-    await docClient.send(new DeleteCommand({ TableName: tableName, Key: key }));
-}
-
-export async function queryItems(
-    input: Omit<QueryCommandInput, 'TableName'>,
-): Promise<NonNullable<QueryCommandOutput['Items']>> {
-    return (await docClient.send(new QueryCommand({ TableName: tableName, ...input }))).Items ?? [];
-}
-
-export async function verifyDynamoConnection(): Promise<boolean> {
-    try {
-        await dynamoClient.send(new ListTablesCommand({ Limit: 1 }));
-        return true;
-    } catch (error) {
-        console.error('DynamoDB connection failed:', error);
-        return false;
-    }
-}
+export const verificationTable: CreateTableCommandInput = {
+    TableName: 'verification',
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'identifier', AttributeType: 'S' },
+    ],
+    KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }],
+    GlobalSecondaryIndexes: [
+        { IndexName: 'identifier', KeySchema: [{ AttributeName: 'identifier', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
+    ],
+};

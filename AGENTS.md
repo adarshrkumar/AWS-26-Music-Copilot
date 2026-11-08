@@ -35,7 +35,7 @@ The first audience is music hobbyists and music students. The full product spec 
 
 - **Framework**: Astro 5.x with SSR (server-side rendering)
 - **Deployment**: Vercel adapter (`@astrojs/vercel`)
-- **Authentication**: Better Auth (installed, not wired up yet)
+- **Authentication**: Better Auth with a custom DynamoDB adapter (`src/lib/auth/adapter.ts`), configured in `src/lib/auth/index.ts`, served from `src/pages/api/auth/[...all].ts`, with the browser client in `src/lib/auth/client.ts` and pages under `src/pages/user/`
 - **Database**: PostgreSQL via Neon with Drizzle ORM
 - **AI Integration**: Vercel AI SDK (`ai` package) through the Vercel AI Gateway
 - **Search**: Exa (`exa-js`)
@@ -283,3 +283,16 @@ PWA settings in `astro.config.mjs`:
 **CRITICAL: No `@forward` in SCSS.** Every SCSS file imports the files it needs directly with `@use` (for example `@use '../variables/colors' as *;`). Never create or use a forwarding barrel file, and never inject one through `additionalData`.
 
 **CRITICAL: No useless comments.** Do not add comments that restate the code, label sections (`// Header`, `<!-- Hero -->`), name a variable's obvious purpose (`// Docs URL`), or describe file conventions already in this file. Only comment when the code cannot explain a non-obvious reason on its own.
+
+### Frequent ESLint Issues
+
+The custom rules in `eslint/rules/` catch these often. Write code that passes them the first time:
+
+- **No `unknown` type** (`custom/type-standards`): use a concrete type, such as `NativeAttributeValue` from `@aws-sdk/lib-dynamodb` for DynamoDB values.
+- **No `as` casts or `<T>` assertions** (`custom/type-standards`): narrow with `typeof`, `instanceof` or `Array.isArray`. When a library expects a generic return type, use an overload signature (`function getItem<T>(key): Promise<T | null>;`) above a concrete implementation, as in `src/db/index.ts`.
+- **No `@ts-ignore`, `@ts-nocheck` or `@ts-expect-error`** (`custom/type-standards`): fix the type instead.
+- **No `z.any()` or `z.unknown()`** (`custom/type-standards`): use a precise Zod type or `z.custom<T>()`.
+- **No single-statement blocks** (`custom/brace-block-standards`): write `if (x) return y;`, not a braced block around one statement.
+- **No `String(value)`**: call `value.toString()` instead.
+- **No unnecessary parentheses** around a single arrow parameter (`arrow-parens`) or a simple ternary condition.
+- **SCSS property order** (`order/properties-order`): follow `src/styles/property-order.json`. For example, `position` comes before box model, layout and `gap` properties.
