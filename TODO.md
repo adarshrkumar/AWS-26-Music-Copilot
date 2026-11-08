@@ -1,5 +1,7 @@
 # TODO
 
+These features of the app should be placed within their existing `src/pages` astro file. All client-side scripts should be placed in its astro `src/scripts` file. If needed an `src/pages/api/modules/name.ts` file can be created to be a server endpoint for client requests.
+
 ## Theory Engine
 
 - [ ] Build the rule-based theory engine for chord functions, scale membership, arpeggios and guide tones
