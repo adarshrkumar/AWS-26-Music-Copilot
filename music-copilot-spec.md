@@ -142,7 +142,20 @@ Two pilots, as in the source draft:
 
 ## 13. Competitive Notes
 
-Notation software handles tabs and sheet music but does not explain theory. Online theory courses teach scales and chords in isolation, away from the writing. Chord-finder tools suggest chords but rarely show the scales or guide tones over them. The gap is a writing environment where the theory appears beside the notes. A full competitive review is still needed before pitching. Placeholder: competitor list pending.
+Notation software handles tabs and sheet music but does not explain theory. Online theory courses teach scales and chords in isolation, away from the writing. Chord-finder tools suggest chords but rarely show the scales or guide tones over them. The closest competitor, Hookpad, does put theory inside the writing, so Music Copilot's gap is narrower than "theory beside the notes": it is a written reason for every suggestion, guide tones between chords, and out-of-key chords labeled rather than hidden.
+
+Competitors were reviewed in November 2026 from each product's own documentation.
+
+| Product | Category | What it does | Where Music Copilot differs |
+| --- | --- | --- | --- |
+| [Hookpad](https://www.hooktheory.com/hookpad/a1) (Hooktheory) | Theory-aware sketchpad | Knows the song's key, offers chords that work in it and hides the others by default, suggests the next chord, and shows note guides for the melody ([FAQ](https://www.hooktheory.com/faq), [Hookpad 2 announcement](https://www.hooktheory.com/blog/introducing-hookpad-2-a-musical-sketchpad-with-music-theory-built-in/)). | Closest competitor. Music Copilot gives a one or two sentence reason with each suggestion, marks guide tones moving into the next chord, labels borrowed and outside chords instead of hiding them, and writes guitar tab as well as notation. |
+| [Scaler 3](https://www.kvraudio.com/product/scaler-3-by-scaler-music) (Scaler Music) | DAW plugin | Detects keys and chords, suggests chords and progressions, and groups chords by genre and feel such as dark or bright ([Plugin Boutique](https://help.pluginboutique.com/hc/en-us/articles/35864679857684)). | Aimed at producers inside a DAW, with playback. Music Copilot is a browser writing environment that explains the theory, and it has no audio in v1. |
+| [Captain Chords](https://mixedinkey.com/captain-plugins/captain-chords/) (Mixed In Key) | DAW plugin | Generates chord progressions in a chosen key and scale, shows which next chords fit, and includes progressions from hit songs. | Its starting points come from famous songs. Music Copilot never uses a real artist's song as a template, and it explains why a chord fits. |
+| [Guitar Pro 8](https://www.guitar-pro.com/docs/gp8/basics/intro/overview) (Arobas) | Tab and notation editor | Writes tab and notation for many instruments, with a chord engine and a scale tool that shows scales in any key ([Scale tool](https://www.guitar-pro.com/docs/gp8/tools/scales)). | The scale tool is a separate reference. Music Copilot ties the scale to the chord under the cursor and gives a reason. |
+| [MuseScore Studio](https://musescore.org/en/4.7) (Muse Group) | Free notation editor | Full engraving with linked tablature staves for fretted instruments ([handbook](https://handbook.musescore.org/idiomatic-notation/guitar/entering-and-editing-tablature-notation)). | No theory guidance while writing. |
+| [musictheory.net](https://musictheory.net/exercises) | Theory lessons | Free lessons and exercises on scales, chords and progressions, plus ear training. | Teaches away from the song. Music Copilot teaches inside the song being written. |
+
+All six products play audio, which Music Copilot does not in v1. Pricing was not compared.
 
 ## 14. Technical Architecture
 
@@ -173,12 +186,14 @@ The riskiest parts are the theory engine's handling of borrowed chords and the a
 | A key is misidentified for a progression | Medium | The songwriter sets the key. Copilot only suggests one when asked. |
 | Songwriters rely on suggestions and skip learning | Low | Reasons are shown every time, and suggestions can be turned off. |
 
-## 16. Open Questions
+## 16. Decisions on Open Questions
 
-- Which genres should the first version cover, beyond jazz and instrumental writing?
-- Should the editor support tabs, sheet music, or both in v1?
-- How much theory should a beginner see by default, and how much should be hidden?
-- Who owns the progression library after the hackathon?
+These were open questions. They are now decided for v1.
+
+- **Genres:** v1 covers jazz, instrumental writing, pop and rock, and blues. The theory engine already handles their common harmony: diatonic progressions, borrowed chords, secondary dominants, dominant seventh chords and the blues scale. Other genres wait until after the pilot.
+- **Tabs or sheet music:** both. The editor draws guitar tab and sheet music from the same note data, so a note entered in one appears in the other.
+- **Beginner theory:** by default a beginner sees the chord name, whether it is in the key, borrowed or outside, the ranked scales and arpeggios, and a one or two sentence reason for each. Roman numerals, guide-tone movement and the language-model explanation sit one step deeper. Every suggestion still carries its reason, as the Explain rule requires.
+- **Library ownership:** the sample progression library lives in this repository and is maintained by the repository owner. Samples hold chord changes only, never a melody or recording. Progressions and melodies a songwriter writes belong to that songwriter and are shared only through an explicit export.
 
 ## 17. Glossary
 

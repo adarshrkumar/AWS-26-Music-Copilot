@@ -32,9 +32,9 @@ Two pilots. The first uses specific jazz songs, with assisted scales and notes. 
 
 A writing environment for chords, tempo, and bars, a basic music database or selection of progressions, scale and arpeggio suggestions with reasons, and a scale view for each chord. Recording, audio playback, and full song generation are outside the build.
 
-## Open questions
+## Decisions
 
-- Which genres should the first version cover, beyond jazz and instrumental writing?
-- Should the editor support tabs, sheet music, or both in v1?
-- How much theory should a beginner see by default?
-- Who owns the progression library after the hackathon?
+- **Genres:** jazz, instrumental writing, pop and rock, and blues in v1.
+- **Editor:** both tabs and sheet music, drawn from the same note data.
+- **Beginner theory:** chord status, ranked scales and arpeggios, and a short reason for each by default, with deeper detail one step away.
+- **Library:** the sample progressions stay in this repository. Songwriters own what they write.
