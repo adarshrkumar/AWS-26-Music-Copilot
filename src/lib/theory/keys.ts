@@ -42,7 +42,7 @@ export function getScaleIntervals(key: Key): number[] {
     return key.scale.pitchClasses.map(pitchClass => (pitchClass - tonic + 12) % 12);
 }
 
-export function getDegreeLabel(key: Key, rootPitchClass: number): { degree: number; prefix: string } {
+export function getDegreeLabel(key: Key, rootPitchClass: number) {
     const intervals = getScaleIntervals(key);
     const interval = (rootPitchClass - getTonicPitchClass(key) + 12) % 12;
 
@@ -63,7 +63,7 @@ export function getChordNumeral(key: Key, chord: Chord): string {
     const label = getDegreeLabel(key, rootPitchClass);
     const base = ROMAN_NUMERALS[label.degree - 1];
 
-    return `${label.prefix}${chord.isMinorThird ? base.toLowerCase() : base}${chord.romanSuffix}`;
+    return `${label.prefix}${chord.hasMinorThird ? base.toLowerCase() : base}${chord.romanSuffix}`;
 }
 
 export function getTriadNumeral(key: Key, degreeIndex: number): string | null {

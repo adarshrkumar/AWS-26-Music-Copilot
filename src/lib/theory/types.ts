@@ -1,3 +1,5 @@
+import type { Song } from '@/db/types';
+
 export type KeyMode = 'major' | 'minor';
 
 export type ChordFamily = 'major' | 'minor' | 'dominant' | 'diminished' | 'halfDiminished' | 'augmented' | 'suspended' | 'minorMajor' | 'power';
@@ -52,7 +54,7 @@ export interface Chord {
     guideDegrees: string[];
     romanSuffix: string;
     hasSeventh: boolean;
-    isMinorThird: boolean;
+    hasMinorThird: boolean;
 }
 
 export interface ScaleDefinition {
@@ -74,20 +76,8 @@ export interface ChordContext {
     reason: string;
 }
 
-export interface ScaleSuggestion {
-    kind: 'scale';
-    rank: number;
-    score: number;
-    root: string;
-    name: string;
-    notes: string[];
-    outsideReference: string[];
-    description: string;
-    reason: string;
-}
-
-export interface ArpeggioSuggestion {
-    kind: 'arpeggio';
+export interface Suggestion {
+    kind: 'scale' | 'arpeggio';
     rank: number;
     score: number;
     root: string;
@@ -119,8 +109,8 @@ export interface ChordAnalysis {
     name: string;
     chord: Chord;
     context: ChordContext;
-    scales: ScaleSuggestion[];
-    arpeggios: ArpeggioSuggestion[];
+    scales: Suggestion[];
+    arpeggios: Suggestion[];
     guideTones: GuideTone[];
     guideToneMoves: GuideToneMove[];
 }
@@ -138,11 +128,7 @@ export interface ProgressionAnalysis {
     chords: (ChordAnalysis | InvalidChord)[];
 }
 
-export interface ProgressionChord {
-    bar: number;
-    beat: number;
-    name: string;
-}
+export type ProgressionChord = Song['sections'][number]['chords'][number];
 
 export interface SampleProgression {
     id: string;

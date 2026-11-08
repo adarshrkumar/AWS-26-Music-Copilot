@@ -1,10 +1,17 @@
 import { z } from 'zod';
-import { explainNoteSchema, saveNotesSchema, sectionQuerySchema } from '@/db/validations';
+import { saveNotesSchema, sectionQuerySchema } from '@/db/validations';
 import { getSong } from '@/lib/songs';
 import { getServerError } from '@/lib/status-responses';
 import { explainNote, setNotes } from '@/lib/modules/editor';
 
 import type { APIRoute } from 'astro';
+
+const explainNoteSchema = z.object({
+    chord: z.string().min(1).max(32),
+    scale: z.string().min(1).max(64),
+    pitch: z.string().regex(/^[A-G][#b]?-?\d$/),
+    inScale: z.boolean(),
+});
 
 export const GET: APIRoute = async ({ locals, url }) => {
     if (!locals.user) {

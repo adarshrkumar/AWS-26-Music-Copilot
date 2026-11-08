@@ -37,22 +37,6 @@ function fitsScale(chord: Chord, scale: Scale): boolean {
     return chord.corePitchClasses.every(pitchClass => scale.pitchClasses.includes(pitchClass));
 }
 
-function findSecondaryTarget(key: Key, chord: Chord): string | null {
-    if (chord.family !== 'dominant') return null;
-
-    const intervals = getScaleIntervals(key);
-    const rootInterval = (getPitchClass(chord.root) ?? 0) - getTonicPitchClass(key);
-
-    for (let index = 1; index < intervals.length; index++) {
-        if ((intervals[index] + 7 - rootInterval + 24) % 12 !== 0) continue;
-
-        const numeral = getTriadNumeral(key, index);
-        if (numeral) return numeral;
-    }
-
-    return null;
-}
-
 export function classifyChord(key: Key, chord: Chord): ChordContext {
     const rootPitchClass = getPitchClass(chord.root) ?? 0;
     const roman = getChordNumeral(key, chord);
@@ -107,7 +91,19 @@ export function classifyChord(key: Key, chord: Chord): ChordContext {
         };
     }
 
-    const secondaryTarget = findSecondaryTarget(key, chord);
+    let secondaryTarget: string | null = null;
+
+    if (chord.family === 'dominant') {
+        const intervals = getScaleIntervals(key);
+
+        for (let index = 1; index < intervals.length; index++) {
+            if ((intervals[index] + 7 - (rootPitchClass - getTonicPitchClass(key)) + 24) % 12 !== 0) continue;
+
+            secondaryTarget = getTriadNumeral(key, index);
+            if (secondaryTarget) break;
+        }
+    }
+
     if (secondaryTarget) {
         const secondaryRoman = `V${chord.romanSuffix}/${secondaryTarget}`;
         return {
