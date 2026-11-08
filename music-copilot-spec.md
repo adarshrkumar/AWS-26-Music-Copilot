@@ -52,8 +52,7 @@ Music Copilot addresses these by keeping theory next to the writing. The songwri
 ## 5. User Roles
 
 - **Songwriter:** writes a progression, reviews suggestions, and decides what goes into the song. This is the main user.
-- **Student:** a songwriter in a class or course, who may use a teacher's sample progressions. Often the same person as the songwriter.
-- **Teacher:** sets sample progressions for a class and sees which concepts students explored. Optional in v1.
+- **Student:** a songwriter who is learning harmony and may start from sample progressions. Often the same person as the songwriter.
 
 ## 6. Primary Workflows
 
@@ -109,7 +108,6 @@ Suggestions are shown in a side panel with a short reason, such as "This is the 
 
 - **Songs:** kept on the device by default and synced only when the songwriter chooses an account.
 - **Melodies and progressions:** not used to train models, and not shared with other users without an explicit export.
-- **Class data:** a teacher sees which sample progressions a student used and how many suggestions were accepted. The teacher does not see the student's melodies unless the student shares them.
 - **Retention:** songs kept until the songwriter deletes them. Account deletion removes synced copies within thirty days.
 - **Training:** songs are not used to train models without a separate opt-in.
 
@@ -195,8 +193,7 @@ These were open questions. They are now decided for v1.
 - **Genres:** v1 covers jazz, instrumental writing, pop and rock, and blues. The theory engine already handles their common harmony: diatonic progressions, borrowed chords, secondary dominants, dominant seventh chords and the blues scale. Other genres wait until after the pilot.
 - **Tabs or sheet music:** both. The editor draws guitar tab and sheet music from the same note data, so a note entered in one appears in the other.
 - **Beginner theory:** by default a beginner sees the chord name, whether it is in the key, borrowed or outside, the ranked scales and arpeggios, and a one or two sentence reason for each. Roman numerals, guide-tone movement and the language-model explanation sit one step deeper. Every suggestion still carries its reason, as the Explain rule requires.
-- **Teacher scope:** a teacher sets sample progressions for a class in v1, not a full course. Lessons, ordering and grading are out of scope.
-- **Library ownership:** the sample progression library lives in this repository and is covered by its MIT license, maintained by the repository owner. Samples hold chord changes only, never a melody or recording. Progressions and melodies a songwriter writes belong to that songwriter and are shared only through an explicit export.
+- **Library ownership:** the sample progression library lives in this repository and is maintained by the repository owner. Samples hold chord changes only, never a melody or recording. Progressions and melodies a songwriter writes belong to that songwriter and are shared only through an explicit export.
 
 ## 17. Glossary
 

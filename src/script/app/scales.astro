@@ -143,7 +143,9 @@
 
         state.selectedId = id;
 
-        for (const button of optionsList.querySelectorAll<HTMLButtonElement>('.scales__select')) {
+        for (const button of optionsList.querySelectorAll('.scales__select')) {
+            if (!(button instanceof HTMLElement)) continue;
+
             const selected = button.dataset.id === id;
             button.setAttribute('aria-pressed', selected ? 'true' : 'false');
             button.closest('.scales__option')?.toggleAttribute('data-selected', selected);
@@ -203,7 +205,7 @@
         optionsList.replaceChildren(...current.options.map(option => buildOption(option, current, token)));
         selectOption(current.selectedId);
 
-        for (const button of chordButtons.querySelectorAll<HTMLButtonElement>('button')) {
+        for (const button of chordButtons.querySelectorAll('button')) {
             button.setAttribute('aria-pressed', button.dataset.chord === current.chord.name ? 'true' : 'false');
         }
     }
@@ -354,7 +356,9 @@
             item.querySelector('[data-field="reason"]')?.replaceChildren(suggestion.reason);
             item.querySelector('[data-field="state"]')?.replaceChildren(stateLabels[suggestion.status]);
 
-            for (const button of item.querySelectorAll<HTMLButtonElement>('[data-action]')) {
+            for (const button of item.querySelectorAll('[data-action]')) {
+                if (!(button instanceof HTMLElement)) continue;
+
                 button.setAttribute('aria-label', `${button.textContent} ${suggestion.kind} ${suggestion.value} in bar ${suggestion.bar}`);
                 button.hidden = button.dataset.action === suggestion.status;
             }

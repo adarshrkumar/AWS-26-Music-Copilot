@@ -1,11 +1,12 @@
+import { getItem, setItem } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
 import type { Song } from '@/db/types';
 import { generateText } from '@/lib/bedrock';
-import { getSong, setSong } from '@/lib/songs';
 
 type Section = Song['sections'][number];
 
 export async function getProgression(userId: string, songId: string, sectionId: string): Promise<Section | null> {
-    const song = await getSong(userId, songId);
+    const song: Song | null = await getItem(songTable, { userId, id: songId });
     if (!song) return null;
 
     for (const section of song.sections) {
@@ -16,7 +17,7 @@ export async function getProgression(userId: string, songId: string, sectionId: 
 }
 
 export async function setProgression(userId: string, songId: string, key: string, tempo: number, progression: Section): Promise<void> {
-    const song = await getSong(userId, songId);
+    const song: Song | null = await getItem(songTable, { userId, id: songId });
     if (!song) return;
 
     const sections: Section[] = [];
@@ -34,11 +35,11 @@ export async function setProgression(userId: string, songId: string, key: string
 
     if (!found) sections.push(progression);
 
-    await setSong({ ...song, key, tempo, sections, updatedAt: new Date().toISOString() });
+    await setItem(songTable, { ...song, key, tempo, sections, updatedAt: new Date().toISOString() });
 }
 
 export async function deleteProgression(userId: string, songId: string, sectionId: string): Promise<void> {
-    const song = await getSong(userId, songId);
+    const song: Song | null = await getItem(songTable, { userId, id: songId });
     if (!song) return;
 
     const sections: Section[] = [];
@@ -47,7 +48,7 @@ export async function deleteProgression(userId: string, songId: string, sectionI
         if (section.id !== sectionId) sections.push(section);
     }
 
-    await setSong({ ...song, sections, updatedAt: new Date().toISOString() });
+    await setItem(songTable, { ...song, sections, updatedAt: new Date().toISOString() });
 }
 
 export async function explainChord(key: string, chord: string, chordFunction: string): Promise<string> {

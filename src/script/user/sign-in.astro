@@ -1,0 +1,20 @@
+<script>
+    import { authClient } from '@/lib/auth/client';
+
+    document.querySelector('.auth__form')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget instanceof HTMLFormElement ? event.currentTarget : undefined);
+        const button = document.querySelector('.auth__form button');
+        const message = document.querySelector('.auth__error');
+        (button as HTMLButtonElement).dataset.state = 'loading';
+
+        const { error } = await authClient.signIn.email({ email: data.get('email')?.toString() ?? '', password: data.get('password')?.toString() ?? '' });
+
+        button?.removeAttribute('data-state');
+        if (!error) return window.location.assign('/app');
+        if (message) message.textContent = error.message ?? 'Sign in failed. Check your email and password.';
+    });
+
+    document.querySelector('[data-provider="google"]')?.addEventListener('click', () => authClient.signIn.social({ provider: 'google', callbackURL: '/app' }));
+    document.querySelector('[data-provider="github"]')?.addEventListener('click', () => authClient.signIn.social({ provider: 'github', callbackURL: '/app' }));
+</script>

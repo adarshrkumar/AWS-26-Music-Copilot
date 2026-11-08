@@ -42,6 +42,16 @@
 
     &__nav {
         max-width: 100%;
+
+        @include below(md) {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: space(1) space(1) calc(#{space(1)} + env(safe-area-inset-bottom));
+            background: $bg-primary;
+            border-top: 2px $border-style $text-primary;
+        }
     }
 
     &__list {
@@ -51,6 +61,13 @@
         flex-wrap: wrap;
         gap: space(2);
         display: flex;
+
+        @include below(md) {
+            grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+            grid-auto-flow: column;
+            gap: space(1);
+            display: grid;
+        }
     }
 
     &__link {
@@ -58,6 +75,25 @@
         color: $text-primary;
         border-radius: radius(pill);
         text-decoration: none;
+
+        @include below(md) {
+            padding: space(1);
+            min-height: $row-min-height;
+            border-radius: radius(md);
+            justify-content: center;
+            align-items: center;
+            font-size: font-size(xs);
+            text-align: center;
+            overflow-wrap: anywhere;
+            display: flex;
+
+            &[aria-current="page"] {
+                &, &:hover {
+                    color: $text-inverse;
+                    background: $primary-color;
+                }
+            }
+        }
 
         &:hover {
             background: $bg-secondary;

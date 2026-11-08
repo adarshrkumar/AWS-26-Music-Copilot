@@ -9,7 +9,6 @@ const { title, href, class: className = '' } = Astro.props;
 
 import '@/styles/components/card.scss';
 ---
-
 {href ? (
     <a href={href} class={`card-component ${className}`}>
         {title && <h3 class="card-component__title">{title}</h3>}

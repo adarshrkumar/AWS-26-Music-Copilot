@@ -1,11 +1,11 @@
 ---
 import Header from '@/components/Header.astro';
 import Layout from '@/layouts/Layout.astro';
+import SignInScript from '@/script/user/sign-in.astro';
 import '@/styles/components/button.scss';
 import '@/styles/components/form.scss';
 import '@/styles/pages/user.scss';
 ---
-
 <Layout pageTitle="Sign in">
     <Header />
 
@@ -44,28 +44,5 @@ import '@/styles/pages/user.scss';
             <p class="auth__switch">No account yet? <a href="/user/sign-up">Sign up</a></p>
         </div>
     </main>
+    <SignInScript />
 </Layout>
-
-<script>
-    import { authClient } from '@/lib/auth/client';
-
-    function field(name: string): string {
-        return document.querySelector<HTMLInputElement>(`[name="${name}"]`)?.value ?? '';
-    }
-
-    document.querySelector('.auth__form')?.addEventListener('submit', async event => {
-        event.preventDefault();
-        const button = document.querySelector<HTMLButtonElement>('.auth__form button');
-        const message = document.querySelector<HTMLElement>('.auth__error');
-        button?.setAttribute('data-state', 'loading');
-
-        const { error } = await authClient.signIn.email({ email: field('email'), password: field('password') });
-
-        button?.removeAttribute('data-state');
-        if (!error) return window.location.assign('/app');
-        if (message) message.textContent = error.message ?? 'Sign in failed. Check your email and password.';
-    });
-
-    document.querySelector('[data-provider="google"]')?.addEventListener('click', () => authClient.signIn.social({ provider: 'google', callbackURL: '/app' }));
-    document.querySelector('[data-provider="github"]')?.addEventListener('click', () => authClient.signIn.social({ provider: 'github', callbackURL: '/app' }));
-</script>

@@ -1,6 +1,12 @@
 @use '../variables/system' as *;
 @use '../variables/tokens' as *;
 
+html {
+    @include below(md) {
+        scroll-padding-bottom: calc(#{$app-nav-clearance} + #{space(16)});
+    }
+}
+
 .app {
     margin-inline: auto;
     padding: space(6) space(4);
@@ -9,4 +15,8 @@
     align-content: start;
     gap: space(6);
     display: grid;
+
+    @include below(md) {
+        padding-bottom: calc(#{$app-nav-clearance} + #{space(16)} + #{space(6)});
+    }
 }

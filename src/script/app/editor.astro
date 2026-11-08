@@ -24,6 +24,8 @@
     const tab = document.querySelector('#tab');
     const sheet = document.querySelector('#sheet');
     const reasonPanel = document.querySelector('#reason');
+    const reasonHeading = document.getElementById('reason-heading');
+    const reasonBody = document.querySelector('#reason-body');
     const errorLine = document.querySelector('#editor-error');
     const statusLine = document.querySelector('#editor-status');
     const barButtons = document.querySelectorAll('[data-bar]');
@@ -322,6 +324,7 @@
 
     function resetForm(): void {
         editing = null;
+        for (const field of document.querySelectorAll('[aria-invalid]')) field.removeAttribute('aria-invalid');
         (pitchInput as HTMLInputElement).value = '';
         (stringSelect as HTMLSelectElement).value = '';
         (fretInput as HTMLInputElement).value = '';
@@ -348,15 +351,13 @@
     }
 
     function showReason(heading: string, text: string, className: string): void {
-        const title = document.createElement('h2');
         const paragraph = document.createElement('p');
 
-        title.className = 'editor__heading';
-        title.textContent = heading;
         paragraph.className = className;
         paragraph.textContent = text;
         reasonPanel?.toggleAttribute('hidden', false);
-        reasonPanel?.replaceChildren(title, paragraph);
+        reasonHeading?.replaceChildren(heading);
+        reasonBody?.replaceChildren(paragraph);
     }
 
     async function save(next: Note[], message: string): Promise<boolean> {
@@ -404,6 +405,7 @@
         const scaleNote = document.createElement('p');
 
         showReason(heading, 'Loading the reason...', '');
+        reasonHeading?.focus();
 
         if (!reasons.has(cacheKey)) {
             try {
@@ -434,7 +436,7 @@
         scaleNote.className = 'indicative-note';
         scaleNote.textContent = `Scale used: ${scale}. This is one way to hear the note, not the only correct one.`;
         showReason(heading, reasons.get(cacheKey) ?? '', '');
-        reasonPanel?.append(scaleNote);
+        reasonBody?.append(scaleNote);
     }
 
     function keep(note: Note): void {
@@ -454,26 +456,26 @@
 
         if (editing === note) resetForm();
         render();
-        document.querySelector<HTMLElement>('#notes-heading')?.focus();
+        document.getElementById('notes-heading')?.focus();
     }
 
-    function readNote(): Note | string {
-        if (!(beatInput instanceof HTMLInputElement) || !(durationSelect instanceof HTMLSelectElement) || !(pitchInput instanceof HTMLInputElement) || !(stringSelect instanceof HTMLSelectElement) || !(fretInput instanceof HTMLInputElement)) return 'The note form did not load.';
+    function readNote(): Note | [Element | null, string] {
+        if (!(beatInput instanceof HTMLInputElement) || !(durationSelect instanceof HTMLSelectElement) || !(pitchInput instanceof HTMLInputElement) || !(stringSelect instanceof HTMLSelectElement) || !(fretInput instanceof HTMLInputElement)) return [null, 'The note form did not load.'];
 
         const beat = parseFloat(beatInput.value);
-        if (!Number.isInteger(beat * 4) || beat < 1 || beat >= 5) return 'Beat must be between 1 and 4.75 in steps of 0.25.';
+        if (!Number.isInteger(beat * 4) || beat < 1 || beat >= 5) return [beatInput, 'Beat must be between 1 and 4.75 in steps of 0.25.'];
 
         if (stringSelect.value && fretInput.value) {
             const fretPitch = getFretPitch(parseInt(stringSelect.value, 10), parseInt(fretInput.value, 10));
-            if (!fretPitch) return 'Fret must be a whole number from 0 to 24.';
+            if (!fretPitch) return [fretInput, 'Fret must be a whole number from 0 to 24.'];
 
             return { bar, beat, duration: parseFloat(durationSelect.value), pitch: fretPitch, string: parseInt(stringSelect.value, 10), fret: parseInt(fretInput.value, 10) };
         }
 
-        if (stringSelect.value || fretInput.value) return 'Pick both a string and a fret, or write a pitch instead.';
+        if (stringSelect.value || fretInput.value) return [stringSelect.value ? fretInput : stringSelect, 'Pick both a string and a fret, or write a pitch instead.'];
 
         const pitch = formatPitch(pitchInput.value);
-        if (!pitch) return 'Write a pitch such as C4, F#3 or Bb4, or pick a string and fret.';
+        if (!pitch) return [pitchInput, 'Write a pitch such as C4, F#3 or Bb4, or pick a string and fret.'];
 
         return { bar, beat, duration: parseFloat(durationSelect.value), pitch, ...getFretPosition(pitch) };
     }
@@ -483,14 +485,19 @@
 
         const note = readNote();
 
-        if (typeof note === 'string') {
-            errorLine?.replaceChildren(note);
-            if (pitchInput instanceof HTMLInputElement) pitchInput.focus();
+        for (const field of document.querySelectorAll('[aria-invalid]')) field.removeAttribute('aria-invalid');
+
+        if (Array.isArray(note)) {
+            errorLine?.replaceChildren(note[1]);
+            note[0]?.setAttribute('aria-invalid', 'true');
+            if (note[0] instanceof HTMLElement) note[0].focus();
             return;
         }
 
         if (notes.some(existing => existing !== editing && existing.bar === note.bar && existing.beat === note.beat && existing.pitch === note.pitch)) {
             errorLine?.replaceChildren(`${note.pitch} is already on beat ${note.beat} of bar ${bar}.`);
+            pitchInput?.setAttribute('aria-invalid', 'true');
+            if (pitchInput instanceof HTMLElement) pitchInput.focus();
             return;
         }
 
@@ -520,6 +527,7 @@
         resetForm();
         statusLine?.replaceChildren('Change cancelled. The note was left as it was.');
         render();
+        if (pitchInput instanceof HTMLInputElement) pitchInput.focus();
     });
 
     for (const button of barButtons) {

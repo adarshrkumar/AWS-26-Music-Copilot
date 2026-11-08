@@ -24,7 +24,6 @@ export interface Song {
     key: string;
     tempo: number;
     sampleProgressionId: string | null;
-    melodyShared: boolean;
     sections: {
         id: string;
         name: string;
@@ -60,7 +59,6 @@ export interface Comment {
     updatedAt: string;
 }
 
-// Metric events hold counts and timestamps only. They never hold chords, notes or melodies, and the ids are random values that are not linked to an account.
 export type ClientMetricName = 'session_start' | 'first_chord' | 'first_scale_view' | 'progression_saved' | 'reason_opened';
 
 export type MetricName = ClientMetricName | 'suggestion_shown' | 'suggestion_accepted' | 'suggestion_rejected';

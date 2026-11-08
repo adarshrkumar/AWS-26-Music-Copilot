@@ -17,7 +17,7 @@ const requestSchema = z.object({
     maxTokens: z.number().positive().optional().default(1000),
 });
 
-export async function POST({ request }: APIContext): Promise<Response> {
+export const POST = async ({ request }: APIContext): Promise<Response> => {
     try {
         const { messages, system, modelId, temperature, maxTokens } = requestSchema.parse(await request.json());
         const stream = streamText({ system, messages: messages.map(message => ({ role: message.role, content: [{ text: message.content }] })), modelId, temperature, maxTokens });
@@ -59,4 +59,4 @@ export async function POST({ request }: APIContext): Promise<Response> {
         console.error('Chat API error:', error);
         return getServerError(error instanceof Error ? error.message : 'Unknown error');
     }
-}
+};

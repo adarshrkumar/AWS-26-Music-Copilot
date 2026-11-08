@@ -1,6 +1,6 @@
 const APP_SHORT_NAME = 'TonePilot';
 
-export const siteConfig = {
+export default {
     appShortName: APP_SHORT_NAME,
     appName: APP_SHORT_NAME,
     appDescription:

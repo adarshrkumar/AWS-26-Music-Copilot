@@ -13,13 +13,13 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Build a Progression
 
-- [ ] Add key, tempo and bar count controls to `src/pages/app/progression.astro`
-- [ ] Add chord entry, one chord at a time, with changes to any chord
-- [ ] Add a sample progression picker
-- [ ] Show each chord's name, function in the key and a short note from `explainChord`
-- [ ] Update suggestions whenever a chord changes
-- [ ] Limit a progression to sixteen bars and split longer progressions into sections
-- [ ] Save progressions through `setProgression` in `src/script/app/progression.astro`
+- [x] Add key, tempo and bar count controls to `src/pages/app/progression.astro`
+- [x] Add chord entry, one chord at a time, with changes to any chord
+- [x] Add a sample progression picker
+- [x] Show each chord's name, function in the key and a short note from `explainChord`
+- [x] Update suggestions whenever a chord changes
+- [x] Limit a progression to sixteen bars and split longer progressions into sections
+- [x] Save progressions through `setProgression` in `src/script/app/progression.astro`
 
 ## Find Scales and Notes
 
@@ -66,17 +66,11 @@ These features of the app should be placed within their existing `src/pages` ast
 - [x] Remove synced copies within thirty days of account deletion
 - [x] Link the app pages from `src/pages/app/index.astro` and the app header
 
-## Teacher
-
-- [ ] Let a teacher set sample progressions for a class
-- [ ] Show a teacher which sample progressions a student used and how many suggestions were accepted
-- [ ] Hide a student's melodies from the teacher unless the student shares them
-
 ## Accessibility
 
 - [ ] Make every control work with a keyboard and a screen reader, including note entry and scale selection
 - [ ] Make every suggestion readable as text without the diagram
-- [ ] Place the main controls within reach for one-handed use on a phone
+- [x] Place the main controls within reach for one-handed use on a phone
 
 ## Metrics
 
@@ -99,6 +93,5 @@ These features of the app should be placed within their existing `src/pages` ast
 - [x] Decide which genres the first version covers beyond jazz and instrumental writing
 - [x] Decide whether the editor supports tabs, sheet music or both in v1
 - [x] Decide how much theory a beginner sees by default
-- [x] Decide whether a teacher can set a full course or only sample progressions
 - [x] Decide who owns the progression library after the hackathon
 - [x] Finish the competitive review

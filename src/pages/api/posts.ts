@@ -18,7 +18,7 @@ async function getPost(id: string): Promise<Post | null> {
     return getItem(dataTable, { pk: 'POST', sk: id });
 }
 
-export async function GET({ url }: APIContext): Promise<Response> {
+export const GET = async ({ url }: APIContext): Promise<Response> => {
     try {
         const validated = postQuerySchema.parse({
             page: url.searchParams.get('page'),
@@ -79,9 +79,9 @@ export async function GET({ url }: APIContext): Promise<Response> {
         console.error('GET /api/posts error:', error);
         return getServerError();
     }
-}
+};
 
-export async function POST({ request }: APIContext): Promise<Response> {
+export const POST = async ({ request }: APIContext): Promise<Response> => {
     try {
         const validated: CreatePostInput = createPostSchema.parse(await request.json());
 
@@ -130,9 +130,9 @@ export async function POST({ request }: APIContext): Promise<Response> {
         console.error('POST /api/posts error:', error);
         return getServerError();
     }
-}
+};
 
-export async function PUT({ request }: APIContext): Promise<Response> {
+export const PUT = async ({ request }: APIContext): Promise<Response> => {
     try {
         const { id, ...updateData }: UpdatePostInput = updatePostSchema.parse(await request.json());
 
@@ -212,9 +212,9 @@ export async function PUT({ request }: APIContext): Promise<Response> {
         console.error('PUT /api/posts error:', error);
         return getServerError();
     }
-}
+};
 
-export async function DELETE({ url }: APIContext): Promise<Response> {
+export const DELETE = async ({ url }: APIContext): Promise<Response> => {
     try {
         const id = url.searchParams.get('id');
 
@@ -277,4 +277,4 @@ export async function DELETE({ url }: APIContext): Promise<Response> {
         console.error('DELETE /api/posts error:', error);
         return getServerError();
     }
-}
+};
