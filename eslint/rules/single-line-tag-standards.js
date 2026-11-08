@@ -13,7 +13,6 @@ export default {
             Program() {
                 if (!context.filename.endsWith('.astro')) return;
 
-                // Opening tags must not split their attributes across lines. A ">" inside quotes or braces does not end a tag. Frontmatter, script and style contents are blanked out so only markup is checked
                 for (const match of context.sourceCode.getText().replace(/^---\r?\n[\s\S]*?\r?\n---|<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, text => text.replace(/[^\r\n]/g, ' ')).matchAll(/<[a-zA-Z](?:[^<>{}"']|"[^"]*"|'[^']*'|\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\})*>/g)) {
                     if (!match[0].includes('\n')) continue;
 

@@ -226,3 +226,94 @@ export function getNoteStatus(pitch: string, chord: Chord | undefined, key: stri
 
     return 'outside';
 }
+
+const PHRASE_TITLES = {
+    rising: 'Rising chord tones with stepwise passing notes',
+    falling: 'Falling chord tones with stepwise passing notes',
+    guide: 'Guide tones on the strong beats',
+};
+
+export function proposePhrases(key: string, chords: Pick<Chord, 'beat' | 'name'>[]) {
+    const ordered = [...chords].sort((first, second) => first.beat - second.beat);
+    const proposals = [];
+
+    if (ordered.length === 0) return null;
+
+    for (const chord of ordered) {
+        if (getChordTones(chord.name).length === 0) return null;
+    }
+
+    for (const [style, title] of Object.entries(PHRASE_TITLES)) {
+        const notes: Pick<Note, 'beat' | 'duration' | 'pitch'>[] = [];
+        let strongCount = 0;
+        let last: number | null = null;
+
+        for (let index = 0; index < ordered.length; index++) {
+            const tones = getChordTones(ordered[index].name);
+            const chordNotes: number[] = [];
+            const scaleNotes: number[] = [];
+            const beats: number[] = [];
+            const midis: number[] = [];
+            let start = ordered[index].beat;
+
+            for (let midi = 60; midi <= 83; midi++) {
+                if (tones.includes(wrap(midi))) chordNotes.push(midi);
+                if (getScaleTones(ordered[index].name, key).includes(wrap(midi))) scaleNotes.push(midi);
+            }
+
+            if (index === 0) start = 1;
+
+            for (let beat = start; beat < (ordered[index + 1]?.beat ?? 5); beat++) {
+                beats.push(beat);
+                midis.push(0);
+            }
+
+            const rootIndex = chordNotes.findIndex(midi => wrap(midi) === tones[0]);
+            let top = chordNotes.findIndex(midi => midi >= chordNotes[rootIndex] + 12);
+            if (top === -1) top = chordNotes.length - 1;
+
+            for (let position = 0; position < beats.length; position++) {
+                if (position > 0 && beats[position] % 2 !== 1) continue;
+
+                if (style === 'rising') midis[position] = chordNotes[Math.min(rootIndex + strongCount, chordNotes.length - 1)];
+                if (style === 'falling') midis[position] = chordNotes[Math.max(top - strongCount, 0)];
+
+                if (style === 'guide') {
+                    for (const midi of chordNotes) {
+                        if (wrap(midi) !== [tones[1], tones[tones.length > 3 ? 3 : 2]][strongCount % 2]) continue;
+                        if (midis[position] === 0 || Math.abs(midi - (last ?? 67)) < Math.abs(midis[position] - (last ?? 67))) midis[position] = midi;
+                    }
+                }
+
+                strongCount++;
+                last = midis[position];
+            }
+
+            for (let position = 1; position < beats.length; position++) {
+                if (midis[position] !== 0) continue;
+
+                const next = midis.slice(position + 1).find(midi => midi !== 0);
+                const previousIndex = scaleNotes.indexOf(midis[position - 1]);
+                let goesUp = style !== 'falling';
+                if (next !== undefined) goesUp = next >= midis[position - 1];
+
+                midis[position] = scaleNotes[goesUp ? Math.min(previousIndex + 1, scaleNotes.length - 1) : Math.max(previousIndex - 1, 0)];
+            }
+
+            for (let position = 0; position < beats.length; position++) {
+                notes.push({ beat: beats[position], duration: 1, pitch: getPitchName(midis[position]) });
+            }
+        }
+
+        proposals.push({
+            title,
+            chord: ordered.map(chord => chord.name).join(' → '),
+            scale: ordered.map(chord => getScaleName(chord.name, key)).join(' → '),
+            chordTones: getChordTones(ordered[0].name).map(tone => SHARP_NAMES[tone]),
+            keyLabel: ordered.map(chord => `${chord.name}: ${getInKey(chord.name, key) ? 'inside the key' : 'borrowed or outside the key'}`).join('; '),
+            notes,
+        });
+    }
+
+    return proposals;
+}

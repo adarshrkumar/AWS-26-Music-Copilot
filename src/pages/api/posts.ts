@@ -10,16 +10,14 @@ import {
     type CreatePostInput,
     type UpdatePostInput,
 } from '@/db/validations';
+import { getServerError } from '@/lib/status-responses';
 
 import type { APIContext } from 'astro';
-
-// Demonstrates CRUD operations with DynamoDB, Zod validation, and NanoID
 
 async function getPost(id: string): Promise<Post | null> {
     return getItem(dataTable, { pk: 'POST', sk: id });
 }
 
-// GET /api/posts - List posts with pagination and filtering
 export async function GET({ url }: APIContext): Promise<Response> {
     try {
         const validated = postQuerySchema.parse({
@@ -33,7 +31,6 @@ export async function GET({ url }: APIContext): Promise<Response> {
         const offset = (validated.page - 1) * validated.limit;
         const search = validated.search?.toLowerCase();
 
-        // DynamoDB has no ILIKE or ORDER BY on non-key attributes, so filtering, search and sorting happen here
         const results = (await queryItems(dataTable, {
             KeyConditionExpression: 'pk = :pk',
             ExpressionAttributeValues: { ':pk': 'POST' },
@@ -80,21 +77,10 @@ export async function GET({ url }: APIContext): Promise<Response> {
         }
 
         console.error('GET /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
 }
 
-// POST /api/posts - Create a new post
 export async function POST({ request }: APIContext): Promise<Response> {
     try {
         const validated: CreatePostInput = createPostSchema.parse(await request.json());
@@ -142,21 +128,10 @@ export async function POST({ request }: APIContext): Promise<Response> {
         }
 
         console.error('POST /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
 }
 
-// PUT /api/posts - Update an existing post
 export async function PUT({ request }: APIContext): Promise<Response> {
     try {
         const { id, ...updateData }: UpdatePostInput = updatePostSchema.parse(await request.json());
@@ -235,21 +210,10 @@ export async function PUT({ request }: APIContext): Promise<Response> {
         }
 
         console.error('PUT /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
 }
 
-// DELETE /api/posts - Delete a post
 export async function DELETE({ url }: APIContext): Promise<Response> {
     try {
         const id = url.searchParams.get('id');
@@ -268,7 +232,6 @@ export async function DELETE({ url }: APIContext): Promise<Response> {
             );
         }
 
-        // Validate ID format (NanoID is 21 characters)
         if (id.length !== 21) {
             return new Response(
                 JSON.stringify({
@@ -312,16 +275,6 @@ export async function DELETE({ url }: APIContext): Promise<Response> {
         );
     } catch (error) {
         console.error('DELETE /api/posts error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError();
     }
 }

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { saveNotesSchema, sectionQuerySchema } from '@/db/validations';
 import { getSong } from '@/lib/songs';
-import { getServerError } from '@/lib/status-responses';
+import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { explainNote, setNotes } from '@/lib/modules/editor';
 
 import type { APIContext } from 'astro';
@@ -14,19 +14,7 @@ const explainNoteSchema = z.object({
 });
 
 export async function GET({ locals, url }: APIContext): Promise<Response> {
-    if (!locals.user) {
-        return new Response(
-            JSON.stringify({
-                error: 'Unauthorized',
-            }),
-            {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-    }
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const { songId, sectionId } = sectionQuerySchema.parse({ songId: url.searchParams.get('songId'), sectionId: url.searchParams.get('sectionId') });
@@ -79,19 +67,7 @@ export async function GET({ locals, url }: APIContext): Promise<Response> {
 }
 
 export async function PUT({ locals, request }: APIContext): Promise<Response> {
-    if (!locals.user) {
-        return new Response(
-            JSON.stringify({
-                error: 'Unauthorized',
-            }),
-            {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-    }
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const { songId, sectionId, notes } = saveNotesSchema.parse(await request.json());
@@ -161,19 +137,7 @@ export async function PUT({ locals, request }: APIContext): Promise<Response> {
 }
 
 export async function POST({ locals, request }: APIContext): Promise<Response> {
-    if (!locals.user) {
-        return new Response(
-            JSON.stringify({
-                error: 'Unauthorized',
-            }),
-            {
-                status: 401,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
-    }
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const { chord, scale, pitch, inScale } = explainNoteSchema.parse(await request.json());

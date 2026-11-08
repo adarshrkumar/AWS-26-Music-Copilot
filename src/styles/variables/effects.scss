@@ -31,7 +31,6 @@ $focus-ring: 0 0 0 $focus-ring-width rgba($primary-color, .45);
     }
 }
 
-// Reads --mx and --my, set from JavaScript.
 $bg-glow: radial-gradient(420px circle at var(--mx) var(--my), rgba($primary-color, .08), transparent 60%);
 $grad-progress: linear-gradient(90deg, $primary-color, $secondary-color);
 $grad-escalate: linear-gradient(90deg, rgba($secondary-color, .25), rgba($error-color, .18));

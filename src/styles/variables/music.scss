@@ -7,7 +7,6 @@
     background-repeat: repeat-x;
 }
 
-// Glyph mixins set `content`, so use them inside ::before or ::after.
 @mixin treble-clef {
     content: '\1D11E';
 }

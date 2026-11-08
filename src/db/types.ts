@@ -1,5 +1,3 @@
-// DynamoDB single-table items: every post is stored with pk "POST" and sk set to the post's NanoID, so all posts can be read with one query.
-
 export interface Post {
     pk: 'POST';
     sk: string;

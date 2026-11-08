@@ -120,6 +120,8 @@ export default [
                 HTMLFormElement: 'readonly',
                 HTMLSelectElement: 'readonly',
                 HTMLUListElement: 'readonly',
+                HTMLLIElement: 'readonly',
+                Option: 'readonly',
                 HTMLElementTagNameMap: 'readonly',
                 SVGSVGElement: 'readonly',
                 SVGElementTagNameMap: 'readonly',

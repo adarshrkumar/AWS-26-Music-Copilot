@@ -6,9 +6,6 @@
 @use '../variables/tokens' as *;
 @use 'sass:map';
 
-// Usage (preferred): <input class="form-input" data-state="error" data-size="lg" />
-// Usage (alternative): <input class="form-input error lg" />
-
 .form {
     width: 100%;
     max-width: 600px;
@@ -24,13 +21,11 @@
         font-weight: $font-weight-medium;
         display: block;
 
-        // Use data attributes for required state
         &[data-required="true"]::after {
             content: ' *';
             color: $error-color;
         }
 
-        // Alternative: class chaining
         &.required::after {
             content: ' *';
             color: $error-color;
@@ -42,7 +37,6 @@
     &-select {
         @include input-base;
 
-        // State modifiers using data attributes (preferred)
         &[data-state="error"] {
             border-color: $error-color;
 
@@ -67,7 +61,6 @@
             }
         }
 
-        // Size modifiers using data attributes
         &[data-size="small"] {
             padding: space(2) space(4);
             font-size: font-size(base);
@@ -78,7 +71,6 @@
             font-size: $font-size-large;
         }
 
-        // Alternative: class chaining for states
         &.error {
             border-color: $error-color;
 
@@ -103,7 +95,6 @@
             }
         }
 
-        // Size class chaining alternatives
         &.small {
             padding: space(2) space(4);
             font-size: font-size(base);
@@ -196,7 +187,6 @@
             }
         }
 
-        // Alternative class chaining
         &.disabled {
             opacity: 0.5;
             cursor: not-allowed;

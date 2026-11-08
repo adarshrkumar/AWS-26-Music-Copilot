@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { songIdSchema, songInputSchema } from '@/db/validations';
+import { songInputSchema } from '@/db/validations';
 import { deleteSong, getSong, getSongs, setSong } from '@/lib/songs';
+import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 
 import type { APIContext } from 'astro';
 
@@ -11,12 +12,11 @@ function json(body: object, status = 200): Response {
 function failure(method: string, error: Error | null): Response {
     if (error instanceof z.ZodError) return json({ error: 'Validation error', details: error.errors }, 400);
     console.error(`${method} /api/songs error:`, error);
-    return json({ error: 'Internal server error' }, 500);
+    return getServerError();
 }
 
-// GET /api/songs - List the synced copies that belong to the signed-in songwriter
 export async function GET({ locals }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         return json({ data: await getSongs(locals.user.id) });
@@ -25,9 +25,8 @@ export async function GET({ locals }: APIContext): Promise<Response> {
     }
 }
 
-// PUT /api/songs - Sync one song to the account. The client only calls this when the songwriter chooses to sync
 export async function PUT({ locals, request }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const input = songInputSchema.parse(await request.json());
@@ -41,12 +40,11 @@ export async function PUT({ locals, request }: APIContext): Promise<Response> {
     }
 }
 
-// DELETE /api/songs?id=... - Remove the synced copy only, the copy on the device is untouched
 export async function DELETE({ locals, url }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Unauthorized' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     try {
-        await deleteSong(locals.user.id, songIdSchema.parse(url.searchParams.get('id')));
+        await deleteSong(locals.user.id, songInputSchema.shape.id.parse(url.searchParams.get('id')));
         return json({ message: 'Synced copy removed' });
     } catch (error) {
         return failure('DELETE', error instanceof Error ? error : null);
