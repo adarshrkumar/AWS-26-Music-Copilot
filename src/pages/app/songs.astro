@@ -1,0 +1,100 @@
+---
+import App from '@/layouts/App.astro';
+import SongsScript from '@/script/app/songs.astro';
+import '@/styles/components/button.scss';
+import '@/styles/components/form.scss';
+import '@/styles/pages/songs.scss';
+
+const signedIn = Boolean(Astro.locals.session);
+---
+
+<App pageTitle="Songs">
+    <section class="songs" data-signed-in={signedIn ? 'true' : 'false'}>
+        <div class="songs__heading">
+            <h1 class="songs__title">Songs</h1>
+            <button class="btn" type="button" data-variant="primary" data-action="create">New song</button>
+        </div>
+
+        <p class="songs__intro">
+            Your songs are kept on this device. A song is copied to your account only when you press its sync button.
+            {!signedIn && <span> <a href="/user/sign-in">Sign in</a> if you want to sync.</span>}
+        </p>
+
+        <p class="songs__status" role="status" data-role="status"></p>
+        <p class="songs__error" role="alert" data-role="error"></p>
+
+        <p class="songs__empty" data-role="empty" hidden>No songs yet. Choose New song to start one.</p>
+        <ul class="songs__list" data-role="list" aria-label="Your songs"></ul>
+
+        <section class="songs__panel" aria-labelledby="export-title">
+            <h2 class="songs__subtitle" id="export-title">Export</h2>
+            <p>Exporting downloads a file you can share. Nothing is shared until you export.</p>
+            <div class="form-checkbox">
+                <input id="export-melody" type="checkbox" data-role="export-melody" />
+                <label for="export-melody">Include melodies. Leave this off to share chord progressions only.</label>
+            </div>
+            <button class="btn" type="button" data-variant="secondary" data-action="export-all">Export all songs</button>
+        </section>
+
+        {signedIn && (
+            <section class="songs__panel" aria-labelledby="account-title">
+                <h2 class="songs__subtitle" id="account-title">Delete account</h2>
+                <p>Deleting your account removes every song synced to it. Songs on this device stay here.</p>
+                <form class="form songs__form" data-role="delete-account">
+                    <div class="form-group">
+                        <label class="form-label" for="account-password">Password</label>
+                        <input class="form-input" id="account-password" name="password" type="password" autocomplete="current-password" />
+                        <p class="form-helper">Leave this empty if you signed in with Google or GitHub.</p>
+                    </div>
+                    <button class="btn" type="submit" data-variant="danger">Delete my account</button>
+                </form>
+            </section>
+        )}
+    </section>
+
+    <dialog class="songs__dialog" aria-labelledby="song-dialog-title" data-role="dialog">
+        <form class="form songs__form" method="dialog" data-role="song-form">
+            <h2 class="songs__subtitle" id="song-dialog-title" data-role="dialog-title">New song</h2>
+            <p class="form-error" role="alert" data-role="form-error"></p>
+            <input type="hidden" name="id" />
+            <div class="form-group">
+                <label class="form-label" for="song-title" data-required="true">Title</label>
+                <input class="form-input" id="song-title" name="title" type="text" maxlength="120" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="song-key" data-required="true">Key</label>
+                <input class="form-input" id="song-key" name="key" type="text" maxlength="16" list="song-keys" value="C major" required />
+                <datalist id="song-keys">
+                    {['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'].flatMap(tonic => [`${tonic} major`, `${tonic} minor`]).map(name => <option value={name} />)}
+                </datalist>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="song-tempo" data-required="true">Tempo (BPM)</label>
+                <input class="form-input" id="song-tempo" name="tempo" type="number" min="20" max="300" step="1" value="100" required />
+            </div>
+            <div class="songs__dialog-actions">
+                <button class="btn" type="button" data-variant="secondary" data-action="cancel">Cancel</button>
+                <button class="btn" type="submit" data-variant="primary">Save song</button>
+            </div>
+        </form>
+    </dialog>
+
+    <template id="song-row">
+        <li class="songs__item">
+            <div class="songs__summary">
+                <h2 class="songs__name" data-field="title"></h2>
+                <p class="songs__meta" data-field="meta"></p>
+                <p class="songs__sync" data-field="sync"></p>
+            </div>
+            <div class="songs__actions">
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="edit">Edit</button>
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="sync">Sync to account</button>
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="unsync">Remove synced copy</button>
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="export">Export</button>
+                <button class="btn" type="button" data-variant="danger" data-size="small" data-action="delete">Delete</button>
+            </div>
+        </li>
+    </template>
+
+    <SongsScript />
+</App>

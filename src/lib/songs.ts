@@ -17,3 +17,12 @@ export async function setSong(song: Song): Promise<void> {
 export async function deleteSong(userId: string, id: string): Promise<void> {
     await deleteItem(songTable, { userId, id });
 }
+
+export async function deleteSongs(userId: string): Promise<void> {
+    let songs = await getSongs(userId);
+
+    while (songs.length > 0) {
+        await Promise.all(songs.map(song => deleteSong(userId, song.id)));
+        songs = await getSongs(userId);
+    }
+}

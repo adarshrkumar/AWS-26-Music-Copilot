@@ -1,15 +1,27 @@
 ---
+import { appLinks } from '@/lib/app-links';
 import { siteConfig } from '@/lib/config';
 
 import '@/styles/components/app/header.scss';
+
+const pathname = Astro.url.pathname.replace(/\/$/, '');
 ---
 
 <header class="app-header">
     <a class="app-header__skip-link" href="#main">Skip to content</a>
     <div class="container app-header__inner">
-        <a class="app-header__brand" href="/" aria-label={`${siteConfig.appName} home`}>
+        <a class="app-header__brand" href="/app" aria-label={`${siteConfig.appName} app home`}>
             <span class="app-header__badge" aria-hidden="true">&#x1D11E;</span>
             <span class="app-header__name">{siteConfig.appName}</span>
         </a>
+        <nav class="app-header__nav" aria-label="App">
+            <ul class="app-header__list">
+                {appLinks.map(link => (
+                    <li>
+                        <a class="app-header__link" href={link.href} aria-current={pathname === link.href ? 'page' : undefined}>{link.label}</a>
+                    </li>
+                ))}
+            </ul>
+        </nav>
     </div>
 </header>

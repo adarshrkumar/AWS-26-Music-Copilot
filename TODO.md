@@ -59,12 +59,12 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Songs and Storage
 
-- [ ] Keep songs on the device by default
-- [ ] Sync songs to the account only when the songwriter chooses
-- [ ] Add a songs list and song creation, editing and deletion
-- [ ] Add an explicit export for sharing progressions and melodies
-- [ ] Remove synced copies within thirty days of account deletion
-- [ ] Link the app pages from `src/pages/app/index.astro` and the app header
+- [x] Keep songs on the device by default
+- [x] Sync songs to the account only when the songwriter chooses
+- [x] Add a songs list and song creation, editing and deletion
+- [x] Add an explicit export for sharing progressions and melodies
+- [x] Remove synced copies within thirty days of account deletion
+- [x] Link the app pages from `src/pages/app/index.astro` and the app header
 
 ## Teacher
 
