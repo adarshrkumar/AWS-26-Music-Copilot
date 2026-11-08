@@ -48,27 +48,6 @@ export interface Song {
     updatedAt: string;
 }
 
-export type SongSection = Song['sections'][number];
-
-// A song as it is kept on the device. It has no userId, and syncedAt stays null until the songwriter chooses to sync it to their account.
-export interface LocalSong extends Omit<Song, 'userId'> {
-    syncedAt: string | null;
-}
-
-// The file the songwriter downloads to share progressions and, only when they tick the option, melodies. Suggestions and account fields are never included.
-export interface SongExport {
-    format: 'tonepilot-songs';
-    version: 1;
-    exportedAt: string;
-    includesMelody: boolean;
-    songs: {
-        title: string;
-        key: string;
-        tempo: number;
-        sections: (Omit<SongSection, 'notes'> & { notes?: SongSection['notes'] })[];
-    }[];
-}
-
 export interface Comment {
     pk: `POST#${string}`;
     sk: `COMMENT#${string}`;

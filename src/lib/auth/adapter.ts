@@ -182,7 +182,7 @@ async function incrementRow({ model, where, increment, set }: IncrementArgs): Pr
     const names: Record<string, string> = {};
     const values: Row = {};
     const conditions = Object.entries(increment).map(([field, delta], index) => {
-        next[field] = Number(row[field] ?? 0) + delta;
+        next[field] = parseFloat((row[field] ?? 0).toString()) + delta;
         names[`#f${index}`] = field;
         if (row[field] === undefined) return `attribute_not_exists(#f${index})`;
         values[`:v${index}`] = row[field];

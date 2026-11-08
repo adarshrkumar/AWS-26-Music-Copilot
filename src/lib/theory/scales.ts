@@ -1,4 +1,4 @@
-import { getUniquePitchClasses, spellFormula } from './notes.ts';
+import { getUniquePitchClasses, spellDegree } from './notes.ts';
 import type { Scale, ScaleDefinition } from './types.ts';
 
 export const SCALE_DEFINITIONS: ScaleDefinition[] = [
@@ -27,7 +27,7 @@ export const SCALE_DEFINITIONS: ScaleDefinition[] = [
 ];
 
 export function buildScale(root: string, name: string, formula: string[]): Scale {
-    const notes = spellFormula(root, formula);
+    const notes = formula.map(degree => spellDegree(root, degree));
     return {
         root,
         name,
@@ -35,16 +35,4 @@ export function buildScale(root: string, name: string, formula: string[]): Scale
         pitchClasses: getUniquePitchClasses(notes),
         description: `${root} ${name} scale: ${notes.join(', ')}.`,
     };
-}
-
-export function buildDefinedScale(root: string, name: string): Scale | null {
-    for (const definition of SCALE_DEFINITIONS) {
-        if (definition.name === name) return buildScale(root, definition.name, definition.formula);
-    }
-
-    return null;
-}
-
-export function getNoteInScale(note: string, scale: Scale): boolean {
-    return getUniquePitchClasses([note]).some(pitchClass => scale.pitchClasses.includes(pitchClass));
 }

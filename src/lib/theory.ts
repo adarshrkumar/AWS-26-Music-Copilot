@@ -122,14 +122,14 @@ export function getMidi(pitch: string): number {
     const match = parsePitch(pitch);
     if (!match) return 0;
 
-    return (Number(match[3]) + 1) * 12 + getSemitone(match[1], match[2]);
+    return (parseInt(match[3], 10) + 1) * 12 + getSemitone(match[1], match[2]);
 }
 
 export function getStaffStep(pitch: string): number {
     const match = parsePitch(pitch);
     if (!match) return 0;
 
-    return Number(match[3]) * 7 + LETTERS.indexOf(match[1]) - 30;
+    return parseInt(match[3], 10) * 7 + LETTERS.indexOf(match[1]) - 30;
 }
 
 export function getFretPitch(string: number, fret: number): string | null {

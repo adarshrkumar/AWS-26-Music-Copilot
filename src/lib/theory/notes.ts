@@ -11,13 +11,9 @@ export function parseNote(name: string): ParsedNote | null {
     const accidentalText = match[2] ?? '';
     const accidental = accidentalText.startsWith('#') ? accidentalText.length : -accidentalText.length;
     const pitchClass = (((LETTER_PITCH_CLASSES[letterIndex] + accidental) % 12) + 12) % 12;
-    const octave = match[3] === undefined ? null : Number(match[3]);
+    const octave = match[3] === undefined ? null : parseInt(match[3], 10);
 
     return { letterIndex, accidental, pitchClass, octave };
-}
-
-export function getPitchClass(name: string): number | null {
-    return parseNote(name)?.pitchClass ?? null;
 }
 
 export function spellDegree(root: string, degree: string): string {
@@ -25,28 +21,21 @@ export function spellDegree(root: string, degree: string): string {
     const match = /^([#b]*)(\d+)$/.exec(degree);
     if (!parsedRoot || !match) throw new Error(`Cannot spell degree "${degree}" above "${root}".`);
 
-    const shift = match[1].startsWith('#') ? match[1].length : -match[1].length;
-    const number = Number(match[2]);
-    const offset = number - 1;
-    const semitones = LETTER_PITCH_CLASSES[offset % 7] + 12 * Math.floor(offset / 7) + shift;
+    const offset = parseInt(match[2], 10) - 1;
 
     const letterIndex = (parsedRoot.letterIndex + offset) % 7;
-    const target = (parsedRoot.pitchClass + semitones) % 12;
+    const target = (parsedRoot.pitchClass + LETTER_PITCH_CLASSES[offset % 7] + 12 * Math.floor(offset / 7) + (match[1].startsWith('#') ? match[1].length : -match[1].length)) % 12;
     const accidental = ((((target - LETTER_PITCH_CLASSES[letterIndex]) % 12) + 18) % 12) - 6;
 
     if (accidental === 0) return LETTERS[letterIndex];
     return LETTERS[letterIndex] + (accidental > 0 ? '#'.repeat(accidental) : 'b'.repeat(-accidental));
 }
 
-export function spellFormula(root: string, formula: string[]): string[] {
-    return formula.map(degree => spellDegree(root, degree));
-}
-
 export function getUniquePitchClasses(notes: string[]): number[] {
     const result: number[] = [];
 
     for (const note of notes) {
-        const pitchClass = getPitchClass(note);
+        const pitchClass = parseNote(note)?.pitchClass ?? null;
         if (pitchClass !== null && !result.includes(pitchClass)) result.push(pitchClass);
     }
 

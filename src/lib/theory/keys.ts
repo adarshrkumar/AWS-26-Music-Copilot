@@ -1,4 +1,4 @@
-import { getPitchClass } from './notes.ts';
+import { parseNote } from './notes.ts';
 import { buildScale } from './scales.ts';
 import type { Chord, Key, KeyMode } from './types.ts';
 
@@ -33,18 +33,9 @@ export function parseKey(name: string): Key | null {
     };
 }
 
-export function getTonicPitchClass(key: Key): number {
-    return getPitchClass(key.tonic) ?? 0;
-}
-
-export function getScaleIntervals(key: Key): number[] {
-    const tonic = getTonicPitchClass(key);
-    return key.scale.pitchClasses.map(pitchClass => (pitchClass - tonic + 12) % 12);
-}
-
 export function getDegreeLabel(key: Key, rootPitchClass: number) {
-    const intervals = getScaleIntervals(key);
-    const interval = (rootPitchClass - getTonicPitchClass(key) + 12) % 12;
+    const intervals = key.scale.pitchClasses.map(pitchClass => (pitchClass - (parseNote(key.tonic)?.pitchClass ?? 0) + 12) % 12);
+    const interval = (rootPitchClass - (parseNote(key.tonic)?.pitchClass ?? 0) + 12) % 12;
 
     const exact = intervals.indexOf(interval);
     if (exact >= 0) return { degree: exact + 1, prefix: '' };
@@ -59,7 +50,7 @@ export function getDegreeLabel(key: Key, rootPitchClass: number) {
 }
 
 export function getChordNumeral(key: Key, chord: Chord): string {
-    const rootPitchClass = getPitchClass(chord.root) ?? 0;
+    const rootPitchClass = parseNote(chord.root)?.pitchClass ?? 0;
     const label = getDegreeLabel(key, rootPitchClass);
     const base = ROMAN_NUMERALS[label.degree - 1];
 

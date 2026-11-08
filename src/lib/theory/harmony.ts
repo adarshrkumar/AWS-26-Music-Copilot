@@ -1,5 +1,5 @@
-import { getChordNumeral, getDegreeLabel, getScaleIntervals, getTonicPitchClass, getTriadNumeral } from './keys.ts';
-import { getInterval, getPitchClass } from './notes.ts';
+import { getChordNumeral, getDegreeLabel, getTriadNumeral } from './keys.ts';
+import { getInterval, parseNote } from './notes.ts';
 import type { Chord, ChordContext, HarmonicFunction, Key, Scale } from './types.ts';
 
 const DIATONIC_FUNCTIONS: Record<number, HarmonicFunction> = {
@@ -38,7 +38,7 @@ function fitsScale(chord: Chord, scale: Scale): boolean {
 }
 
 export function classifyChord(key: Key, chord: Chord): ChordContext {
-    const rootPitchClass = getPitchClass(chord.root) ?? 0;
+    const rootPitchClass = parseNote(chord.root)?.pitchClass ?? 0;
     const roman = getChordNumeral(key, chord);
     const label = getDegreeLabel(key, rootPitchClass);
 
@@ -57,7 +57,7 @@ export function classifyChord(key: Key, chord: Chord): ChordContext {
         };
     }
 
-    const rootInterval = getInterval(getTonicPitchClass(key), rootPitchClass);
+    const rootInterval = getInterval(parseNote(key.tonic)?.pitchClass ?? 0, rootPitchClass);
     if (key.harmonicMinor && (rootInterval === -5 || rootInterval === -1) && fitsScale(chord, key.harmonicMinor)) {
         const harmonicFunction = DIATONIC_FUNCTIONS[label.degree];
         return {
@@ -94,10 +94,10 @@ export function classifyChord(key: Key, chord: Chord): ChordContext {
     let secondaryTarget: string | null = null;
 
     if (chord.family === 'dominant') {
-        const intervals = getScaleIntervals(key);
+        const intervals = key.scale.pitchClasses.map(pitchClass => (pitchClass - (parseNote(key.tonic)?.pitchClass ?? 0) + 12) % 12);
 
         for (let index = 1; index < intervals.length; index++) {
-            if ((intervals[index] + 7 - (rootPitchClass - getTonicPitchClass(key)) + 24) % 12 !== 0) continue;
+            if ((intervals[index] + 7 - (rootPitchClass - (parseNote(key.tonic)?.pitchClass ?? 0)) + 24) % 12 !== 0) continue;
 
             secondaryTarget = getTriadNumeral(key, index);
             if (secondaryTarget) break;
