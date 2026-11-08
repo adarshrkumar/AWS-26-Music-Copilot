@@ -1,6 +1,8 @@
-import type { Note, Section } from '@/db/types';
+import type { Song } from '@/db/types';
 import { generateText } from '@/lib/bedrock';
 import { getSong, setSong } from '@/lib/songs';
+
+type Note = Song['sections'][number]['notes'][number];
 
 export async function getNotes(userId: string, songId: string, sectionId: string): Promise<Note[]> {
     const song = await getSong(userId, songId);
@@ -17,7 +19,7 @@ export async function setNotes(userId: string, songId: string, sectionId: string
     const song = await getSong(userId, songId);
     if (!song) return;
 
-    const sections: Section[] = [];
+    const sections: Song['sections'] = [];
 
     for (const section of song.sections) {
         if (section.id === sectionId) sections.push({ ...section, notes });

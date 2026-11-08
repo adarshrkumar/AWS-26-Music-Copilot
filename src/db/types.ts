@@ -69,19 +69,6 @@ export interface SongExport {
     }[];
 }
 
-export type Section = Song['sections'][number];
-export type Chord = Section['chords'][number];
-export type Note = Section['notes'][number];
-
-export interface EditorData {
-    songId: string;
-    sectionId: string;
-    key: string;
-    bars: number;
-    chords: Chord[];
-    notes: Note[];
-}
-
 export interface Comment {
     pk: `POST#${string}`;
     sk: `COMMENT#${string}`;
