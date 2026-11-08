@@ -1,17 +1,110 @@
 <script>
+    import { nanoid } from 'nanoid';
+    import { z } from 'zod';
+    import { songInputSchema } from '@/db/validations';
     import { authClient } from '@/lib/auth/client';
-    import { songFormSchema } from '@/db/validations';
-    import {
-        createLocalSong,
-        deleteLocalSong,
-        getLocalSong,
-        getLocalSongs,
-        hasUnsyncedChanges,
-        markLocalSongSynced,
-        updateLocalSong,
-    } from '@/lib/local-songs';
-    import { downloadSongExport } from '@/lib/song-export';
-    import type { LocalSong } from '@/db/types';
+
+    const songFormSchema = songInputSchema.pick({ title: true, key: true, tempo: true });
+    const localSongsSchema = z.array(songInputSchema.extend({ syncedAt: z.string().max(40).nullable() }));
+    const storageKey = 'tonepilot:songs';
+    const backupKey = 'tonepilot:songs:backup';
+
+    type LocalSong = z.infer<typeof localSongsSchema>[number];
+
+    function getLocalSongs(): LocalSong[] {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw) return [];
+
+        try {
+            const parsed = localSongsSchema.safeParse(JSON.parse(raw));
+            if (parsed.success) return parsed.data.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+        } catch {
+            // Fall through to the backup below, the stored text is not valid JSON
+        }
+
+        localStorage.setItem(backupKey, raw);
+        return [];
+    }
+
+    function getLocalSong(id: string): LocalSong | null {
+        return getLocalSongs().find(song => song.id === id) ?? null;
+    }
+
+    function saveLocalSongs(songs: LocalSong[]): void {
+        localStorage.setItem(storageKey, JSON.stringify(songs));
+    }
+
+    function createLocalSong(form: z.infer<typeof songFormSchema>): LocalSong {
+        const now = new Date().toISOString();
+        const song: LocalSong = {
+            id: nanoid(),
+            ...form,
+            sampleProgressionId: null,
+            melodyShared: false,
+            sections: [],
+            suggestions: [],
+            createdAt: now,
+            updatedAt: now,
+            syncedAt: null,
+        };
+
+        saveLocalSongs([...getLocalSongs(), song]);
+        return song;
+    }
+
+    function updateLocalSong(id: string, form: z.infer<typeof songFormSchema>): LocalSong | null {
+        const songs = getLocalSongs();
+        const index = songs.findIndex(song => song.id === id);
+        if (index === -1) return null;
+
+        const song: LocalSong = { ...songs[index], ...form, updatedAt: new Date().toISOString() };
+        songs[index] = song;
+        saveLocalSongs(songs);
+        return song;
+    }
+
+    function markLocalSongSynced(id: string, syncedAt: string | null): LocalSong | null {
+        const songs = getLocalSongs();
+        const index = songs.findIndex(song => song.id === id);
+        if (index === -1) return null;
+
+        const song: LocalSong = { ...songs[index], syncedAt };
+        songs[index] = song;
+        saveLocalSongs(songs);
+        return song;
+    }
+
+    function deleteLocalSong(id: string): void {
+        saveLocalSongs(getLocalSongs().filter(song => song.id !== id));
+    }
+
+    function hasUnsyncedChanges(song: LocalSong): boolean {
+        return song.syncedAt !== null && song.updatedAt > song.syncedAt;
+    }
+
+    function downloadSongExport(songs: LocalSong[], includeMelody: boolean): void {
+        const songExport = {
+            format: 'tonepilot-songs',
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            includesMelody: includeMelody,
+            songs: songs.map(song => ({
+                title: song.title,
+                key: song.key,
+                tempo: song.tempo,
+                sections: song.sections.map(({ notes, ...section }) => (includeMelody ? { ...section, notes } : section)),
+            })),
+        };
+        const url = URL.createObjectURL(new Blob([JSON.stringify(songExport, null, 4)], { type: 'application/json' }));
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = `tonepilot-songs-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.append(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
 
     function find<T extends Element>(root: ParentNode, selector: string): T {
         const element = root.querySelector<T>(selector);
@@ -111,7 +204,7 @@
 
     function saveForm(): void {
         const data = new FormData(form);
-        const parsed = songFormSchema.safeParse({ title: data.get('title'), key: data.get('key'), tempo: Number(data.get('tempo')) });
+        const parsed = songFormSchema.safeParse({ title: data.get('title'), key: data.get('key'), tempo: parseInt(data.get('tempo')?.toString() ?? '', 10) });
 
         if (!parsed.success) {
             formError.textContent = parsed.error.issues[0]?.message ?? 'Check the song details.';

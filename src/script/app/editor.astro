@@ -26,7 +26,7 @@
     const reasonPanel = document.querySelector('#reason');
     const errorLine = document.querySelector('#editor-error');
     const statusLine = document.querySelector('#editor-status');
-    const barButtons = document.querySelectorAll<HTMLButtonElement>('[data-bar]');
+    const barButtons = document.querySelectorAll('[data-bar]');
     const reasons = new Map<string, string>();
 
     let notes = sortNotes(section.notes);
@@ -46,21 +46,6 @@
         return durationSelect?.querySelector(`option[value="${duration}"]`)?.textContent?.toLowerCase() ?? `${duration}-beat`;
     }
 
-    function getStatus(note: Note): keyof typeof NOTE_STATUSES {
-        return getNoteStatus(note.pitch, getChordAt(section.chords, note.bar, note.beat), key);
-    }
-
-    function createSvg(tag: string, attributes: Record<string, string | number>, text = ''): Element {
-        const element = document.createElementNS(svgNamespace, tag);
-
-        for (const [name, value] of Object.entries(attributes)) {
-            element.setAttribute(name, value.toString());
-        }
-
-        element.textContent = text;
-        return element;
-    }
-
     function createAction(text: string, note: Note, action: () => void): HTMLButtonElement {
         const button = document.createElement('button');
         button.className = 'btn';
@@ -74,8 +59,12 @@
     }
 
     function drawBarLines(root: Element, top: number, bottom: number): void {
-        root.append(createSvg('line', { x1: editorConfig.staffLeft - 16, x2: editorConfig.staffLeft - 16, y1: top, y2: bottom, class: 'editor__line' }));
-        root.append(createSvg('line', { x1: editorConfig.staffRight, x2: editorConfig.staffRight, y1: top, y2: bottom, class: 'editor__line' }));
+        const leftLine = document.createElementNS(svgNamespace, 'line');
+        const rightLine = document.createElementNS(svgNamespace, 'line');
+
+        for (const [name, value] of Object.entries({ x1: editorConfig.staffLeft - 16, x2: editorConfig.staffLeft - 16, y1: top, y2: bottom, class: 'editor__line' })) leftLine.setAttribute(name, value.toString());
+        for (const [name, value] of Object.entries({ x1: editorConfig.staffRight, x2: editorConfig.staffRight, y1: top, y2: bottom, class: 'editor__line' })) rightLine.setAttribute(name, value.toString());
+        root.append(leftLine, rightLine);
     }
 
     function drawStem(group: Element, x: number, y: number, up: boolean, duration: number): void {
@@ -89,14 +78,18 @@
             flagStep = 1;
         }
 
-        group.append(createSvg('line', { x1: stemX, x2: stemX, y1: y, y2: stemEnd, class: 'editor__stem' }));
+        const stem = document.createElementNS(svgNamespace, 'line');
+        for (const [name, value] of Object.entries({ x1: stemX, x2: stemX, y1: y, y2: stemEnd, class: 'editor__stem' })) stem.setAttribute(name, value.toString());
+        group.append(stem);
 
         let flags = 0;
         if (duration === 0.5) flags = 1;
         if (duration === 0.25) flags = 2;
 
         for (let flag = 0; flag < flags; flag++) {
-            group.append(createSvg('line', { x1: stemX, x2: stemX + 9, y1: stemEnd + flag * 6 * flagStep, y2: stemEnd + (flag * 6 + 10) * flagStep, class: 'editor__stem' }));
+            const flagLine = document.createElementNS(svgNamespace, 'line');
+            for (const [name, value] of Object.entries({ x1: stemX, x2: stemX + 9, y1: stemEnd + flag * 6 * flagStep, y2: stemEnd + (flag * 6 + 10) * flagStep, class: 'editor__stem' })) flagLine.setAttribute(name, value.toString());
+            group.append(flagLine);
         }
     }
 
@@ -131,11 +124,17 @@
         tab.replaceChildren();
 
         for (let line = 0; line < 6; line++) {
-            tab.append(createSvg('line', { x1: editorConfig.staffLeft - 16, x2: editorConfig.staffRight, y1: editorConfig.tabTop + line * editorConfig.tabGap, y2: editorConfig.tabTop + line * editorConfig.tabGap, class: 'editor__line' }));
+            const staffLine = document.createElementNS(svgNamespace, 'line');
+            for (const [name, value] of Object.entries({ x1: editorConfig.staffLeft - 16, x2: editorConfig.staffRight, y1: editorConfig.tabTop + line * editorConfig.tabGap, y2: editorConfig.tabTop + line * editorConfig.tabGap, class: 'editor__line' })) staffLine.setAttribute(name, value.toString());
+            tab.append(staffLine);
         }
 
+        const label = document.createElementNS(svgNamespace, 'text');
+        for (const [name, value] of Object.entries({ x: 6, y: editorConfig.tabTop + 3 * editorConfig.tabGap, class: 'editor__label' })) label.setAttribute(name, value.toString());
+        label.textContent = 'TAB';
+
         drawBarLines(tab, editorConfig.tabTop, editorConfig.tabTop + 5 * editorConfig.tabGap);
-        tab.append(createSvg('text', { x: 6, y: editorConfig.tabTop + 3 * editorConfig.tabGap, class: 'editor__label' }, 'TAB'));
+        tab.append(label);
 
         const descriptions: string[] = [];
 
@@ -145,15 +144,25 @@
                 continue;
             }
 
-            const status = getStatus(note);
+            const status = getNoteStatus(note.pitch, getChordAt(section.chords, note.bar, note.beat), key);
             const x = getX(note.beat);
             const y = editorConfig.tabTop + (note.string - 1) * editorConfig.tabGap;
-            const group = createSvg('g', { class: 'editor__note', 'data-status': status });
+            const group = document.createElementNS(svgNamespace, 'g');
+            const selected = document.createElementNS(svgNamespace, 'rect');
+            const back = document.createElementNS(svgNamespace, 'rect');
+            const fret = document.createElementNS(svgNamespace, 'text');
+            const symbol = document.createElementNS(svgNamespace, 'text');
 
-            if (note === editing) group.append(createSvg('rect', { x: x - 15, y: y - 12, width: 30, height: 24, rx: 8, class: 'editor__selected' }));
-            group.append(createSvg('rect', { x: x - 11, y: y - 8, width: 22, height: 16, rx: 6, class: 'editor__tab-back' }));
-            group.append(createSvg('text', { x, y: y + 5, 'text-anchor': 'middle', class: 'editor__fret' }, note.fret.toString()));
-            group.append(createSvg('text', { x, y: 114, 'text-anchor': 'middle', class: 'editor__symbol' }, NOTE_STATUSES[status].symbol));
+            for (const [name, value] of Object.entries({ class: 'editor__note', 'data-status': status })) group.setAttribute(name, value);
+            for (const [name, value] of Object.entries({ x: x - 15, y: y - 12, width: 30, height: 24, rx: 8, class: 'editor__selected' })) selected.setAttribute(name, value.toString());
+            for (const [name, value] of Object.entries({ x: x - 11, y: y - 8, width: 22, height: 16, rx: 6, class: 'editor__tab-back' })) back.setAttribute(name, value.toString());
+            for (const [name, value] of Object.entries({ x, y: y + 5, 'text-anchor': 'middle', class: 'editor__fret' })) fret.setAttribute(name, value.toString());
+            for (const [name, value] of Object.entries({ x, y: 114, 'text-anchor': 'middle', class: 'editor__symbol' })) symbol.setAttribute(name, value.toString());
+            fret.textContent = note.fret.toString();
+            symbol.textContent = NOTE_STATUSES[status].symbol;
+
+            if (note === editing) group.append(selected);
+            group.append(back, fret, symbol);
             tab.append(group);
 
             descriptions.push(`beat ${note.beat}, string ${note.string}, fret ${note.fret} (${note.pitch}, ${NOTE_STATUSES[status].label})`);
@@ -169,43 +178,71 @@
         sheet.replaceChildren();
 
         for (let line = 0; line < 5; line++) {
-            sheet.append(createSvg('line', { x1: editorConfig.staffLeft - 16, x2: editorConfig.staffRight, y1: editorConfig.sheetBottom - line * 2 * editorConfig.sheetStep, y2: editorConfig.sheetBottom - line * 2 * editorConfig.sheetStep, class: 'editor__line' }));
+            const staffLine = document.createElementNS(svgNamespace, 'line');
+            for (const [name, value] of Object.entries({ x1: editorConfig.staffLeft - 16, x2: editorConfig.staffRight, y1: editorConfig.sheetBottom - line * 2 * editorConfig.sheetStep, y2: editorConfig.sheetBottom - line * 2 * editorConfig.sheetStep, class: 'editor__line' })) staffLine.setAttribute(name, value.toString());
+            sheet.append(staffLine);
         }
 
+        const clef = document.createElementNS(svgNamespace, 'text');
+        for (const [name, value] of Object.entries({ x: 4, y: editorConfig.sheetBottom + 6, class: 'editor__clef', 'aria-hidden': 'true' })) clef.setAttribute(name, value.toString());
+        clef.textContent = '𝄞';
+
         drawBarLines(sheet, editorConfig.sheetBottom - 8 * editorConfig.sheetStep, editorConfig.sheetBottom);
-        sheet.append(createSvg('text', { x: 4, y: editorConfig.sheetBottom + 6, class: 'editor__clef', 'aria-hidden': 'true' }, '𝄞'));
+        sheet.append(clef);
 
         for (const chord of chords) {
+            const chordName = document.createElementNS(svgNamespace, 'text');
             let beat = 1;
             if (chord.bar === bar) beat = chord.beat;
-            sheet.append(createSvg('text', { x: getX(beat) - 12, y: 28, class: 'editor__chord-name' }, chord.name));
+
+            for (const [name, value] of Object.entries({ x: getX(beat) - 12, y: 28, class: 'editor__chord-name' })) chordName.setAttribute(name, value.toString());
+            chordName.textContent = chord.name;
+            sheet.append(chordName);
         }
 
         const descriptions: string[] = [];
 
         for (const note of barNotes) {
-            const status = getStatus(note);
+            const status = getNoteStatus(note.pitch, getChordAt(section.chords, note.bar, note.beat), key);
             const step = getStaffStep(note.pitch);
             const x = getX(note.beat);
             const y = editorConfig.sheetBottom - step * editorConfig.sheetStep;
-            const group = createSvg('g', { class: 'editor__note', 'data-status': status });
+            const group = document.createElementNS(svgNamespace, 'g');
+            const selected = document.createElementNS(svgNamespace, 'ellipse');
+            const accidental = document.createElementNS(svgNamespace, 'text');
+            const head = document.createElementNS(svgNamespace, 'ellipse');
+            const pitch = document.createElementNS(svgNamespace, 'text');
+            const symbol = document.createElementNS(svgNamespace, 'text');
 
-            if (note === editing) group.append(createSvg('ellipse', { cx: x, cy: y, rx: 12, ry: 10, class: 'editor__selected' }));
+            for (const [name, value] of Object.entries({ class: 'editor__note', 'data-status': status })) group.setAttribute(name, value);
+            for (const [name, value] of Object.entries({ cx: x, cy: y, rx: 12, ry: 10, class: 'editor__selected' })) selected.setAttribute(name, value.toString());
+            for (const [name, value] of Object.entries({ x: x - 20, y: y + 5, class: 'editor__accidental' })) accidental.setAttribute(name, value.toString());
+            for (const [name, value] of Object.entries({ cx: x, cy: y, rx: 6.5, ry: 4.5, class: 'editor__head', 'data-hollow': (note.duration >= 2).toString() })) head.setAttribute(name, value.toString());
+            for (const [name, value] of Object.entries({ x, y: 150, 'text-anchor': 'middle', class: 'editor__pitch' })) pitch.setAttribute(name, value.toString());
+            for (const [name, value] of Object.entries({ x, y: 164, 'text-anchor': 'middle', class: 'editor__symbol' })) symbol.setAttribute(name, value.toString());
+            pitch.textContent = note.pitch;
+            symbol.textContent = NOTE_STATUSES[status].symbol;
+
+            if (note === editing) group.append(selected);
 
             for (let ledger = -2; ledger >= step; ledger -= 2) {
-                group.append(createSvg('line', { x1: x - 11, x2: x + 11, y1: editorConfig.sheetBottom - ledger * editorConfig.sheetStep, y2: editorConfig.sheetBottom - ledger * editorConfig.sheetStep, class: 'editor__line' }));
+                const ledgerLine = document.createElementNS(svgNamespace, 'line');
+                for (const [name, value] of Object.entries({ x1: x - 11, x2: x + 11, y1: editorConfig.sheetBottom - ledger * editorConfig.sheetStep, y2: editorConfig.sheetBottom - ledger * editorConfig.sheetStep, class: 'editor__line' })) ledgerLine.setAttribute(name, value.toString());
+                group.append(ledgerLine);
             }
 
             for (let ledger = 10; ledger <= step; ledger += 2) {
-                group.append(createSvg('line', { x1: x - 11, x2: x + 11, y1: editorConfig.sheetBottom - ledger * editorConfig.sheetStep, y2: editorConfig.sheetBottom - ledger * editorConfig.sheetStep, class: 'editor__line' }));
+                const ledgerLine = document.createElementNS(svgNamespace, 'line');
+                for (const [name, value] of Object.entries({ x1: x - 11, x2: x + 11, y1: editorConfig.sheetBottom - ledger * editorConfig.sheetStep, y2: editorConfig.sheetBottom - ledger * editorConfig.sheetStep, class: 'editor__line' })) ledgerLine.setAttribute(name, value.toString());
+                group.append(ledgerLine);
             }
 
-            if (note.pitch[1] === '#') group.append(createSvg('text', { x: x - 20, y: y + 5, class: 'editor__accidental' }, '♯'));
-            if (note.pitch[1] === 'b') group.append(createSvg('text', { x: x - 20, y: y + 5, class: 'editor__accidental' }, '♭'));
-            group.append(createSvg('ellipse', { cx: x, cy: y, rx: 6.5, ry: 4.5, class: 'editor__head', 'data-hollow': (note.duration >= 2).toString() }));
+            if (note.pitch[1] === '#') accidental.textContent = '♯';
+            if (note.pitch[1] === 'b') accidental.textContent = '♭';
+            if (accidental.textContent) group.append(accidental);
+            group.append(head);
             if (note.duration < 4) drawStem(group, x, y, step < 4, note.duration);
-            group.append(createSvg('text', { x, y: 150, 'text-anchor': 'middle', class: 'editor__pitch' }, note.pitch));
-            group.append(createSvg('text', { x, y: 164, 'text-anchor': 'middle', class: 'editor__symbol' }, NOTE_STATUSES[status].symbol));
+            group.append(pitch, symbol);
             sheet.append(group);
 
             descriptions.push(`beat ${note.beat}, ${note.pitch}, ${getDurationName(note.duration)} note, ${NOTE_STATUSES[status].label}`);
@@ -228,7 +265,7 @@
         }
 
         for (const note of barNotes) {
-            const status = getStatus(note);
+            const status = getNoteStatus(note.pitch, getChordAt(section.chords, note.bar, note.beat), key);
             const row = document.createElement('li');
             const text = document.createElement('p');
             const label = document.createElement('span');
@@ -273,7 +310,7 @@
         document.querySelector('#list-bar')?.replaceChildren(bar.toString());
 
         for (const button of barButtons) {
-            button.setAttribute('aria-pressed', (button.dataset.bar === bar.toString()).toString());
+            button.setAttribute('aria-pressed', ((button as HTMLButtonElement).dataset.bar === bar.toString()).toString());
         }
 
         renderChords(chords);
@@ -321,14 +358,6 @@
         reasonPanel?.replaceChildren(title, paragraph);
     }
 
-    async function getErrorMessage(response: Response): Promise<string> {
-        try {
-            return (await response.json()).error ?? `Request failed (${response.status}).`;
-        } catch {
-            return `Request failed (${response.status}).`;
-        }
-    }
-
     async function save(next: Note[], message: string): Promise<boolean> {
         if (saving) return false;
 
@@ -343,7 +372,13 @@
             });
 
             if (!response.ok) {
-                errorLine?.replaceChildren(`${await getErrorMessage(response)} Your notes were not saved.`);
+                try {
+                    const body = await response.json();
+                    errorLine?.replaceChildren(`${body.error ?? `Request failed (${response.status}).`} Your notes were not saved.`);
+                } catch {
+                    errorLine?.replaceChildren(`Request failed (${response.status}). Your notes were not saved.`);
+                }
+
                 return false;
             }
 
@@ -374,11 +409,17 @@
                 const response = await fetch('/api/modules/editor', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chord: chord.name, scale, pitch: note.pitch, inScale: getStatus(note) !== 'outside' }),
+                    body: JSON.stringify({ chord: chord.name, scale, pitch: note.pitch, inScale: getNoteStatus(note.pitch, chord, key) !== 'outside' }),
                 });
 
                 if (!response.ok) {
-                    showReason(heading, await getErrorMessage(response), 'editor__error');
+                    try {
+                        const body = await response.json();
+                        showReason(heading, body.error ?? `Request failed (${response.status}).`, 'editor__error');
+                    } catch {
+                        showReason(heading, `Request failed (${response.status}).`, 'editor__error');
+                    }
+
                     return;
                 }
 
@@ -397,7 +438,7 @@
 
     function keep(note: Note): void {
         let message = `Kept beat ${note.beat}, ${note.pitch}.`;
-        if (getStatus(note) === 'outside') message += ' It stays marked as outside the scale.';
+        if (getNoteStatus(note.pitch, getChordAt(section.chords, note.bar, note.beat), key) === 'outside') message += ' It stays marked as outside the scale.';
         statusLine?.replaceChildren(message);
     }
 
@@ -418,14 +459,14 @@
     function readNote(): Note | string {
         if (!(beatInput instanceof HTMLInputElement) || !(durationSelect instanceof HTMLSelectElement) || !(pitchInput instanceof HTMLInputElement) || !(stringSelect instanceof HTMLSelectElement) || !(fretInput instanceof HTMLInputElement)) return 'The note form did not load.';
 
-        const beat = Number(beatInput.value);
+        const beat = parseFloat(beatInput.value);
         if (!Number.isInteger(beat * 4) || beat < 1 || beat >= 5) return 'Beat must be between 1 and 4.75 in steps of 0.25.';
 
         if (stringSelect.value && fretInput.value) {
-            const fretPitch = getFretPitch(Number(stringSelect.value), Number(fretInput.value));
+            const fretPitch = getFretPitch(parseInt(stringSelect.value, 10), parseInt(fretInput.value, 10));
             if (!fretPitch) return 'Fret must be a whole number from 0 to 24.';
 
-            return { bar, beat, duration: Number(durationSelect.value), pitch: fretPitch, string: Number(stringSelect.value), fret: Number(fretInput.value) };
+            return { bar, beat, duration: parseFloat(durationSelect.value), pitch: fretPitch, string: parseInt(stringSelect.value, 10), fret: parseInt(fretInput.value, 10) };
         }
 
         if (stringSelect.value || fretInput.value) return 'Pick both a string and a fret, or write a pitch instead.';
@@ -433,7 +474,7 @@
         const pitch = formatPitch(pitchInput.value);
         if (!pitch) return 'Write a pitch such as C4, F#3 or Bb4, or pick a string and fret.';
 
-        return { bar, beat, duration: Number(durationSelect.value), pitch, ...getFretPosition(pitch) };
+        return { bar, beat, duration: parseFloat(durationSelect.value), pitch, ...getFretPosition(pitch) };
     }
 
     document.querySelector('#note-form')?.addEventListener('submit', async event => {
@@ -482,7 +523,7 @@
 
     for (const button of barButtons) {
         button.addEventListener('click', () => {
-            bar = Number(button.dataset.bar);
+            bar = parseInt((button as HTMLButtonElement).dataset.bar ?? '', 10);
             resetForm();
             errorLine?.replaceChildren();
             reasonPanel?.toggleAttribute('hidden', true);

@@ -188,12 +188,6 @@ export const songInputSchema = z.object({
     updatedAt: z.string().max(40),
 });
 
-export const songFormSchema = songInputSchema.pick({ title: true, key: true, tempo: true });
-
-export const localSongSchema = songInputSchema.extend({ syncedAt: z.string().max(40).nullable() });
-
-export const localSongsSchema = z.array(localSongSchema);
-
 export const songIdSchema = songInputSchema.shape.id;
 
 // Type exports for use in application
@@ -203,14 +197,13 @@ export type PublishPostInput = z.infer<typeof publishPostSchema>;
 export type PostQueryInput = z.infer<typeof postQuerySchema>;
 
 export type SongInput = z.infer<typeof songInputSchema>;
-export type SongFormInput = z.infer<typeof songFormSchema>;
 
 export type CreateCommentInput = z.infer<typeof createCommentSchema>;
 export type UpdateCommentInput = z.infer<typeof updateCommentSchema>;
 export type ModerateCommentInput = z.infer<typeof moderateCommentSchema>;
 export type CommentQueryInput = z.infer<typeof commentQuerySchema>;
 
-const noteSchema = z.object({
+const editorNoteSchema = z.object({
     bar: z.number().int().min(1).max(16),
     beat: z.number().min(1).lt(5),
     duration: z.number().min(0.25).max(4),
@@ -225,15 +218,7 @@ export const sectionQuerySchema = z.object({
 });
 
 export const saveNotesSchema = sectionQuerySchema.extend({
-    notes: z.array(noteSchema).max(512),
-});
-
-export const explainNoteSchema = z.object({
-    chord: z.string().min(1).max(32),
-    scale: z.string().min(1).max(64),
-    pitch: z.string().regex(/^[A-G][#b]?-?\d$/),
-    inScale: z.boolean(),
+    notes: z.array(editorNoteSchema).max(512),
 });
 
 export type SaveNotesInput = z.infer<typeof saveNotesSchema>;
-export type ExplainNoteInput = z.infer<typeof explainNoteSchema>;

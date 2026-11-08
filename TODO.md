@@ -4,12 +4,12 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Theory Engine
 
-- [ ] Build the rule-based theory engine for chord functions, scale membership, arpeggios and guide tones
-- [ ] Label chords outside the chosen key as borrowed or outside, without correcting them
-- [ ] Rank scale and arpeggio suggestions for each chord
-- [ ] Generate a one or two sentence reason for each suggestion from the engine's output
-- [ ] Test the engine against known progressions, including the jazz (Dm7, G7, Cmaj7, Am7) and instrumental (Am, F, C, G) examples
-- [ ] Test the handling of borrowed chords on the sample progressions
+- [x] Build the rule-based theory engine for chord functions, scale membership, arpeggios and guide tones
+- [x] Label chords outside the chosen key as borrowed or outside, without correcting them
+- [x] Rank scale and arpeggio suggestions for each chord
+- [x] Generate a one or two sentence reason for each suggestion from the engine's output
+- [x] Test the engine against known progressions, including the jazz (Dm7, G7, Cmaj7, Am7) and instrumental (Am, F, C, G) examples
+- [x] Test the handling of borrowed chords on the sample progressions
 
 ## Build a Progression
 
