@@ -1,0 +1,10 @@
+---
+import App from '@/layouts/App.astro';
+import AutofillScript from '@/script/app/autofill.astro';
+
+if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+---
+
+<App>
+    <AutofillScript />
+</App>

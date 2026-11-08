@@ -1,0 +1,10 @@
+---
+import App from '@/layouts/App.astro';
+import ProgressionScript from '@/script/app/progression.astro';
+
+if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+---
+
+<App>
+    <ProgressionScript />
+</App>

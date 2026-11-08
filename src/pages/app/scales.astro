@@ -1,0 +1,10 @@
+---
+import App from '@/layouts/App.astro';
+import ScalesScript from '@/script/app/scales.astro';
+
+if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+---
+
+<App>
+    <ScalesScript />
+</App>

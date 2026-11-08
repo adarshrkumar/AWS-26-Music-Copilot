@@ -1,0 +1,10 @@
+---
+import App from '@/layouts/App.astro';
+import EditorScript from '@/script/app/editor.astro';
+
+if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+---
+
+<App>
+    <EditorScript />
+</App>
