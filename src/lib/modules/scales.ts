@@ -1,5 +1,6 @@
 import type { Song } from '@/db/types';
 import { generateText } from '@/lib/bedrock';
+import { recordMetric, recordSuggestionStatus } from '@/lib/metrics';
 import { getSong, setSong } from '@/lib/songs';
 
 type Suggestion = Song['suggestions'][number];
@@ -23,6 +24,7 @@ export async function addScaleSuggestion(userId: string, songId: string, suggest
     if (!song) return;
 
     await setSong({ ...song, suggestions: [...song.suggestions, suggestion], updatedAt: new Date().toISOString() });
+    await recordMetric('suggestion_shown');
 }
 
 export async function setScaleSuggestionStatus(userId: string, songId: string, suggestionId: string, status: Suggestion['status']): Promise<void> {
@@ -30,13 +32,20 @@ export async function setScaleSuggestionStatus(userId: string, songId: string, s
     if (!song) return;
 
     const suggestions: Suggestion[] = [];
+    let changed = false;
 
     for (const suggestion of song.suggestions) {
-        if (suggestion.id === suggestionId) suggestions.push({ ...suggestion, status });
-        else suggestions.push(suggestion);
+        if (suggestion.id !== suggestionId) {
+            suggestions.push(suggestion);
+            continue;
+        }
+
+        suggestions.push({ ...suggestion, status });
+        changed = suggestion.status !== status;
     }
 
     await setSong({ ...song, suggestions, updatedAt: new Date().toISOString() });
+    if (changed) await recordSuggestionStatus(status);
 }
 
 export async function explainScale(chord: string, chordFunction: string, scale: string, notes: string[]): Promise<string> {
