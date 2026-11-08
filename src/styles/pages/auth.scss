@@ -1,0 +1,47 @@
+@use '../variables/colors' as *;
+@use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
+@use 'sass:map';
+
+body {
+    color: $text-primary;
+    background: $bg-primary;
+    font-family: $font-body;
+    font-size: font-size(base);
+    line-height: map.get($leading, body);
+}
+
+.auth {
+    padding-block: space(16);
+
+    @include flex-center;
+
+    &__card {
+        width: 100%;
+        max-width: 440px;
+
+        @include card;
+    }
+
+    &__title {
+        margin-bottom: space(6);
+
+        @include heading-2;
+    }
+
+    &__error {
+        margin-bottom: space(6);
+        color: $error-color;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__switch {
+        margin-top: space(6);
+        color: $text-secondary;
+        text-align: center;
+    }
+}
