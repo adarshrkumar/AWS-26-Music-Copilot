@@ -9,7 +9,10 @@ const region = process.env.AWS_REGION || import.meta.env.AWS_REGION || 'us-east-
 
 const bedrockClient = new BedrockRuntimeClient({ region });
 
-type ChatMessage = { role: 'system'; content: string } | { role: NonNullable<Message['role']>; content: string };
+type ChatMessage = {
+    role: NonNullable<Message['role']> | 'system';
+    content: string;
+};
 
 type ToolStatus = NonNullable<ToolResultBlock['status']>;
 
