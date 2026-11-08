@@ -204,7 +204,7 @@
 
     function saveForm(): void {
         const data = new FormData(form);
-        const parsed = songFormSchema.safeParse({ title: data.get('title'), key: data.get('key'), tempo: Number(data.get('tempo')) });
+        const parsed = songFormSchema.safeParse({ title: data.get('title'), key: data.get('key'), tempo: parseInt(data.get('tempo')?.toString() ?? '', 10) });
 
         if (!parsed.success) {
             formError.textContent = parsed.error.issues[0]?.message ?? 'Check the song details.';

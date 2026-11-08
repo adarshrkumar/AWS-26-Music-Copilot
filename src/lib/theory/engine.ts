@@ -1,7 +1,8 @@
-import { parseChord } from './chords.ts';
+import { parseChord, ROLE_NAMES } from './chords.ts';
 import { classifyChord } from './harmony.ts';
 import { parseKey } from './keys.ts';
-import { getGuideToneMoves, getGuideTones, suggestArpeggios, suggestScales } from './suggestions.ts';
+import { spellDegree } from './notes.ts';
+import { getGuideToneMoves, suggestArpeggios, suggestScales } from './suggestions.ts';
 import type { Chord, ChordAnalysis, InvalidChord, Key, ProgressionAnalysis, ProgressionChord } from './types.ts';
 
 function analyzeParsedChord(key: Key, chord: Chord, next: Chord | null, bar: number, beat: number): ChordAnalysis {
@@ -16,7 +17,7 @@ function analyzeParsedChord(key: Key, chord: Chord, next: Chord | null, bar: num
         context,
         scales: suggestScales(chord, context),
         arpeggios: suggestArpeggios(chord, context),
-        guideTones: getGuideTones(chord),
+        guideTones: chord.guideDegrees.map(degree => ({ note: spellDegree(chord.root, degree), degree, role: ROLE_NAMES[degree.replace(/^[#b]+/, '')] ?? 'tone' })),
         guideToneMoves: next ? getGuideToneMoves(chord, next) : [],
     };
 }

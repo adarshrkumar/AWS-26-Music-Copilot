@@ -1,4 +1,4 @@
-import { getUniquePitchClasses, parseNote, spellFormula } from './notes.ts';
+import { getUniquePitchClasses, parseNote, spellDegree } from './notes.ts';
 import type { Chord, QualityDefinition } from './types.ts';
 
 const QUALITIES: QualityDefinition[] = [
@@ -27,7 +27,7 @@ const QUALITIES: QualityDefinition[] = [
     { aliases: ['7#5', 'aug7', '+7'], family: 'augmented', formula: ['1', '3', '#5', 'b7'], guideDegrees: ['3', 'b7'], romanSuffix: '+7' },
 ];
 
-const ROLE_NAMES: Record<string, string> = {
+export const ROLE_NAMES: Record<string, string> = {
     '2': 'second',
     '3': 'third',
     '4': 'fourth',
@@ -36,14 +36,6 @@ const ROLE_NAMES: Record<string, string> = {
     '7': 'seventh',
     '9': 'ninth',
 };
-
-export function getDegreeRole(degree: string): string {
-    return ROLE_NAMES[degree.replace(/^[#b]+/, '')] ?? 'tone';
-}
-
-function getDegreeNumber(degree: string): number {
-    return Number(degree.replace(/^[#b]+/, ''));
-}
 
 export function parseChord(name: string): Chord | null {
     const cleaned = name.replace(/\s+/g, '');
@@ -55,9 +47,9 @@ export function parseChord(name: string): Chord | null {
     const definition = QUALITIES.find(quality => quality.aliases.includes(match[3]));
     if (!definition || !parseNote(root) || (bass !== null && !parseNote(bass))) return null;
 
-    const notes = spellFormula(root, definition.formula);
-    const coreFormula = definition.formula.filter(degree => getDegreeNumber(degree) < 9);
-    const hasSeventh = definition.formula.some(degree => getDegreeNumber(degree) === 7);
+    const notes = definition.formula.map(degree => spellDegree(root, degree));
+    const coreFormula = definition.formula.filter(degree => parseInt(degree.replace(/^[#b]+/, ''), 10) < 9);
+    const hasSeventh = definition.formula.some(degree => parseInt(degree.replace(/^[#b]+/, ''), 10) === 7);
     const essentialFormula = hasSeventh ? definition.formula.filter(degree => degree !== '5') : definition.formula;
 
     return {
@@ -69,8 +61,8 @@ export function parseChord(name: string): Chord | null {
         formula: definition.formula,
         notes,
         pitchClasses: getUniquePitchClasses(notes),
-        corePitchClasses: getUniquePitchClasses(spellFormula(root, coreFormula)),
-        essentialPitchClasses: getUniquePitchClasses(spellFormula(root, essentialFormula)),
+        corePitchClasses: getUniquePitchClasses(coreFormula.map(degree => spellDegree(root, degree))),
+        essentialPitchClasses: getUniquePitchClasses(essentialFormula.map(degree => spellDegree(root, degree))),
         guideDegrees: definition.guideDegrees,
         romanSuffix: definition.romanSuffix,
         hasSeventh,
