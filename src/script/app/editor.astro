@@ -24,23 +24,17 @@
     const tab = document.querySelector('#tab');
     const sheet = document.querySelector('#sheet');
     const reasonPanel = document.querySelector('#reason');
-    const reasonHeading = document.querySelector<HTMLElement>('#reason-heading');
+    const reasonHeading = document.getElementById('reason-heading');
     const reasonBody = document.querySelector('#reason-body');
     const errorLine = document.querySelector('#editor-error');
     const statusLine = document.querySelector('#editor-status');
     const barButtons = document.querySelectorAll('[data-bar]');
-    const noteFields = [beatInput, durationSelect, pitchInput, stringSelect, fretInput];
     const reasons = new Map<string, string>();
 
     let notes = sortNotes(section.notes);
     let bar = 1;
     let editing: Note | null = null;
     let saving = false;
-    let invalidField: Element | null = null;
-
-    for (const field of noteFields) {
-        if (field instanceof HTMLElement) field.dataset.describedby = field.getAttribute('aria-describedby') ?? '';
-    }
 
     function sortNotes(list: Note[]): Note[] {
         return [...list].sort((a, b) => a.bar - b.bar || a.beat - b.beat || getMidi(a.pitch) - getMidi(b.pitch));
@@ -328,36 +322,9 @@
         renderList(barNotes);
     }
 
-    function clearInvalid(): void {
-        for (const field of noteFields) {
-            if (!(field instanceof HTMLElement)) continue;
-
-            field.removeAttribute('aria-invalid');
-            if (field.dataset.describedby) field.setAttribute('aria-describedby', field.dataset.describedby);
-            else field.removeAttribute('aria-describedby');
-        }
-    }
-
-    function markInvalid(field: Element | null, message: string): void {
-        clearInvalid();
-        errorLine?.replaceChildren(message);
-
-        const target = field ?? pitchInput;
-        if (!(target instanceof HTMLElement)) return;
-
-        target.setAttribute('aria-invalid', 'true');
-        target.setAttribute('aria-describedby', `${target.dataset.describedby ?? ''} editor-error`.trim());
-        target.focus();
-    }
-
-    function reject(field: Element | null, message: string): string {
-        invalidField = field;
-        return message;
-    }
-
     function resetForm(): void {
         editing = null;
-        clearInvalid();
+        for (const field of document.querySelectorAll('[aria-invalid]')) field.removeAttribute('aria-invalid');
         (pitchInput as HTMLInputElement).value = '';
         (stringSelect as HTMLSelectElement).value = '';
         (fretInput as HTMLInputElement).value = '';
@@ -383,7 +350,7 @@
         }
     }
 
-    function showReason(heading: string, text: string, className: string, moveFocus: boolean): void {
+    function showReason(heading: string, text: string, className: string): void {
         const paragraph = document.createElement('p');
 
         paragraph.className = className;
@@ -391,7 +358,6 @@
         reasonPanel?.toggleAttribute('hidden', false);
         reasonHeading?.replaceChildren(heading);
         reasonBody?.replaceChildren(paragraph);
-        if (moveFocus) reasonHeading?.focus();
     }
 
     async function save(next: Note[], message: string): Promise<boolean> {
@@ -438,7 +404,8 @@
         const cacheKey = `${chord.name}|${scale}|${note.pitch}`;
         const scaleNote = document.createElement('p');
 
-        showReason(heading, 'Loading the reason...', '', true);
+        showReason(heading, 'Loading the reason...', '');
+        reasonHeading?.focus();
 
         if (!reasons.has(cacheKey)) {
             try {
@@ -451,9 +418,9 @@
                 if (!response.ok) {
                     try {
                         const body = await response.json();
-                        showReason(heading, body.error ?? `Request failed (${response.status}).`, 'editor__error', false);
+                        showReason(heading, body.error ?? `Request failed (${response.status}).`, 'editor__error');
                     } catch {
-                        showReason(heading, `Request failed (${response.status}).`, 'editor__error', false);
+                        showReason(heading, `Request failed (${response.status}).`, 'editor__error');
                     }
 
                     return;
@@ -461,14 +428,14 @@
 
                 reasons.set(cacheKey, (await response.json()).data);
             } catch {
-                showReason(heading, 'Could not reach the server to explain this note.', 'editor__error', false);
+                showReason(heading, 'Could not reach the server to explain this note.', 'editor__error');
                 return;
             }
         }
 
         scaleNote.className = 'indicative-note';
         scaleNote.textContent = `Scale used: ${scale}. This is one way to hear the note, not the only correct one.`;
-        showReason(heading, reasons.get(cacheKey) ?? '', '', false);
+        showReason(heading, reasons.get(cacheKey) ?? '', '');
         reasonBody?.append(scaleNote);
     }
 
@@ -489,26 +456,26 @@
 
         if (editing === note) resetForm();
         render();
-        document.querySelector<HTMLElement>('#notes-heading')?.focus();
+        document.getElementById('notes-heading')?.focus();
     }
 
-    function readNote(): Note | string {
-        if (!(beatInput instanceof HTMLInputElement) || !(durationSelect instanceof HTMLSelectElement) || !(pitchInput instanceof HTMLInputElement) || !(stringSelect instanceof HTMLSelectElement) || !(fretInput instanceof HTMLInputElement)) return reject(null, 'The note form did not load.');
+    function readNote(): Note | [Element | null, string] {
+        if (!(beatInput instanceof HTMLInputElement) || !(durationSelect instanceof HTMLSelectElement) || !(pitchInput instanceof HTMLInputElement) || !(stringSelect instanceof HTMLSelectElement) || !(fretInput instanceof HTMLInputElement)) return [null, 'The note form did not load.'];
 
         const beat = parseFloat(beatInput.value);
-        if (!Number.isInteger(beat * 4) || beat < 1 || beat >= 5) return reject(beatInput, 'Beat must be between 1 and 4.75 in steps of 0.25.');
+        if (!Number.isInteger(beat * 4) || beat < 1 || beat >= 5) return [beatInput, 'Beat must be between 1 and 4.75 in steps of 0.25.'];
 
         if (stringSelect.value && fretInput.value) {
             const fretPitch = getFretPitch(parseInt(stringSelect.value, 10), parseInt(fretInput.value, 10));
-            if (!fretPitch) return reject(fretInput, 'Fret must be a whole number from 0 to 24.');
+            if (!fretPitch) return [fretInput, 'Fret must be a whole number from 0 to 24.'];
 
             return { bar, beat, duration: parseFloat(durationSelect.value), pitch: fretPitch, string: parseInt(stringSelect.value, 10), fret: parseInt(fretInput.value, 10) };
         }
 
-        if (stringSelect.value || fretInput.value) return reject(stringSelect.value ? fretInput : stringSelect, 'Pick both a string and a fret, or write a pitch instead.');
+        if (stringSelect.value || fretInput.value) return [stringSelect.value ? fretInput : stringSelect, 'Pick both a string and a fret, or write a pitch instead.'];
 
         const pitch = formatPitch(pitchInput.value);
-        if (!pitch) return reject(pitchInput, 'Write a pitch such as C4, F#3 or Bb4, or pick a string and fret.');
+        if (!pitch) return [pitchInput, 'Write a pitch such as C4, F#3 or Bb4, or pick a string and fret.'];
 
         return { bar, beat, duration: parseFloat(durationSelect.value), pitch, ...getFretPosition(pitch) };
     }
@@ -518,17 +485,22 @@
 
         const note = readNote();
 
-        if (typeof note === 'string') {
-            markInvalid(invalidField, note);
+        for (const field of document.querySelectorAll('[aria-invalid]')) field.removeAttribute('aria-invalid');
+
+        if (Array.isArray(note)) {
+            errorLine?.replaceChildren(note[1]);
+            note[0]?.setAttribute('aria-invalid', 'true');
+            if (note[0] instanceof HTMLElement) note[0].focus();
             return;
         }
 
         if (notes.some(existing => existing !== editing && existing.bar === note.bar && existing.beat === note.beat && existing.pitch === note.pitch)) {
-            markInvalid(stringSelect instanceof HTMLSelectElement && stringSelect.value ? fretInput : pitchInput, `${note.pitch} is already on beat ${note.beat} of bar ${bar}.`);
+            errorLine?.replaceChildren(`${note.pitch} is already on beat ${note.beat} of bar ${bar}.`);
+            pitchInput?.setAttribute('aria-invalid', 'true');
+            if (pitchInput instanceof HTMLElement) pitchInput.focus();
             return;
         }
 
-        clearInvalid();
         const next: Note[] = [];
 
         for (const existing of notes) {

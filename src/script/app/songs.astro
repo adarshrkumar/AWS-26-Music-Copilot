@@ -112,7 +112,6 @@
 
     const root = find<HTMLElement>(document, '.songs');
     const signedIn = root.dataset.signedIn === 'true';
-    const pageTitle = find<HTMLElement>(root, '.songs__title');
     const list = find<HTMLUListElement>(root, '[data-role="list"]');
     const empty = find<HTMLElement>(root, '[data-role="empty"]');
     const status = find<HTMLElement>(root, '[data-role="status"]');
@@ -150,7 +149,9 @@
         find<HTMLElement>(item, '[data-field="meta"]').textContent = `${song.key}, ${song.tempo} BPM, ${bars} ${bars === 1 ? 'bar' : 'bars'}`;
         find<HTMLElement>(item, '[data-field="sync"]').textContent = syncLabel(song);
 
-        for (const button of item.querySelectorAll<HTMLButtonElement>('[data-action]')) {
+        for (const button of item.querySelectorAll('[data-action]')) {
+            if (!(button instanceof HTMLElement)) continue;
+
             const action = button.dataset.action;
             const labels: Record<string, string> = { edit: 'Edit', sync: song.syncedAt ? 'Sync changes' : 'Sync to account', unsync: 'Remove synced copy', export: 'Export', delete: 'Delete' };
 
@@ -168,14 +169,6 @@
 
         empty.hidden = songs.length > 0;
         list.replaceChildren(...songs.map(buildRow));
-    }
-
-    function focusRow(id: string, action: string): void {
-        const row = list.querySelector<HTMLElement>(`[data-id="${id}"]`);
-        const target = row?.querySelector<HTMLButtonElement>(`[data-action="${action}"]:not([hidden])`) ?? row?.querySelector<HTMLButtonElement>('[data-action="edit"]');
-
-        if (target) target.focus();
-        else pageTitle.focus();
     }
 
     async function request(method: 'PUT' | 'DELETE', url: string, body?: LocalSong): Promise<string | null> {
@@ -219,11 +212,10 @@
         }
 
         const id = data.get('id');
-        let saved: LocalSong | null;
 
         try {
-            if (typeof id === 'string' && id) saved = updateLocalSong(id, parsed.data);
-            else saved = createLocalSong(parsed.data);
+            if (typeof id === 'string' && id) updateLocalSong(id, parsed.data);
+            else createLocalSong(parsed.data);
         } catch {
             formError.textContent = 'This device has no room left to store the song. Export or delete a song and try again.';
             return;
@@ -232,7 +224,7 @@
         dialog.close();
         render();
         say(`Saved "${parsed.data.title}" on this device.`);
-        if (saved) focusRow(saved.id, 'edit');
+        for (const button of list.querySelectorAll('li:first-child [data-action="edit"]')) if (button instanceof HTMLElement) button.focus();
     }
 
     async function syncSong(song: LocalSong): Promise<void> {
@@ -242,7 +234,7 @@
         markLocalSongSynced(song.id, new Date().toISOString());
         render();
         say(`Synced "${song.title}" to your account.`);
-        focusRow(song.id, 'sync');
+        for (const button of list.querySelectorAll(`[data-id="${CSS.escape(song.id)}"] [data-action="sync"]`)) if (button instanceof HTMLElement) button.focus();
     }
 
     async function unsyncSong(song: LocalSong): Promise<void> {
@@ -253,7 +245,7 @@
         markLocalSongSynced(song.id, null);
         render();
         say(`Removed the synced copy of "${song.title}". It is now on this device only.`);
-        focusRow(song.id, 'sync');
+        for (const button of list.querySelectorAll(`[data-id="${CSS.escape(song.id)}"] [data-action="sync"]`)) if (button instanceof HTMLElement) button.focus();
     }
 
     async function removeSong(song: LocalSong): Promise<void> {
@@ -268,7 +260,7 @@
         deleteLocalSong(song.id);
         render();
         say(`Deleted "${song.title}".`);
-        pageTitle.focus();
+        document.getElementById('songs-title')?.focus();
     }
 
     function exportSongs(songs: LocalSong[]): void {
@@ -301,7 +293,7 @@
 
     find<HTMLButtonElement>(dialog, '[data-action="cancel"]').addEventListener('click', () => dialog.close());
 
-    root.querySelector<HTMLFormElement>('[data-role="delete-account"]')?.addEventListener('submit', async event => {
+    root.querySelector('[data-role="delete-account"]')?.addEventListener('submit', async event => {
         event.preventDefault();
         if (!window.confirm('Delete your account? Every synced song is removed. Songs on this device stay.')) return;
 

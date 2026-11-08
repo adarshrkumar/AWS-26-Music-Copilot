@@ -87,10 +87,11 @@
             overflow-wrap: anywhere;
             display: flex;
 
-            &[aria-current="page"],
-            &[aria-current="page"]:hover {
-                color: $text-inverse;
-                background: $primary-color;
+            &[aria-current="page"] {
+                &, &:hover {
+                    color: $text-inverse;
+                    background: $primary-color;
+                }
             }
         }
 

@@ -1,12 +1,8 @@
 @use '../variables/system' as *;
 @use '../variables/tokens' as *;
 
-$app-nav-clearance: calc(#{$row-min-height} + #{space(2)} + env(safe-area-inset-bottom));
-
 html {
     @include below(md) {
-        --app-nav-clearance: #{$app-nav-clearance};
-
         scroll-padding-bottom: calc(#{$app-nav-clearance} + #{space(16)});
     }
 }

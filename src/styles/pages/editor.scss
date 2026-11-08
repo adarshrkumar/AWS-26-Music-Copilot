@@ -148,18 +148,19 @@
 
         @include below(md) {
             position: sticky;
-            bottom: calc(var(--app-nav-clearance) + #{space(2)});
+            bottom: calc(#{$app-nav-clearance} + #{space(2)});
             margin-inline: calc(-1 * #{space(2)});
             padding: space(2);
             background: $bg-secondary;
             border-radius: radius(md);
-            flex-direction: row;
             z-index: map.get($z-index, base);
+        }
+    }
 
-            .btn {
-                flex: 1;
-                min-height: $row-min-height;
-            }
+    &__action {
+        @include below(md) {
+            flex: 1;
+            min-height: $row-min-height;
         }
     }
 

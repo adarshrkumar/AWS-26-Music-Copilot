@@ -12,16 +12,16 @@
 
     &__heading {
         @include flex-between;
+    }
 
+    &__create {
         @include below(md) {
-            .btn {
-                position: fixed;
-                bottom: calc(var(--app-nav-clearance) + #{space(3)});
-                right: space(4);
-                min-height: $row-min-height;
-                box-shadow: $shadow-medium;
-                z-index: map.get($z-index, sticky);
-            }
+            position: fixed;
+            bottom: calc(#{$app-nav-clearance} + #{space(3)});
+            right: space(4);
+            min-height: $row-min-height;
+            box-shadow: $shadow-medium;
+            z-index: map.get($z-index, sticky);
         }
     }
 
@@ -130,10 +130,12 @@
 
         @include below(md) {
             flex-direction: column;
+        }
+    }
 
-            .btn {
-                width: 100%;
-            }
+    &__dialog-action {
+        @include below(md) {
+            width: 100%;
         }
     }
 }

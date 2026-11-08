@@ -5,24 +5,24 @@
     type PhraseNote = Pick<Song['sections'][number]['notes'][number], 'beat' | 'pitch'>;
     type Suggestion = Song['suggestions'][number];
 
-    const form = document.querySelector<HTMLFormElement>('.autofill__form');
-    const songSelect = document.querySelector<HTMLSelectElement>('#autofill-song');
-    const sectionSelect = document.querySelector<HTMLSelectElement>('#autofill-section');
-    const barSelect = document.querySelector<HTMLSelectElement>('#autofill-bar');
-    const list = document.querySelector<HTMLUListElement>('.autofill__list');
-    const status = document.querySelector<HTMLElement>('.autofill__status');
+    const form = document.querySelector('.autofill__form');
+    const songSelect = document.querySelector('#autofill-song');
+    const sectionSelect = document.querySelector('#autofill-section');
+    const barSelect = document.querySelector('#autofill-bar');
+    const list = document.querySelector('.autofill__list');
+    const status = document.querySelector('.autofill__status');
     const songs: SongOption[] = JSON.parse(document.querySelector('#autofill-songs')?.textContent ?? '[]');
 
     function say(message: string) {
         if (status) status.textContent = message;
     }
 
-    function fill(select: HTMLSelectElement, options: { value: string; label: string }[]) {
+    function fill(select: Element, options: { value: string; label: string }[]) {
         select.replaceChildren(...options.map(option => new Option(option.label, option.value)));
     }
 
     function currentSong(): SongOption | undefined {
-        return songs.find(song => song.id === songSelect?.value);
+        return songs.find(song => song.id === (songSelect as HTMLSelectElement).value);
     }
 
     function renderSections() {
@@ -33,7 +33,7 @@
 
     function renderBars() {
         if (!barSelect) return;
-        const bars = currentSong()?.sections.find(section => section.id === sectionSelect?.value)?.bars ?? 0;
+        const bars = currentSong()?.sections.find(section => section.id === (sectionSelect as HTMLSelectElement).value)?.bars ?? 0;
         fill(barSelect, Array.from({ length: bars }, (_, index) => ({ value: (index + 1).toString(), label: `Bar ${index + 1}` })));
         void loadSuggestions();
     }
@@ -48,7 +48,7 @@
     }
 
     async function decide(suggestion: Suggestion, item: HTMLElement, decision: 'accepted' | 'rejected', input: HTMLInputElement) {
-        const body: { songId: string | undefined; suggestionId: string; status: string; pitches?: string[] } = { songId: songSelect?.value, suggestionId: suggestion.id, status: decision };
+        const body: { songId: string | undefined; suggestionId: string; status: string; pitches?: string[] } = { songId: (songSelect as HTMLSelectElement).value, suggestionId: suggestion.id, status: decision };
         if (decision === 'accepted') body.pitches = input.value.trim().split(/\s+/);
 
         const response = await fetch('/api/modules/autofill', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -58,7 +58,7 @@
 
         item.dataset.status = decision;
         item.querySelectorAll('button, input').forEach(control => control.setAttribute('disabled', ''));
-        const outcome = item.querySelector<HTMLElement>('.autofill__outcome');
+        const outcome = item.querySelector('.autofill__outcome');
         if (outcome) outcome.textContent = decision === 'accepted' ? 'Accepted and written into the song.' : 'Rejected. The song is unchanged.';
         say(decision === 'accepted' && result.skipped ? `Phrase accepted. ${result.skipped} notes were skipped because those beats already have a note.` : `Phrase ${decision}.`);
     }
@@ -127,7 +127,7 @@
     }
 
     async function loadSuggestions() {
-        if (!songSelect?.value || !sectionSelect?.value || !barSelect?.value) return renderSuggestions([]);
+        if (!(songSelect instanceof HTMLSelectElement) || !(sectionSelect instanceof HTMLSelectElement) || !(barSelect instanceof HTMLSelectElement) || !songSelect.value || !sectionSelect.value || !barSelect.value) return renderSuggestions([]);
         const query = new URLSearchParams({ songId: songSelect.value, sectionId: sectionSelect.value, bar: barSelect.value });
         const response = await fetch(`/api/modules/autofill?${query}`);
         if (!response.ok) return say('Earlier proposals could not be loaded.');
@@ -141,14 +141,15 @@
 
     form?.addEventListener('submit', async event => {
         event.preventDefault();
+        const data = new FormData(event.currentTarget instanceof HTMLFormElement ? event.currentTarget : undefined);
         const button = form.querySelector('button');
-        button?.setAttribute('data-state', 'loading');
+        if (button) button.dataset.state = 'loading';
         say('Looking for phrases that fit the chords in this bar.');
 
         const response = await fetch('/api/modules/autofill', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ songId: songSelect?.value, sectionId: sectionSelect?.value, bar: Number(barSelect?.value) }),
+            body: JSON.stringify({ songId: data.get('song'), sectionId: data.get('section'), bar: parseInt(data.get('bar')?.toString() ?? '', 10) }),
         });
         const result: { error?: string; suggestions?: Suggestion[] } = await response.json();
 

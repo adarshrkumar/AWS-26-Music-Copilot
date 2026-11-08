@@ -58,6 +58,7 @@ $border-width-accent: 4px;
 $border-style: solid;
 $control-height: 44px;
 $row-min-height: 56px;
+$app-nav-clearance: calc(#{$row-min-height} + #{space(2)} + env(safe-area-inset-bottom));
 $icon-size: 20px;
 $container-narrow: 680px;
 $container-wide: 1040px;
