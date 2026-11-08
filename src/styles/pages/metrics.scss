@@ -1,0 +1,37 @@
+@use '../variables/colors' as *;
+@use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
+
+.metrics {
+    gap: space(5);
+
+    @include flex-column;
+
+    &__title {
+        @include heading-2;
+    }
+
+    &__intro {
+        color: $text-secondary;
+    }
+
+    &__table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow-x: auto;
+        display: block;
+
+        th, td {
+            padding: space(3);
+            border-bottom: 1px solid $border-color;
+            text-align: left;
+        }
+    }
+
+    &__caption {
+        margin-bottom: space(3);
+        color: $text-secondary;
+        text-align: left;
+    }
+}

@@ -1,4 +1,3 @@
-// Node types whose initializer marks a variable as deliberately computed rather than disposable
 const COMPLEX_TYPES = new Set([
     'AwaitExpression',
     'CallExpression',
@@ -12,7 +11,6 @@ const COMPLEX_TYPES = new Set([
     'ObjectExpression'
 ]);
 
-// Checks whether an expression at any depth contains a deliberately computed construct
 function isComplexExpression(node) {
     if (!node || typeof node.type !== 'string') return false;
 
@@ -42,7 +40,6 @@ export default {
     create(context) {
         return {
             Program(node) {
-                // Collect names re-exported through a separate `export { ... }` list, whose usage lives in other files
                 const exportNames = new Set();
                 for (const statement of node.body) {
                     if (statement.type === 'ExportNamedDeclaration') {
@@ -52,7 +49,6 @@ export default {
                     }
                 }
 
-                // Check for unused variables and imports (Astro files only)
                 if (context.filename.endsWith('.astro')) {
                     if (context.sourceCode.scopeManager?.acquire?.(node)) {
                         context.sourceCode.scopeManager?.acquire?.(node).variables.forEach(variable => {
@@ -65,7 +61,6 @@ export default {
                         });
                     }
 
-                    // Check for unused type imports
                     for (const match of context.sourceCode.getText().matchAll(/import\s+type\s+\{([^}]+)\}\s+from/g)) {
                         match[1].split(',').map(s => s.trim()).forEach(importName => {
                             if (importName.split(/\s+as\s+/)[0].trim().startsWith('_')) return;
@@ -79,7 +74,6 @@ export default {
                     }
                 }
 
-                // Variables used only once or twice are not allowed
                 if (!context.sourceCode.scopeManager) return;
                 if (context.filename.endsWith('.d.ts')) return;
 
@@ -99,11 +93,8 @@ export default {
                         if (variable.defs[0].parent?.parent?.type === 'ForOfStatement' || variable.defs[0].parent?.parent?.type === 'ForInStatement') return;
                         if (variable.defs[0].parent?.parent?.type === 'ForStatement') return;
 
-                        // Allow variables that get reassigned (e.g. state accumulators or mutable trackers)
                         if (variable.references.some(ref => ref.isWrite())) return;
 
-                        // A binding that only copies one element or property out of an already named value is pointless at any usage count
-                        // Object destructuring is excluded because pulling named fields out of a struct is deliberate
                         if (
                             variable.defs[0].node.init &&
                             variable.defs[0].node.id.type !== 'ObjectPattern' &&
@@ -140,12 +131,9 @@ export default {
                         if (variable.defs[0].type === 'FunctionName' && reads !== 1) return;
                         if (variable.defs[0].type !== 'FunctionName' && reads !== 1 && reads !== 2) return;
 
-                        // A deliberately computed initializer (call, await, function, collection, long expression) earns its variable even at low use
                         if (isComplexExpression(variable.defs[0].node.init)) return;
                         if (variable.defs[0].node.init && context.sourceCode.getText(variable.defs[0].node.init).length >= 80) return;
-                        // Pulling named fields out of a struct is deliberate even at low use
                         if (variable.defs[0].node.id.type === 'ObjectPattern') return;
-                        // A type annotation (not a cast) on the variable, a parameter or the return type is deliberate even at low use
                         if (variable.defs[0].node.id?.typeAnnotation || variable.defs[0].node.returnType || variable.defs[0].node.params?.some(param => param.typeAnnotation || param.left?.typeAnnotation)) return;
 
                         context.report({

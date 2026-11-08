@@ -13,23 +13,23 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Build a Progression
 
-- [ ] Add key, tempo and bar count controls to `src/pages/app/progression.astro`
-- [ ] Add chord entry, one chord at a time, with changes to any chord
-- [ ] Add a sample progression picker
-- [ ] Show each chord's name, function in the key and a short note from `explainChord`
-- [ ] Update suggestions whenever a chord changes
-- [ ] Limit a progression to sixteen bars and split longer progressions into sections
-- [ ] Save progressions through `setProgression` in `src/script/app/progression.astro`
+- [x] Add key, tempo and bar count controls to `src/pages/app/progression.astro`
+- [x] Add chord entry, one chord at a time, with changes to any chord
+- [x] Add a sample progression picker
+- [x] Show each chord's name, function in the key and a short note from `explainChord`
+- [x] Update suggestions whenever a chord changes
+- [x] Limit a progression to sixteen bars and split longer progressions into sections
+- [x] Save progressions through `setProgression` in `src/script/app/progression.astro`
 
 ## Find Scales and Notes
 
-- [ ] Add chord selection to `src/pages/app/scales.astro`
-- [ ] List the scales and arpeggios that fit the selected chord, with the feel of each from `getScaleFeel`
-- [ ] Show the reason for each scale from `explainScale`
-- [ ] Draw the scale on a keyboard diagram
-- [ ] Draw the scale on a fretboard diagram
-- [ ] Mark the guide tones for the selected chord and the next one
-- [ ] Add text descriptions for every diagram, such as "C major scale: C, D, E, F, G, A, B."
+- [x] Add chord selection to `src/pages/app/scales.astro`
+- [x] List the scales and arpeggios that fit the selected chord, with the feel of each from `getScaleFeel`
+- [x] Show the reason for each scale from `explainScale`
+- [x] Draw the scale on a keyboard diagram
+- [x] Draw the scale on a fretboard diagram
+- [x] Mark the guide tones for the selected chord and the next one
+- [x] Add text descriptions for every diagram, such as "C major scale: C, D, E, F, G, A, B."
 
 ## Write Notes
 
@@ -43,19 +43,19 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Autofill
 
-- [ ] Build rule-based phrase proposals that use chord tones on strong beats
-- [ ] Add an autofill request for a bar in `src/pages/app/autofill.astro`
-- [ ] Show the theory behind each phrase from `explainPhrase`
-- [ ] Let the songwriter accept, edit or reject a phrase, and write it into the song only after acceptance
-- [ ] Save proposals and their status through `addPhraseSuggestion` and `setPhraseSuggestionStatus`
-- [ ] Test the autofill rules on the sample progressions
+- [X] Build rule-based phrase proposals that use chord tones on strong beats
+- [X] Add an autofill request for a bar in `src/pages/app/autofill.astro`
+- [X] Show the theory behind each phrase from `explainPhrase`
+- [X] Let the songwriter accept, edit or reject a phrase, and write it into the song only after acceptance
+- [X] Save proposals and their status through `addPhraseSuggestion` and `setPhraseSuggestionStatus`
+- [X] Test the autofill rules on the sample progressions
 
 ## Suggestions Panel
 
-- [ ] Show suggestions in a side panel with a short reason beside each one
-- [ ] Track accepted and rejected suggestions through `setScaleSuggestionStatus`
-- [ ] Add a toggle to turn suggestions off for a session
-- [ ] Never present a suggestion as the only correct choice
+- [x] Show suggestions in a side panel with a short reason beside each one
+- [x] Track accepted and rejected suggestions through `setScaleSuggestionStatus`
+- [x] Add a toggle to turn suggestions off for a session
+- [x] Never present a suggestion as the only correct choice
 
 ## Songs and Storage
 
@@ -80,10 +80,10 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Metrics
 
-- [ ] Track the share of sessions that produce a saved progression
-- [ ] Track the share of suggestions accepted
-- [ ] Track the share of users who open the reason behind a suggestion
-- [ ] Track the median time from first chord to first scale view
+- [x] Track the share of sessions that produce a saved progression
+- [x] Track the share of suggestions accepted
+- [x] Track the share of users who open the reason behind a suggestion
+- [x] Track the median time from first chord to first scale view
 - [ ] Set metric targets after the pilot
 
 ## Pilot

@@ -11,4 +11,5 @@ export const appLinks: AppLink[] = [
     { href: '/app/editor', label: 'Editor', description: 'Write tabs and sheet music in one place.' },
     { href: '/app/autofill', label: 'Autofill', description: 'Review phrase proposals and accept the ones you want.' },
     { href: '/app/teacher', label: 'Teacher', description: 'Set sample progressions for a class, see how students use them, or join a class.' },
+    { href: '/app/metrics', label: 'Metrics', description: 'See how the app is used, as counts only with no song content.' },
 ];

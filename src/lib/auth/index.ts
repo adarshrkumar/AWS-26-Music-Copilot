@@ -1,7 +1,9 @@
 import { betterAuth } from 'better-auth';
-import { deleteUserClasses } from '@/lib/classes';
-import { deleteSongs } from '@/lib/songs';
+import { deleteItem, queryItems } from '@/db/helpers';
+import { songTable } from '@/db/schemas';
+import type { Song } from '@/db/types';
 import { dynamoAdapter } from '@/lib/auth/adapter';
+import { deleteUserClasses } from '@/lib/classes';
 
 export default betterAuth({
     database: dynamoAdapter,
@@ -12,7 +14,13 @@ export default betterAuth({
         deleteUser: {
             enabled: true,
             beforeDelete: async user => {
-                await deleteSongs(user.id);
+                let songs: Song[] = await queryItems(songTable, { KeyConditionExpression: 'userId = :userId', ExpressionAttributeValues: { ':userId': user.id } });
+
+                while (songs.length > 0) {
+                    await Promise.all(songs.map(song => deleteItem(songTable, { userId: user.id, id: song.id })));
+                    songs = await queryItems(songTable, { KeyConditionExpression: 'userId = :userId', ExpressionAttributeValues: { ':userId': user.id } });
+                }
+
                 await deleteUserClasses(user.id);
             },
         },

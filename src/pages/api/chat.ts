@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { streamText } from '@/lib/bedrock';
+import { getServerError } from '@/lib/status-responses';
 
-import type { APIRoute } from 'astro';
+import type { APIContext } from 'astro';
 
 const requestSchema = z.object({
     messages: z.array(
@@ -16,7 +17,7 @@ const requestSchema = z.object({
     maxTokens: z.number().positive().optional().default(1000),
 });
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST = async ({ request }: APIContext): Promise<Response> => {
     try {
         const { messages, system, modelId, temperature, maxTokens } = requestSchema.parse(await request.json());
         const stream = streamText({ system, messages: messages.map(message => ({ role: message.role, content: [{ text: message.content }] })), modelId, temperature, maxTokens });
@@ -56,17 +57,6 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         console.error('Chat API error:', error);
-        return new Response(
-            JSON.stringify({
-                error: 'Internal server error',
-                message: error instanceof Error ? error.message : 'Unknown error',
-            }),
-            {
-                status: 500,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        return getServerError(error instanceof Error ? error.message : 'Unknown error');
     }
 };

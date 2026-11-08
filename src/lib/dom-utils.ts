@@ -1,12 +1,5 @@
-// Provides functions for manipulating HTML content using Cheerio
-
 import * as cheerio from 'cheerio';
 
-/**
- * Extract metadata from HTML content
- * @param html - The HTML string to parse
- * @returns Metadata object
- */
 export function extractMetadata(html: string) {
     const $ = cheerio.load(html);
 
@@ -22,11 +15,6 @@ export function extractMetadata(html: string) {
     };
 }
 
-/**
- * Extract all links from HTML
- * @param html - The HTML string to parse
- * @returns Array of link objects
- */
 export function extractLinks(html: string) {
     const $ = cheerio.load(html);
     const links: Array<{ text: string; href: string; title?: string }> = [];
@@ -46,11 +34,6 @@ export function extractLinks(html: string) {
     return links;
 }
 
-/**
- * Extract all images from HTML
- * @param html - The HTML string to parse
- * @returns Array of image objects
- */
 export function extractImages(html: string) {
     const $ = cheerio.load(html);
     const images: Array<{ src: string; alt?: string; title?: string }> = [];
@@ -70,11 +53,6 @@ export function extractImages(html: string) {
     return images;
 }
 
-/**
- * Extract headings from HTML
- * @param html - The HTML string to parse
- * @returns Array of heading objects
- */
 export function extractHeadings(html: string) {
     const $ = cheerio.load(html);
     const headings: Array<{ level: number; text: string; id?: string }> = [];
@@ -92,12 +70,6 @@ export function extractHeadings(html: string) {
     return headings;
 }
 
-/**
- * Generate table of contents from HTML
- * @param html - The HTML string to parse
- * @param maxLevel - Maximum heading level to include (default: 3)
- * @returns Array of TOC items
- */
 export function generateTableOfContents(html: string, maxLevel: number = 3) {
     return extractHeadings(html)
         .filter(h => h.level <= maxLevel)
@@ -107,19 +79,11 @@ export function generateTableOfContents(html: string, maxLevel: number = 3) {
         }));
 }
 
-/**
- * Clean HTML content
- * Removes scripts, styles, and other potentially dangerous elements
- * @param html - The HTML string to clean
- * @returns Cleaned HTML string
- */
 export function cleanHtml(html: string): string {
     const $ = cheerio.load(html);
 
-    // Remove dangerous elements
     $('script, style, iframe, object, embed').remove();
 
-    // Remove event handlers
     $('*').each((_, element) => {
         const $el = $(element);
         const attrs = $el.attr();
@@ -134,25 +98,14 @@ export function cleanHtml(html: string): string {
     return $.html();
 }
 
-/**
- * Extract text content from HTML
- * @param html - The HTML string to parse
- * @returns Plain text string
- */
 export function extractTextContent(html: string): string {
     const $ = cheerio.load(html);
 
-    // Remove script and style elements
     $('script, style').remove();
 
     return $('body').text().replace(/\s+/g, ' ').trim();
 }
 
-/**
- * Add IDs to headings for anchor linking
- * @param html - The HTML string to process
- * @returns HTML with IDs added to headings
- */
 export function addHeadingIds(html: string): string {
     const $ = cheerio.load(html);
 
@@ -165,12 +118,6 @@ export function addHeadingIds(html: string): string {
     return $.html();
 }
 
-/**
- * Add target="_blank" to external links
- * @param html - The HTML string to process
- * @param domain - The current domain (optional)
- * @returns HTML with external links updated
- */
 export function addExternalLinkTargets(html: string, domain?: string): string {
     const $ = cheerio.load(html);
 
@@ -189,21 +136,10 @@ export function addExternalLinkTargets(html: string, domain?: string): string {
     return $.html();
 }
 
-/**
- * Calculate reading time for HTML content
- * @param html - The HTML string to analyze
- * @param wordsPerMinute - Average reading speed (default: 200)
- * @returns Reading time in minutes
- */
 export function calculateReadingTime(html: string, wordsPerMinute: number = 200): number {
     return Math.ceil(extractTextContent(html).split(/\s+/).length / wordsPerMinute);
 }
 
-/**
- * Wrap tables in a responsive container
- * @param html - The HTML string to process
- * @returns HTML with tables wrapped
- */
 export function wrapTables(html: string): string {
     const $ = cheerio.load(html);
 

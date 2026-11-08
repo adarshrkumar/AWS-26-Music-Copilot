@@ -1,10 +1,119 @@
 ---
+import { KEY_NAMES } from '@/lib/scale-finder';
+
 import App from '@/layouts/App.astro';
 import ScalesScript from '@/script/app/scales.astro';
+import '@/styles/components/button.scss';
+import '@/styles/components/form.scss';
+import '@/styles/pages/scales.scss';
 
 if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
 ---
 
-<App>
+<App pageTitle="Find scales and notes">
+    <section class="scales" aria-labelledby="scales-title">
+        <h1 id="scales-title" class="scales__title">Find scales and notes</h1>
+        <p class="scales__intro">Pick a key and a chord to see the scales and arpeggios that fit it. These are suggestions with the theory behind them. You decide what to play.</p>
+
+        <form class="form scales__form" id="scales-form" novalidate>
+            <div class="form-group">
+                <label class="form-label" for="scales-key">Key</label>
+                <select class="form-select" id="scales-key" name="key">
+                    <optgroup label="Major keys">
+                        {KEY_NAMES.major.map(name => <option value={name} selected={name === 'C'}>{name} major</option>)}
+                    </optgroup>
+                    <optgroup label="Minor keys">
+                        {KEY_NAMES.minor.map(name => <option value={name}>{name.slice(0, -1)} minor</option>)}
+                    </optgroup>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="scales-chord">Chord</label>
+                <input class="form-input" id="scales-chord" name="chord" type="text" value="Dm7" autocomplete="off" autocapitalize="characters" aria-describedby="scales-chord-help" />
+                <p class="form-helper" id="scales-chord-help">Type any chord, such as Dm7, G7, Cmaj7, Am or F♯m7b5, or choose one below.</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="scales-next">Next chord (optional)</label>
+                <input class="form-input" id="scales-next" name="next" type="text" value="G7" autocomplete="off" autocapitalize="characters" aria-describedby="scales-next-help" />
+                <p class="form-helper" id="scales-next-help">Used to mark how the guide tones move into the next chord.</p>
+            </div>
+            <p class="form-error" id="scales-error" role="alert"></p>
+        </form>
+
+        <section class="scales__picker" aria-labelledby="scales-picker-title">
+            <h2 id="scales-picker-title" class="scales__subtitle">Chords in the key</h2>
+            <div class="scales__chords" id="scales-chords" role="group" aria-labelledby="scales-picker-title"></div>
+        </section>
+
+        <section class="scales__summary" id="scales-summary" aria-live="polite" aria-labelledby="scales-summary-title">
+            <h2 id="scales-summary-title" class="scales__subtitle">About this chord</h2>
+            <p id="scales-chord-info"></p>
+            <p id="scales-guide-info"></p>
+        </section>
+
+        <div class="scales__layout">
+            <section aria-labelledby="scales-options-title">
+                <h2 id="scales-options-title" class="scales__subtitle">Scales and arpeggios that fit</h2>
+                <p class="scales__note">Ranked by how many notes stay inside the key. Other choices can work too.</p>
+                <ol class="scales__options" id="scales-options"></ol>
+            </section>
+
+            <section class="diagram" aria-labelledby="scales-diagram-title">
+                <h2 id="scales-diagram-title" class="scales__subtitle">Notes on the instrument</h2>
+                <ul class="diagram__legend" aria-label="Diagram symbols">
+                    <li><span class="diagram__symbol" aria-hidden="true">■</span> Chord root</li>
+                    <li><span class="diagram__symbol" aria-hidden="true">●</span> Note in the scale</li>
+                    <li><span class="diagram__symbol" aria-hidden="true">×</span> Note outside the scale</li>
+                    <li><span class="diagram__symbol" aria-hidden="true">◆</span> Guide tone of this chord</li>
+                    <li><span class="diagram__symbol" aria-hidden="true">▲</span> Guide tone of the next chord</li>
+                </ul>
+                <h3 class="diagram__title">Keyboard</h3>
+                <div class="diagram__frame" id="scales-keyboard"></div>
+                <p class="diagram__description" id="scales-keyboard-text"></p>
+                <h3 class="diagram__title">Fretboard</h3>
+                <div class="diagram__frame" id="scales-fretboard"></div>
+                <p class="diagram__description" id="scales-fretboard-text"></p>
+            </section>
+        </div>
+    </section>
+
+    <aside class="suggestions" aria-labelledby="suggestions-title">
+        <div class="suggestions__heading">
+            <h2 class="suggestions__title" id="suggestions-title">Suggestions</h2>
+            <div class="form-checkbox suggestions__toggle">
+                <input id="suggestions-off" type="checkbox" />
+                <label for="suggestions-off">Turn suggestions off for this session</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="suggestions-song">Song</label>
+            <select class="form-select" id="suggestions-song"></select>
+        </div>
+
+        <p class="suggestions__intro">These are options to try, not rules. Several choices can work over the same chord, and nothing changes in your song until you accept it.</p>
+        <p class="suggestions__status" id="suggestions-status" role="status"></p>
+        <p class="suggestions__error" id="suggestions-error" role="alert"></p>
+        <p class="suggestions__empty" id="suggestions-empty" hidden></p>
+        <ul class="suggestions__list" id="suggestions-list" aria-label="Suggestions for this song"></ul>
+    </aside>
+
+    <template id="suggestion-row">
+        <li class="suggestions__item">
+            <p class="suggestions__label">
+                <span class="suggestions__bar" data-field="bar"></span>
+                <span class="suggestions__kind" data-field="kind"></span>
+                <strong class="suggestions__value" data-field="value"></strong>
+            </p>
+            <p class="suggestions__reason" data-field="reason"></p>
+            <p class="suggestions__state" data-field="state"></p>
+            <div class="suggestions__actions">
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="accepted">Accept</button>
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="rejected">Reject</button>
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="pending">Undo</button>
+            </div>
+        </li>
+    </template>
+
     <ScalesScript />
 </App>

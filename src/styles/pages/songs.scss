@@ -20,8 +20,7 @@
         @include heading-3;
     }
 
-    &__intro,
-    &__empty {
+    &__intro, &__empty {
         color: $text-secondary;
     }
 
@@ -65,8 +64,7 @@
         font-weight: font-weight(bold);
     }
 
-    &__meta,
-    &__sync {
+    &__meta, &__sync {
         margin: 0;
         color: $text-secondary;
     }

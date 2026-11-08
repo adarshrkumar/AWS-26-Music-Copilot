@@ -154,7 +154,6 @@ async function updateRow({ model, where, update }: UpdateArgs): Promise<NativeAt
     return next;
 }
 
-// A conditional delete makes sure only one caller gets a single-use token when several race for it.
 async function consumeRow({ model, where }: ConsumeArgs): Promise<NativeAttributeValue> {
     const [row] = await findRows(model, where);
     if (!row) return null;

@@ -1,21 +1,19 @@
-// Base colors. Every other file derives from these values.
-
-$bg-primary: #f6f1e4; // page background (manuscript paper)
-$bg-secondary: #fffdf6; // bars and panels
+$bg-primary: #f6f1e4;      // page background (manuscript paper)
+$bg-secondary: #fffdf6;    // bars and panels
 $bg-tertiary: #f3f4f6;
 $bg-dark: #111827;
 $text-inverse: #fff;
-$text-primary: #1b1b22; // body text, outlines, sign tags
-$text-secondary: #5f5f6b; // secondary text and notes
+$text-primary: #1b1b22;    // body text, outlines, sign tags
+$text-secondary: #5f5f6b;  // secondary text and notes
 $text-light: #9ca3af;
 $black: #000;
-$primary-color: #3b3f9c; // indigo: headings, selected chords, primary buttons
+$primary-color: #3b3f9c;   // indigo: headings, selected chords, primary buttons
 $primary-hover: #4338ca;
 $secondary-color: #2e8b57; // staff green: beat markers and in-scale notes
 $accent-color: #f59e0b;
-$error-color: #b23a48; // brick red: non-goals and blocked notes
-$success-color: #2e8b57; // accepted suggestions
-$warning-color: #b86e00; // amber: notes outside the scale and count warnings
+$error-color: #b23a48;     // brick red: non-goals and blocked notes
+$success-color: #2e8b57;   // accepted suggestions
+$warning-color: #b86e00;   // amber: notes outside the scale and count warnings
 $info-color: #3b82f6;
-$border-color: #5a5a66; // staff lines and dividers
+$border-color: #5a5a66;    // staff lines and dividers
 $border-focus: #4f46e5;
