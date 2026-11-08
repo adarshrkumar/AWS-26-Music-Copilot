@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { DescribeTableCommand } from '@aws-sdk/client-dynamodb';
-import assert from 'node:assert/strict';
 import { nanoid } from 'nanoid';
+import assert from 'node:assert/strict';
 
 import { dynamoClient, getItem, queryItems, verifyDynamoConnection } from '../src/db/helpers.ts';
 import * as schemas from '../src/db/schemas.ts';
