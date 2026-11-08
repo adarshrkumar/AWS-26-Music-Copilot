@@ -1,7 +1,7 @@
 ---
 import App from '@/layouts/App.astro';
 
-if (!Astro.locals.session) return Astro.redirect('/');
+if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
 ---
 
 <App />
