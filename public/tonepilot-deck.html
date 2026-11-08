@@ -64,7 +64,6 @@
             border: 3px solid var(--ink);
             border-radius: 24px;
             padding: 44px 52px;
-            box-shadow: 0 3px 0 var(--ink);
             position: relative;
             display: grid;
             gap: 18px;
@@ -343,14 +342,13 @@
             width: 46px;
             height: 46px;
             border-radius: 50%;
-            border: 3px solid var(--ink);
+            border: 2px solid var(--ink);
             background: var(--card);
             color: var(--ink);
             padding: 0;
             display: grid;
             place-items: center;
-            cursor: pointer;
-            box-shadow: 3px 3px 0 var(--ink)
+            cursor: pointer
         }
 
         #fab svg {
@@ -362,8 +360,7 @@
             display: block
         }
 
-        #fab:focus-visible,
-        .nav button:focus-visible {
+        #fab:focus-visible {
             outline: 3px solid var(--green);
             outline-offset: 3px
         }
@@ -387,8 +384,10 @@
             z-index: 20;
             background: var(--card);
             border: 2px solid var(--ink);
-            border-radius: 16px;
-            padding: 4px;
+            --menu-padding: 4px;
+            --menu-button-radius: 12px;
+            border-radius: calc(var(--menu-button-radius) + var(--menu-padding));
+            padding: var(--menu-padding);
             height: 46px;
             display: flex;
             gap: 4px;
@@ -396,8 +395,7 @@
             visibility: hidden;
             opacity: 0;
             transform: translateX(16px);
-            transition: transform .25s ease, opacity .25s ease, visibility 0s linear .25s;
-            box-shadow: 4px 4px 0 var(--ink)
+            transition: transform .25s ease, opacity .25s ease, visibility 0s linear .25s
         }
 
         .menu.open {
@@ -419,38 +417,13 @@
             text-align: left;
             background: var(--manuscript);
             border: 2px solid var(--ink);
-            border-radius: 12px;
+            border-radius: var(--menu-button-radius);
             padding: 0 12px;
             color: var(--ink);
             cursor: pointer
         }
 
         .menu button:disabled {
-            opacity: .45;
-            cursor: default
-        }
-
-        .nav {
-            position: fixed;
-            bottom: 22px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 20;
-            display: flex;
-            gap: 10px
-        }
-
-        .nav button {
-            font: 700 16px/1 "Rubik", sans-serif;
-            background: var(--card);
-            border: 2px solid var(--ink);
-            border-radius: 999px;
-            padding: 11px 18px;
-            color: var(--ink);
-            cursor: pointer
-        }
-
-        .nav button:disabled {
             opacity: .45;
             cursor: default
         }
@@ -467,10 +440,6 @@
             .bar {
                 padding: 30px 24px
             }
-
-            .nav {
-                display: none
-            }
         }
     </style>
 </head>
@@ -478,8 +447,6 @@
 <body>
     <main id="deck" aria-label="TonePilot deck"></main>
     <div id="count" aria-live="polite">1 / 1</div>
-    <div class="nav"><button id="prev" aria-label="Previous slide">← Back</button><button id="next"
-            aria-label="Next slide">Next →</button></div>
     <button id="fab" aria-label="Open slide navigation" aria-expanded="false" aria-controls="menu"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
     <nav id="menu" class="menu" aria-label="Slide navigation"><button id="menu-prev">← Previous</button><button id="menu-next">Next →</button></nav>
     <script>
@@ -672,8 +639,6 @@
 
         const deck = document.getElementById("deck");
         const count = document.getElementById("count");
-        const prevBtn = document.getElementById("prev");
-        const nextBtn = document.getElementById("next");
         const fab = document.getElementById("fab");
         const menu = document.getElementById("menu");
         const menuPrev = document.getElementById("menu-prev");
@@ -700,8 +665,6 @@
         function setCurrent(i) {
             current = i;
             count.textContent = (i + 1) + " / " + slides.length;
-            prevBtn.disabled = i === 0;
-            nextBtn.disabled = i === slides.length - 1;
             menuPrev.disabled = i === 0;
             menuNext.disabled = i === slides.length - 1;        }
         function step(d) {
@@ -714,8 +677,6 @@
             fab.setAttribute("aria-expanded", open ? "true" : "false");
         }
 
-        prevBtn.addEventListener("click", function () { step(-1); });
-        nextBtn.addEventListener("click", function () { step(1); });
         menuPrev.addEventListener("click", function () { step(-1); });
         menuNext.addEventListener("click", function () { step(1); });
         fab.addEventListener("click", function () { openMenu(!menu.classList.contains("open")); });
