@@ -3,7 +3,7 @@ import { DeleteCommand, GetCommand, PutCommand, QueryCommand, ScanCommand } from
 import type { NativeAttributeValue } from '@aws-sdk/lib-dynamodb';
 import { createAdapterFactory } from 'better-auth/adapters';
 import type { CleanedWhere, CustomAdapter } from 'better-auth/adapters';
-import { account, session, user, verification } from '@/db';
+import { accountTable, sessionTable, userTable, verificationTable } from '@/db';
 import { docClient } from '@/db/helpers';
 
 type Row = Record<string, NativeAttributeValue>;
@@ -87,7 +87,7 @@ async function findRows(model: string, where: CleanedWhere[] = []): Promise<Row[
             clause.operator === 'eq' &&
             clause.mode === 'sensitive' &&
             typeof clause.value === 'string' &&
-            [user, session, account, verification]
+            [userTable, sessionTable, accountTable, verificationTable]
                 .find(table => table.TableName === model)
                 ?.GlobalSecondaryIndexes?.some(index => index.IndexName === clause.field),
     );

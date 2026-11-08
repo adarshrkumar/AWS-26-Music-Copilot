@@ -1,6 +1,6 @@
 import type { CreateTableCommandInput } from '@aws-sdk/client-dynamodb';
 
-export const data: CreateTableCommandInput = {
+export const dataTable: CreateTableCommandInput = {
     TableName: 'data',
     BillingMode: 'PAY_PER_REQUEST',
     AttributeDefinitions: [
@@ -13,7 +13,7 @@ export const data: CreateTableCommandInput = {
     ],
 };
 
-export const user: CreateTableCommandInput = {
+export const userTable: CreateTableCommandInput = {
     TableName: 'user',
     BillingMode: 'PAY_PER_REQUEST',
     AttributeDefinitions: [
@@ -26,7 +26,7 @@ export const user: CreateTableCommandInput = {
     ],
 };
 
-export const session: CreateTableCommandInput = {
+export const sessionTable: CreateTableCommandInput = {
     TableName: 'session',
     BillingMode: 'PAY_PER_REQUEST',
     AttributeDefinitions: [
@@ -41,7 +41,7 @@ export const session: CreateTableCommandInput = {
     ],
 };
 
-export const account: CreateTableCommandInput = {
+export const accountTable: CreateTableCommandInput = {
     TableName: 'account',
     BillingMode: 'PAY_PER_REQUEST',
     AttributeDefinitions: [
@@ -56,7 +56,7 @@ export const account: CreateTableCommandInput = {
     ],
 };
 
-export const verification: CreateTableCommandInput = {
+export const verificationTable: CreateTableCommandInput = {
     TableName: 'verification',
     BillingMode: 'PAY_PER_REQUEST',
     AttributeDefinitions: [
