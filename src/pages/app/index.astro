@@ -1,6 +1,37 @@
 ---
+import siteConfig from '@/lib/config';
+
 import App from '@/layouts/App.astro';
+import '@/styles/components/button.scss';
+import '@/styles/pages/app/index.scss';
 
 if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+
+const tools = [
+    { href: '/app/songs', sign: 'Start', title: 'Songs', body: 'Create a song with a title, key and tempo. Songs stay on this device until you sync one to your account.', action: 'Open songs' },
+    { href: '/app/progression', sign: 'Chords', title: 'Build a progression', body: 'Set a key, a tempo and a bar count, then add chords. Each chord comes with its function and the scales that can fit it.', action: 'Build chords' },
+    { href: '/app/scales', sign: 'Theory', title: 'Find scales and notes', body: 'Pick a key and a chord to see fitting scales, arpeggios and guide tones on a keyboard and a fretboard.', action: 'Find scales' },
+    { href: '/app/editor', sign: 'Notes', title: 'Write notes', body: 'Write notes bar by bar in tab and sheet music. Notes outside the scale are marked, never removed.', action: 'Write notes' },
+    { href: '/app/autofill', sign: 'Ideas', title: 'Autofill', body: 'Ask for phrase ideas for one bar. Each idea shows the theory behind it, and nothing is added until you accept it.', action: 'Get ideas' },
+    { href: '/app/metrics', sign: 'Usage', title: 'Metrics', body: 'See how the app is used. These numbers count events only and never include your chords or melodies.', action: 'View metrics' },
+];
 ---
-<App pageTitle="App" />
+<App pageTitle="App">
+    <section class="app-home" aria-labelledby="app-home-title">
+        <header class="app-home__intro">
+            <h1 class="app-home__title" id="app-home-title">Welcome to {siteConfig.appName}</h1>
+            <p class="app-home__lead">Start with a song, build its chords, then write notes with the theory beside you. {siteConfig.appName} explains and suggests. You decide.</p>
+        </header>
+
+        <ul class="app-home__tools" aria-label="Tools">
+            {tools.map(tool => (
+                <li class="bar app-home__tool">
+                    <span class="sign">{tool.sign}</span>
+                    <h2 class="app-home__tool-title">{tool.title}</h2>
+                    <p class="app-home__tool-body">{tool.body}</p>
+                    <a class="btn app-home__tool-link" data-variant="primary" data-size="small" href={tool.href}>{tool.action}</a>
+                </li>
+            ))}
+        </ul>
+    </section>
+</App>

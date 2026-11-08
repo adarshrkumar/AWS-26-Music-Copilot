@@ -1,0 +1,51 @@
+@use '../../variables/colors' as *;
+@use '../../variables/mixins' as *;
+@use '../../variables/system' as *;
+@use '../../variables/tokens' as *;
+
+.app-home {
+    gap: space(6);
+
+    @include flex-column;
+
+    &__intro {
+        gap: space(3);
+
+        @include flex-column;
+    }
+
+    &__title {
+        @include heading-2;
+    }
+
+    &__lead {
+        max-width: 60ch;
+        color: $text-secondary;
+    }
+
+    &__tools {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+        gap: space(4);
+        display: grid;
+    }
+
+    &__tool {
+        align-items: start;
+    }
+
+    &__tool-title {
+        @include heading-3;
+    }
+
+    &__tool-body {
+        flex: 1;
+        color: $text-secondary;
+    }
+
+    &__tool-link {
+        align-self: start;
+    }
+}

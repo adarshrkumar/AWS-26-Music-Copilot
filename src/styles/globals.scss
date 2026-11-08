@@ -3,6 +3,7 @@
 @use './reset' as *;
 @use './variables/color-functions' as *;
 @use './variables/colors' as *;
+@use './variables/effects' as *;
 @use './variables/mixins' as *;
 @use './variables/system' as *;
 @use './variables/tokens' as *;
@@ -136,4 +137,127 @@ a {
 
 .line-clamp-3 {
     @include line-clamp(3);
+}
+
+.bar {
+    padding: padding(row);
+    background: $bg-secondary;
+    border: $border-width-accent $border-style $text-primary;
+    border-radius: radius(lg);
+    flex-direction: column;
+    gap: 10px;
+    display: flex;
+}
+
+.sign {
+    padding: 7px 12px;
+    color: $bg-primary;
+    background: $text-primary;
+    border-radius: radius(pill);
+    font: font-weight(bold) #{font-size(xs)} / 1 $font-display;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.chord {
+    padding: padding(control);
+    min-height: $control-height;
+    color: $text-primary;
+    background: $bg-secondary;
+    border: $border-width-accent $border-style $text-primary;
+    border-radius: radius(pill);
+    font: font-weight(bold) #{font-size(md)} / 1 $font-display;
+    cursor: pointer;
+
+    &:hover, &:focus-visible {
+        outline: 3px solid $primary-color;
+        outline-offset: 2px;
+    }
+
+    &[aria-pressed="true"] {
+        color: $text-inverse;
+        background: $primary-color;
+    }
+}
+
+.note-in {
+    color: $secondary-color;
+    font-weight: font-weight(bold);
+
+    &::before {
+        content: '✓ ';
+    }
+}
+
+.note-out {
+    color: $warning-color;
+    font-weight: font-weight(bold);
+
+    &::before {
+        content: '! ';
+    }
+}
+
+.suggestion {
+    padding: padding(callout);
+    color: $text-primary;
+    background: $bg-primary;
+    border: $border-width $border-style $border-color;
+    border-left: $border-width-accent $border-style $primary-color;
+    border-radius: radius(md);
+    font: font-weight(regular) #{font-size(base)} / 1.5 $font-body;
+}
+
+.staff-block {
+    padding: padding(callout);
+    background: $bg-primary;
+    border: $border-width-accent $border-style $text-primary;
+    border-radius: radius(lg);
+    font: font-weight(semi) #{font-size(base)} / 1.5 $font-body;
+}
+
+.btn {
+    padding: padding(control);
+    min-height: $control-height;
+    color: $text-inverse;
+    background: $primary-color;
+    border: 0;
+    border-radius: radius(pill);
+    font: font-weight(bold) #{font-size(base)} / 1 $font-body;
+    transition: background .15s ease, transform .15s ease;
+    cursor: pointer;
+
+    &:hover {
+        background: state-hover($primary-color);
+        transform: translateY(-1px);
+    }
+
+    &:active {
+        background: state-active($primary-color);
+    }
+
+    &:disabled {
+        background: state-disabled($primary-color);
+        cursor: not-allowed;
+    }
+
+    &:focus-visible {
+        outline: 3px solid $secondary-color;
+        outline-offset: 2px;
+    }
+}
+
+.indicative-note {
+    color: $text-secondary;
+    font: font-weight(regular) #{font-size(sm)} / 1.5 $font-body;
+}
+
+.note-blocked {
+    padding: padding(callout);
+    color: $error-color;
+    background: $bg-primary;
+    border: $border-width $border-style $error-color;
+    border-radius: radius(lg);
+    font-weight: font-weight(semi);
 }
