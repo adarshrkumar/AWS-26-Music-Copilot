@@ -9,10 +9,9 @@ import {
 import type {
     DeleteCommandInput,
     GetCommandInput,
-    GetCommandOutput,
+    NativeAttributeValue,
     PutCommandInput,
     QueryCommandInput,
-    QueryCommandOutput,
 } from '@aws-sdk/lib-dynamodb';
 
 const region = process.env.AWS_REGION ?? 'us-east-1';
@@ -35,9 +34,7 @@ export const docClient = DynamoDBDocumentClient.from(dynamoClient, {
 
 export const tableName = process.env.DYNAMODB_TABLE_NAME ?? 'music-copilot';
 
-export async function getItem(
-    key: GetCommandInput['Key'],
-): Promise<GetCommandOutput['Item'] | null> {
+export async function getItem(key: GetCommandInput['Key']): Promise<NativeAttributeValue> {
     return (await docClient.send(new GetCommand({ TableName: tableName, Key: key }))).Item ?? null;
 }
 
@@ -49,9 +46,7 @@ export async function deleteItem(key: DeleteCommandInput['Key']): Promise<void> 
     await docClient.send(new DeleteCommand({ TableName: tableName, Key: key }));
 }
 
-export async function queryItems(
-    input: Omit<QueryCommandInput, 'TableName'>,
-): Promise<NonNullable<QueryCommandOutput['Items']>> {
+export async function queryItems(input: Omit<QueryCommandInput, 'TableName'>): Promise<NativeAttributeValue[]> {
     return (await docClient.send(new QueryCommand({ TableName: tableName, ...input }))).Items ?? [];
 }
 

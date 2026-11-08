@@ -207,9 +207,7 @@ export function calculateReadingTime(html: string, wordsPerMinute: number = 200)
 export function wrapTables(html: string): string {
     const $ = cheerio.load(html);
 
-    $('table').each((_, element) => {
-        $(element).wrap('<div class="table-wrapper" style="overflow-x: auto;"></div>');
-    });
+    $('table').wrap('<div class="table-wrapper" style="overflow-x: auto;"></div>');
 
     return $.html();
 }

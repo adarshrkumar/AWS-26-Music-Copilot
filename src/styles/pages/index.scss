@@ -242,6 +242,7 @@ body {
     }
 
     &__rule-item {
+        position: relative;
         padding: padding(row);
         min-height: $row-min-height;
         background: $bg-secondary;
@@ -251,7 +252,6 @@ body {
         align-items: center;
         gap: space(2) space(6);
         display: grid;
-        position: relative;
         overflow: clip;
 
         @include tablet {
