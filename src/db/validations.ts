@@ -222,3 +222,22 @@ export const saveNotesSchema = sectionQuerySchema.extend({
 });
 
 export type SaveNotesInput = z.infer<typeof saveNotesSchema>;
+
+// Metric validation schemas
+
+// The browser may only send these events. The suggestion events are recorded by the server so they cannot be inflated from the client.
+export const clientMetricSchema = z.object({
+    name: z.enum(['session_start', 'first_chord', 'first_scale_view', 'progression_saved', 'reason_opened']),
+    sessionId: z.string().min(8).max(64),
+    clientId: z.string().min(8).max(64),
+});
+
+export const metricRecordSchema = z.object({
+    name: z.enum(['session_start', 'first_chord', 'first_scale_view', 'progression_saved', 'reason_opened', 'suggestion_shown', 'suggestion_accepted', 'suggestion_rejected']),
+    sessionId: z.string().max(64).nullable(),
+    clientId: z.string().max(64).nullable(),
+    count: z.number().int().min(1).max(1000),
+    at: z.string().max(40),
+});
+
+export type ClientMetricInput = z.infer<typeof clientMetricSchema>;
