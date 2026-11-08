@@ -17,7 +17,6 @@ const songs = (await queryItems(songTable, { KeyConditionExpression: 'userId = :
     sections: song.sections.map(section => ({ id: section.id, name: section.name, bars: section.bars })),
 }));
 ---
-
 <App pageTitle="Autofill">
     <section class="autofill">
         <h1 class="autofill__title">Autofill</h1>

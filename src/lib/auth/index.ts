@@ -1,7 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { deleteItem, queryItems } from '@/db/helpers';
-import { songTable } from '@/db/schemas';
-import type { Song } from '@/db/types';
+import { classMemberTable, classTable, songTable } from '@/db/schemas';
+import type { ClassMember, ClassRoom, Song } from '@/db/types';
 import { dynamoAdapter } from '@/lib/auth/adapter';
 
 export default betterAuth({
@@ -19,6 +19,17 @@ export default betterAuth({
                     await Promise.all(songs.map(song => deleteItem(songTable, { userId: user.id, id: song.id })));
                     songs = await queryItems(songTable, { KeyConditionExpression: 'userId = :userId', ExpressionAttributeValues: { ':userId': user.id } });
                 }
+
+                const [classes, memberships]: [ClassRoom[], ClassMember[]] = await Promise.all([
+                    queryItems(classTable, { KeyConditionExpression: 'teacherId = :teacherId', ExpressionAttributeValues: { ':teacherId': user.id } }),
+                    queryItems(classMemberTable, { IndexName: 'studentId', KeyConditionExpression: 'studentId = :studentId', ExpressionAttributeValues: { ':studentId': user.id } }),
+                ]);
+
+                await Promise.all(classes.map(async classRoom => {
+                    await Promise.all((await queryItems(classMemberTable, { KeyConditionExpression: 'classId = :classId', ExpressionAttributeValues: { ':classId': classRoom.id } })).map((member: ClassMember) => deleteItem(classMemberTable, { classId: classRoom.id, studentId: member.studentId })));
+                    await deleteItem(classTable, { teacherId: user.id, id: classRoom.id });
+                }));
+                await Promise.all(memberships.map(member => deleteItem(classMemberTable, { classId: member.classId, studentId: user.id })));
             },
         },
     },

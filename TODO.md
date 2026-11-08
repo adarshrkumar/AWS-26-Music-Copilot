@@ -68,9 +68,9 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Teacher
 
-- [ ] Let a teacher set sample progressions for a class
-- [ ] Show a teacher which sample progressions a student used and how many suggestions were accepted
-- [ ] Hide a student's melodies from the teacher unless the student shares them
+- [x] Let a teacher set sample progressions for a class
+- [x] Show a teacher which sample progressions a student used and how many suggestions were accepted
+- [x] Hide a student's melodies from the teacher unless the student shares them
 
 ## Accessibility
 

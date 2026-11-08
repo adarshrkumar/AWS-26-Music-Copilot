@@ -69,6 +69,40 @@ export const verificationTable: CreateTableCommandInput = {
     ],
 };
 
+export const classTable: CreateTableCommandInput = {
+    TableName: 'class',
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+        { AttributeName: 'teacherId', AttributeType: 'S' },
+        { AttributeName: 'id', AttributeType: 'S' },
+        { AttributeName: 'joinCode', AttributeType: 'S' },
+    ],
+    KeySchema: [
+        { AttributeName: 'teacherId', KeyType: 'HASH' },
+        { AttributeName: 'id', KeyType: 'RANGE' },
+    ],
+    GlobalSecondaryIndexes: [
+        { IndexName: 'joinCode', KeySchema: [{ AttributeName: 'joinCode', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
+        { IndexName: 'id', KeySchema: [{ AttributeName: 'id', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
+    ],
+};
+
+export const classMemberTable: CreateTableCommandInput = {
+    TableName: 'classMember',
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+        { AttributeName: 'classId', AttributeType: 'S' },
+        { AttributeName: 'studentId', AttributeType: 'S' },
+    ],
+    KeySchema: [
+        { AttributeName: 'classId', KeyType: 'HASH' },
+        { AttributeName: 'studentId', KeyType: 'RANGE' },
+    ],
+    GlobalSecondaryIndexes: [
+        { IndexName: 'studentId', KeySchema: [{ AttributeName: 'studentId', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
+    ],
+};
+
 export const songTable: CreateTableCommandInput = {
     TableName: 'song',
     BillingMode: 'PAY_PER_REQUEST',

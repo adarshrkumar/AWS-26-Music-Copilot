@@ -7,7 +7,6 @@ import '@/styles/pages/songs.scss';
 
 const signedIn = Boolean(Astro.locals.session);
 ---
-
 <App pageTitle="Songs">
     <section class="songs" data-signed-in={signedIn ? 'true' : 'false'}>
         <div class="songs__heading">
@@ -71,6 +70,10 @@ const signedIn = Boolean(Astro.locals.session);
             <div class="form-group">
                 <label class="form-label" for="song-tempo" data-required="true">Tempo (BPM)</label>
                 <input class="form-input" id="song-tempo" name="tempo" type="number" min="20" max="300" step="1" value="100" required />
+            </div>
+            <div class="form-checkbox">
+                <input id="song-melody-shared" name="melodyShared" type="checkbox" />
+                <label for="song-melody-shared">Let my teacher see this song's melody. Leave this off to keep it private. It takes effect after you sync the song.</label>
             </div>
             <div class="songs__dialog-actions">
                 <button class="btn" type="button" data-variant="secondary" data-action="cancel">Cancel</button>

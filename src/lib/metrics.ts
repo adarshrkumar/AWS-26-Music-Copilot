@@ -9,7 +9,6 @@ import { buildMetricsReport } from '@/lib/metrics-report';
 
 type SuggestionStatus = Song['suggestions'][number]['status'];
 
-// A metric must never break songwriting, so a failed write is logged and dropped.
 export async function recordMetric(name: MetricName, ids: { sessionId: string | null; clientId: string | null } = { sessionId: null, clientId: null }, count = 1): Promise<void> {
     const at = new Date().toISOString();
 

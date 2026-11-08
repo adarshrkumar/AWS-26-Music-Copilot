@@ -9,7 +9,6 @@ function json(body: object, status: number): Response {
     return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
 }
 
-// GET /api/modules/metrics - The aggregate numbers for the Metrics section of the spec. Counts only, no song content
 export const GET = async ({ locals }: APIContext): Promise<Response> => {
     if (!locals.user) return json({ error: 'Unauthorized' }, 401);
 
@@ -21,7 +20,6 @@ export const GET = async ({ locals }: APIContext): Promise<Response> => {
     }
 };
 
-// POST /api/modules/metrics - Record one event from the browser. The ids are random and not linked to the account
 export const POST = async ({ locals, request }: APIContext): Promise<Response> => {
     if (!locals.user) return json({ error: 'Unauthorized' }, 401);
 

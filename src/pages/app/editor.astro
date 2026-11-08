@@ -15,7 +15,6 @@ const songs: Song[] = await queryItems(songTable, { KeyConditionExpression: 'use
 const song = songs.find(candidate => candidate.id === Astro.url.searchParams.get('song')) ?? songs[0];
 const section = song?.sections.find(candidate => candidate.id === Astro.url.searchParams.get('section')) ?? song?.sections[0];
 ---
-
 <App pageTitle="Write notes">
     <div class="editor">
         <h1 class="editor__title">Write notes</h1>

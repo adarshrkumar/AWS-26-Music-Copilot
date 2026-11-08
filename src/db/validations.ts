@@ -180,6 +180,34 @@ export const progressionSectionSchema = z.object({
     })).max(64),
 });
 
+export const classInputSchema = z.object({
+    name: z.string().trim().min(1, 'Class name is required').max(80, 'Class name must be 80 characters or less'),
+    sampleProgressionIds: z.array(z.string().min(1).max(40)).max(50),
+});
+
+export const joinClassSchema = z.object({
+    joinCode: z.string().trim().toUpperCase().length(8, 'A join code has eight characters'),
+});
+
+export const classIdSchema = z.string().length(21, 'Invalid class ID');
+
+export const teacherResponseSchema = z.object({
+    data: z.object({
+        teaching: z.array(z.object({
+            id: z.string(),
+            name: z.string(),
+            joinCode: z.string(),
+            sampleProgressionIds: z.array(z.string()),
+            students: z.array(z.object({
+                studentId: z.string(),
+                studentName: z.string(),
+                songs: z.array(z.object({ title: z.string(), sampleProgressionId: z.string().nullable(), acceptedCount: z.number(), totalCount: z.number(), melody: z.array(z.object({ notes: z.array(z.object({})) })).nullable() })),
+            })),
+        })),
+        joined: z.array(z.object({ id: z.string(), name: z.string(), teacherName: z.string(), sampleProgressionIds: z.array(z.string()) })),
+    }),
+});
+
 export const progressionDraftSchema = z.object({
     songId: z.string().min(1).max(64).nullable(),
     sampleProgressionId: z.string().min(1).max(64).nullable(),
@@ -230,3 +258,4 @@ export const metricRecordSchema = z.object({
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
 export type ProgressionDraft = z.infer<typeof progressionDraftSchema>;
+export type TeacherData = z.infer<typeof teacherResponseSchema>['data'];

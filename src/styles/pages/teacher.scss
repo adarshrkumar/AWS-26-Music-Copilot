@@ -1,0 +1,109 @@
+@use '../variables/colors' as *;
+@use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
+
+.teacher {
+    gap: space(5);
+
+    @include flex-column;
+
+    &__title {
+        @include heading-2;
+    }
+
+    &__subtitle {
+        @include heading-3;
+    }
+
+    &__intro,
+    &__empty,
+    &__meta {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__status {
+        color: $success-color;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__error {
+        color: $error-color;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__panel {
+        padding: space(4);
+        border: 1px solid $border-color;
+        border-radius: radius(lg);
+        gap: space(3);
+
+        @include flex-column;
+    }
+
+    &__form {
+        max-width: none;
+    }
+
+    &__choices {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        gap: space(2);
+
+        @include flex-column;
+    }
+
+    &__list,
+    &__students,
+    &__songs {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        gap: space(3);
+
+        @include flex-column;
+    }
+
+    &__item {
+        padding: space(4);
+        border: 1px solid $border-color;
+        border-radius: radius(lg);
+        gap: space(3);
+
+        @include flex-column;
+    }
+
+    &__name {
+        font-size: font-size(lg);
+        font-weight: font-weight(bold);
+    }
+
+    &__heading {
+        font-weight: font-weight(bold);
+    }
+
+    &__student {
+        gap: space(1);
+
+        @include flex-column;
+    }
+
+    &__songs {
+        padding-left: space(4);
+        color: $text-secondary;
+    }
+
+    &__actions {
+        flex-wrap: wrap;
+        gap: space(2);
+        display: flex;
+    }
+}
