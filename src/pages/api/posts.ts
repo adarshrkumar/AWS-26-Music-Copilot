@@ -16,7 +16,7 @@ import type { APIRoute } from 'astro';
 // Demonstrates CRUD operations with DynamoDB, Zod validation, and NanoID
 
 async function getPost(id: string): Promise<Post | null> {
-    return getItem(data,{ pk: 'POST', sk: id });
+    return getItem(dataTable, { pk: 'POST', sk: id });
 }
 
 // GET /api/posts - List posts with pagination and filtering
@@ -34,7 +34,7 @@ export const GET: APIRoute = async ({ url }) => {
         const search = validated.search?.toLowerCase();
 
         // DynamoDB has no ILIKE or ORDER BY on non-key attributes, so filtering, search and sorting happen here
-        const results = (await queryItems(data,{
+        const results = (await queryItems(dataTable, {
             KeyConditionExpression: 'pk = :pk',
             ExpressionAttributeValues: { ':pk': 'POST' },
         }))
@@ -111,7 +111,7 @@ export const POST: APIRoute = async ({ request }) => {
             publishedAt: validated.published ? now : null,
         };
 
-        await putItem(data,newPost);
+        await putItem(dataTable, newPost);
 
         return new Response(
             JSON.stringify({
@@ -204,7 +204,7 @@ export const PUT: APIRoute = async ({ request }) => {
                     : existingPost.publishedAt,
         };
 
-        await putItem(data,updatedPost);
+        await putItem(dataTable, updatedPost);
 
         return new Response(
             JSON.stringify({
@@ -297,7 +297,7 @@ export const DELETE: APIRoute = async ({ url }) => {
             );
         }
 
-        await deleteItem(data,{ pk: 'POST', sk: id });
+        await deleteItem(dataTable, { pk: 'POST', sk: id });
 
         return new Response(
             JSON.stringify({
