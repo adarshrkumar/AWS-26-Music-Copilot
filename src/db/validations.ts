@@ -1,9 +1,5 @@
 import { z } from 'zod';
 
-// Zod validation schemas for database models
-// Provides runtime type safety and validation for user inputs
-
-// Slug validation helper
 const slugSchema = z
     .string()
     .min(1, 'Slug is required')
@@ -13,9 +9,6 @@ const slugSchema = z
         'Slug must be lowercase alphanumeric with hyphens only'
     );
 
-// Post validation schemas
-
-// Schema for creating a new post
 export const createPostSchema = z.object({
     title: z
         .string()
@@ -61,18 +54,15 @@ export const createPostSchema = z.object({
         .nullable(),
 });
 
-// Schema for updating an existing post
 export const updatePostSchema = createPostSchema.partial().extend({
     id: z.string().length(21, 'Invalid post ID'),
 });
 
-// Schema for publishing/unpublishing a post
 export const publishPostSchema = z.object({
     id: z.string().length(21, 'Invalid post ID'),
     published: z.boolean(),
 });
 
-// Schema for post query parameters
 export const postQuerySchema = z.object({
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(100).default(10),
@@ -88,9 +78,6 @@ export const postQuerySchema = z.object({
     search: z.string().optional(),
 });
 
-// Comment validation schemas
-
-// Schema for creating a new comment
 export const createCommentSchema = z.object({
     postId: z.string().length(21, 'Invalid post ID'),
 
@@ -109,7 +96,6 @@ export const createCommentSchema = z.object({
         .nullable(),
 });
 
-// Schema for updating a comment
 export const updateCommentSchema = z.object({
     id: z.string().length(21, 'Invalid comment ID'),
     content: z
@@ -119,14 +105,12 @@ export const updateCommentSchema = z.object({
         .trim(),
 });
 
-// Schema for moderating a comment
 export const moderateCommentSchema = z.object({
     id: z.string().length(21, 'Invalid comment ID'),
     approved: z.boolean().optional(),
     flagged: z.boolean().optional(),
 });
 
-// Schema for comment query parameters
 export const commentQuerySchema = z.object({
     postId: z.string().length(21, 'Invalid post ID').optional(),
     page: z.coerce.number().int().positive().default(1),
@@ -137,8 +121,6 @@ export const commentQuerySchema = z.object({
         .optional(),
     authorId: z.string().optional(),
 });
-
-// Song validation schemas
 
 const chordSchema = z.object({
     bar: z.number().int().min(1).max(16),
@@ -174,7 +156,6 @@ const suggestionSchema = z.object({
     createdAt: z.string().max(40),
 });
 
-// The userId is never accepted from the client, it always comes from the session
 export const songInputSchema = z.object({
     id: z.string().length(21, 'Invalid song ID'),
     title: z.string().trim().min(1, 'Title is required').max(120, 'Title must be 120 characters or less'),
@@ -190,7 +171,6 @@ export const songInputSchema = z.object({
 
 export const songIdSchema = songInputSchema.shape.id;
 
-// Type exports for use in application
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
 export type PublishPostInput = z.infer<typeof publishPostSchema>;

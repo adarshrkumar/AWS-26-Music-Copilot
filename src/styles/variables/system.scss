@@ -36,13 +36,13 @@ $leading: (
     @return map.get($font-weight, $key);
 }
 
-$font-size-base: var(--font-size-2);          // 1.1rem
-$font-size-large: var(--font-size-3);         // 1.25rem
-$font-size-extra-large: var(--font-size-4);   // 1.5rem
-$font-size-2x-large: var(--font-size-5);      // 2rem
-$font-size-4x-large: var(--font-size-7);      // 3rem
+$font-size-base: var(--font-size-2);            // 1.1rem
+$font-size-large: var(--font-size-3);           // 1.25rem
+$font-size-extra-large: var(--font-size-4);     // 1.5rem
+$font-size-2x-large: var(--font-size-5);        // 2rem
+$font-size-4x-large: var(--font-size-7);        // 3rem
 
-$font-weight-medium: var(--font-weight-5);    // 500
+$font-weight-medium: var(--font-weight-5);      // 500
 
 $line-height-normal: var(--font-lineheight-3);  // 1.5
 $line-height-relaxed: var(--font-lineheight-4); // 1.75
@@ -88,8 +88,8 @@ $ease: (
     out: cubic-bezier(0.2, 0.9, 0.3, 1),
     smooth: cubic-bezier(0.2, 0.8, 0.2, 1)
 );
-$transition-fast: var(--ease-1);  // Fast spring easing
-$transition-base: var(--ease-3);  // Standard easing
+$transition-fast: var(--ease-1); // Fast spring easing
+$transition-base: var(--ease-3); // Standard easing
 
 @mixin reduced-motion {
     @media (prefers-reduced-motion: reduce) {

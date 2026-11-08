@@ -14,7 +14,6 @@ function failure(method: string, error: Error | null): Response {
     return json({ error: 'Internal server error' }, 500);
 }
 
-// GET /api/songs - List the synced copies that belong to the signed-in songwriter
 export async function GET({ locals }: APIContext): Promise<Response> {
     if (!locals.user) return json({ error: 'Unauthorized' }, 401);
 
@@ -25,7 +24,6 @@ export async function GET({ locals }: APIContext): Promise<Response> {
     }
 }
 
-// PUT /api/songs - Sync one song to the account. The client only calls this when the songwriter chooses to sync
 export async function PUT({ locals, request }: APIContext): Promise<Response> {
     if (!locals.user) return json({ error: 'Unauthorized' }, 401);
 
@@ -41,7 +39,6 @@ export async function PUT({ locals, request }: APIContext): Promise<Response> {
     }
 }
 
-// DELETE /api/songs?id=... - Remove the synced copy only, the copy on the device is untouched
 export async function DELETE({ locals, url }: APIContext): Promise<Response> {
     if (!locals.user) return json({ error: 'Unauthorized' }, 401);
 

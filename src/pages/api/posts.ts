@@ -13,13 +13,10 @@ import {
 
 import type { APIRoute } from 'astro';
 
-// Demonstrates CRUD operations with DynamoDB, Zod validation, and NanoID
-
 async function getPost(id: string): Promise<Post | null> {
     return getItem(dataTable, { pk: 'POST', sk: id });
 }
 
-// GET /api/posts - List posts with pagination and filtering
 export const GET: APIRoute = async ({ url }) => {
     try {
         const validated = postQuerySchema.parse({
@@ -33,7 +30,6 @@ export const GET: APIRoute = async ({ url }) => {
         const offset = (validated.page - 1) * validated.limit;
         const search = validated.search?.toLowerCase();
 
-        // DynamoDB has no ILIKE or ORDER BY on non-key attributes, so filtering, search and sorting happen here
         const results = (await queryItems(dataTable, {
             KeyConditionExpression: 'pk = :pk',
             ExpressionAttributeValues: { ':pk': 'POST' },
@@ -94,7 +90,6 @@ export const GET: APIRoute = async ({ url }) => {
     }
 };
 
-// POST /api/posts - Create a new post
 export const POST: APIRoute = async ({ request }) => {
     try {
         const validated: CreatePostInput = createPostSchema.parse(await request.json());
@@ -156,7 +151,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
 };
 
-// PUT /api/posts - Update an existing post
 export const PUT: APIRoute = async ({ request }) => {
     try {
         const { id, ...updateData }: UpdatePostInput = updatePostSchema.parse(await request.json());
@@ -249,7 +243,6 @@ export const PUT: APIRoute = async ({ request }) => {
     }
 };
 
-// DELETE /api/posts - Delete a post
 export const DELETE: APIRoute = async ({ url }) => {
     try {
         const id = url.searchParams.get('id');
@@ -268,7 +261,6 @@ export const DELETE: APIRoute = async ({ url }) => {
             );
         }
 
-        // Validate ID format (NanoID is 21 characters)
         if (id.length !== 21) {
             return new Response(
                 JSON.stringify({

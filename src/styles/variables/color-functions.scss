@@ -3,7 +3,6 @@
 @use 'sass:map';
 @use 'sass:math';
 
-// Percentage is the share of white (tint) or black (shade) in the result.
 $tint-steps: (
     50: 92%,
     100: 82%,
@@ -26,7 +25,6 @@ $shade-steps: (
     @return color.mix($black, $base-color, $amount);
 }
 
-// 500 is the base color itself.
 @function ladder($base-color, $step) {
     @if map.has-key($tint-steps, $step) {
         @return tint($base-color, map.get($tint-steps, $step));
@@ -59,7 +57,6 @@ $shade-steps: (
     @return color.adjust($base-color, $hue: 180deg);
 }
 
-// WCAG 2.x relative luminance and contrast ratio.
 @function channel-linear($value) {
     $channel-fraction: math.div($value, 255);
 
