@@ -137,8 +137,7 @@
             border-left-color: $primary-color;
         }
 
-        &[data-status="outside"],
-        &[data-status="invalid"] {
+        &[data-status="outside"], &[data-status="invalid"] {
             border-left-color: $warning-color;
         }
 

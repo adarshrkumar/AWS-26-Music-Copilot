@@ -1,15 +1,6 @@
-import { nanoid } from 'nanoid';
 import { deleteItem, getItem, queryItems, setItem } from '@/db/helpers';
 import { songTable } from '@/db/schemas';
 import type { Song } from '@/db/types';
-
-export async function createSong(userId: string, title: string, key: string, tempo: number, sampleProgressionId: string | null): Promise<Song> {
-    const now = new Date().toISOString();
-    const song: Song = { userId, id: nanoid(), title, key, tempo, sampleProgressionId, melodyShared: false, sections: [], suggestions: [], createdAt: now, updatedAt: now };
-
-    await setItem(songTable, song);
-    return song;
-}
 
 export async function getSong(userId: string, id: string): Promise<Song | null> {
     return getItem(songTable, { userId, id });

@@ -1,67 +1,64 @@
+import { nanoid } from 'nanoid';
 import { z } from 'zod';
 import { progressionRequestSchema } from '@/db/validations';
-import { createSong, getSong } from '@/lib/songs';
+import { getSong, setSong } from '@/lib/songs';
+import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
 import { deleteProgression, explainChord, setProgression } from '@/lib/modules/progression';
 import { analyzeChord } from '@/lib/theory/engine';
 
 import type { APIContext } from 'astro';
 
-function json(body: object, status = 200): Response {
-    return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-}
-
 export async function GET({ locals, url }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Sign in to load a saved progression.' }, 401);
-
-    const songId = url.searchParams.get('song');
-    if (!songId) return json({ error: 'A song id is required.' }, 400);
+    if (!locals.user) return getUnauthorizedError();
 
     try {
-        const song = await getSong(locals.user.id, songId);
-        if (!song) return json({ error: 'Song not found.' }, 404);
+        const song = await getSong(locals.user.id, z.string().min(1).parse(url.searchParams.get('song')));
+        if (!song) return new Response(JSON.stringify({ error: 'Song not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
 
-        return json({ data: { songId: song.id, key: song.key, tempo: song.tempo, sampleProgressionId: song.sampleProgressionId, sections: song.sections.map(section => ({ id: section.id, name: section.name, bars: section.bars, chords: section.chords })) } });
+        return new Response(JSON.stringify({ data: { songId: song.id, key: song.key, tempo: song.tempo, sampleProgressionId: song.sampleProgressionId, sections: song.sections.map(section => ({ id: section.id, name: section.name, bars: section.bars, chords: section.chords })) } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
+        if (error instanceof z.ZodError) return new Response(JSON.stringify({ error: 'Validation error', details: error.errors }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+
         console.error('GET /api/modules/progression error:', error);
-        return json({ error: 'Internal server error' }, 500);
+        return getServerError();
     }
 }
 
 export async function POST({ locals, request }: APIContext): Promise<Response> {
-    if (!locals.user) return json({ error: 'Sign in to use this feature.' }, 401);
+    if (!locals.user) return getUnauthorizedError();
 
     try {
         const body = progressionRequestSchema.parse(await request.json());
 
         if (body.action === 'explain') {
             const analysis = analyzeChord(body.key, body.chord);
-            if (!analysis) return json({ error: 'Key or chord not recognized.' }, 400);
+            if (!analysis) return new Response(JSON.stringify({ error: 'Key or chord not recognized' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
-            return json({ data: { text: await explainChord(body.key, analysis.name, analysis.context.description) } });
+            return new Response(JSON.stringify({ data: { text: await explainChord(body.key, analysis.name, analysis.context.description) } }), { status: 200, headers: { 'Content-Type': 'application/json' } });
         }
 
-        const { draft } = body;
-        const userId = locals.user.id;
-        const key = `${draft.tonic} ${draft.mode}`;
+        const key = `${body.draft.tonic} ${body.draft.mode}`;
+        let song = body.draft.songId ? await getSong(locals.user.id, body.draft.songId) : null;
 
-        let song = draft.songId ? await getSong(userId, draft.songId) : null;
-        if (draft.songId && !song) return json({ error: 'Song not found.' }, 404);
-        if (!song) song = await createSong(userId, 'Untitled progression', key, draft.tempo, draft.sampleProgressionId);
+        if (body.draft.songId && !song) return new Response(JSON.stringify({ error: 'Song not found' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+        if (!song) {
+            song = { userId: locals.user.id, id: nanoid(), title: 'Untitled progression', key, tempo: body.draft.tempo, sampleProgressionId: body.draft.sampleProgressionId, melodyShared: false, sections: [], suggestions: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+            await setSong(song);
+        }
 
-        const draftIds = draft.sections.map(section => section.id);
         for (const section of song.sections) {
-            if (!draftIds.includes(section.id)) await deleteProgression(userId, song.id, section.id);
+            if (!body.draft.sections.some(draftSection => draftSection.id === section.id)) await deleteProgression(locals.user.id, song.id, section.id);
         }
 
-        for (const section of draft.sections) {
-            await setProgression(userId, song.id, key, draft.tempo, { id: section.id, name: section.name, bars: section.bars, chords: section.chords, notes: [] });
+        for (const section of body.draft.sections) {
+            await setProgression(locals.user.id, song.id, key, body.draft.tempo, { ...section, notes: [] });
         }
 
-        return json({ data: { songId: song.id }, message: 'Progression saved' });
+        return new Response(JSON.stringify({ data: { songId: song.id }, message: 'Progression saved' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } catch (error) {
-        if (error instanceof z.ZodError) return json({ error: 'Validation error', details: error.errors }, 400);
+        if (error instanceof z.ZodError) return new Response(JSON.stringify({ error: 'Validation error', details: error.errors }), { status: 400, headers: { 'Content-Type': 'application/json' } });
 
         console.error('POST /api/modules/progression error:', error);
-        return json({ error: 'Internal server error' }, 500);
+        return getServerError();
     }
 }
