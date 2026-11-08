@@ -1,6 +1,7 @@
 ---
 import siteConfig from '@/lib/config';
 
+import '@/styles/components/button.scss';
 import '@/styles/components/header.scss';
 
 const links = [
@@ -23,6 +24,7 @@ const links = [
                 {links.map(link => (
                     <li><a class="header__link" href={link.href}>{link.label}</a></li>
                 ))}
+                <li><a class="btn" href="/app" data-variant="primary">Open the app</a></li>
             </ul>
         </nav>
     </div>

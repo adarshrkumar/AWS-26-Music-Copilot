@@ -8,15 +8,26 @@ html {
 }
 
 .app {
-    margin-inline: auto;
-    padding: space(6) space(4);
-    width: 100%;
-    max-width: $breakpoint-extra-wide;
-    align-content: start;
-    gap: space(6);
+    min-height: 100dvh;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
     display: grid;
 
     @include below(md) {
-        padding-bottom: calc(#{$app-nav-clearance} + #{space(16)} + #{space(6)});
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    &__main {
+        margin-inline: auto;
+        padding: space(6) space(4);
+        width: 100%;
+        max-width: $breakpoint-extra-wide;
+        align-content: start;
+        gap: space(6);
+        display: grid;
+
+        @include below(md) {
+            padding-bottom: calc(#{$app-nav-clearance} + #{space(16)} + #{space(6)});
+        }
     }
 }

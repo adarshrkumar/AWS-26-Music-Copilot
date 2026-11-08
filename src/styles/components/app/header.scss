@@ -8,9 +8,18 @@
 .app-header {
     position: sticky;
     top: 0;
+    height: 100dvh;
     background: $bg-primary;
-    border-bottom: 2px $border-style $text-primary;
+    border-right: 2px $border-style $text-primary;
     z-index: map.get($z-index, sticky);
+    overflow-y: auto;
+
+    @include below(md) {
+        height: auto;
+        border-bottom: 2px $border-style $text-primary;
+        border-right: none;
+        overflow-y: visible;
+    }
 
     &__skip-link {
         position: absolute;
@@ -33,11 +42,19 @@
     }
 
     &__inner {
-        padding-block: space(3);
-        flex-wrap: wrap;
-        gap: space(3);
+        padding: space(5) space(4);
+        gap: space(6);
 
-        @include flex-between;
+        @include flex-column;
+
+        @include below(md) {
+            padding: space(3) space(5);
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: space(3);
+
+            @include flex-between;
+        }
     }
 
     &__nav {
@@ -58,19 +75,20 @@
         list-style: none;
         margin: 0;
         padding: 0;
-        flex-wrap: wrap;
-        gap: space(2);
-        display: flex;
+        gap: space(1);
+        text-align: right;
+
+        @include flex-column;
 
         @include below(md) {
             grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
             grid-auto-flow: column;
-            gap: space(1);
             display: grid;
         }
     }
 
     &__link {
+        display: block;
         padding: padding(control);
         color: $text-primary;
         border-radius: radius(pill);

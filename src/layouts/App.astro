@@ -5,10 +5,12 @@ import MetricsScript from '@/scripts/app/metrics.astro';
 import '@/styles/layouts/app.scss';
 ---
 <Layout {...Astro.props}>
-    <Header />
+    <div class="app">
+        <Header />
 
-    <main id="main" class="app">
-        <slot />
-    </main>
+        <main id="main" class="app__main">
+            <slot />
+        </main>
+    </div>
     <MetricsScript />
 </Layout>
