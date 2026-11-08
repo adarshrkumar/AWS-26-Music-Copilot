@@ -58,6 +58,26 @@ export default {
                     message: 'The "unknown" type is not allowed. Use a concrete, precise type instead.'
                 });
             },
+            TSInterfaceDeclaration(node) {
+                if (!context.filename.endsWith('.astro') || node.id.name === 'Props') return;
+
+                context.report({
+                    node,
+                    message: `Interface '${node.id.name}' is not allowed in Astro files. Derive a short alias from an existing type (for example Song['sections'][number]) instead.`
+                });
+            },
+            TSTypeLiteral(node) {
+                if (!context.filename.endsWith('.astro')) return;
+
+                for (let current = node.parent; current; current = current.parent) {
+                    if (current.type === 'TSInterfaceDeclaration' && current.id.name === 'Props') return;
+                }
+
+                context.report({
+                    node,
+                    message: 'Object type literals are not allowed in Astro files. Derive the type from an existing type instead of writing a new shape.'
+                });
+            },
             CallExpression(node) {
                 if (
                     node.callee.type === 'MemberExpression' &&
