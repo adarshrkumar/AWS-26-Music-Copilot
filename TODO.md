@@ -1,0 +1,102 @@
+# TODO
+
+## Theory Engine
+
+- [ ] Build the rule-based theory engine for chord functions, scale membership, arpeggios and guide tones
+- [ ] Label chords outside the chosen key as borrowed or outside, without correcting them
+- [ ] Rank scale and arpeggio suggestions for each chord
+- [ ] Generate a one or two sentence reason for each suggestion from the engine's output
+- [ ] Test the engine against known progressions, including the jazz (Dm7, G7, Cmaj7, Am7) and instrumental (Am, F, C, G) examples
+- [ ] Test the handling of borrowed chords on the sample progressions
+
+## Build a Progression
+
+- [ ] Add key, tempo and bar count controls to `src/pages/app/progression.astro`
+- [ ] Add chord entry, one chord at a time, with changes to any chord
+- [ ] Add a sample progression picker
+- [ ] Show each chord's name, function in the key and a short note from `explainChord`
+- [ ] Update suggestions whenever a chord changes
+- [ ] Limit a progression to sixteen bars and split longer progressions into sections
+- [ ] Save progressions through `setProgression` in `src/script/app/progression.astro`
+
+## Find Scales and Notes
+
+- [ ] Add chord selection to `src/pages/app/scales.astro`
+- [ ] List the scales and arpeggios that fit the selected chord, with the feel of each from `getScaleFeel`
+- [ ] Show the reason for each scale from `explainScale`
+- [ ] Draw the scale on a keyboard diagram
+- [ ] Draw the scale on a fretboard diagram
+- [ ] Mark the guide tones for the selected chord and the next one
+- [ ] Add text descriptions for every diagram, such as "C major scale: C, D, E, F, G, A, B."
+
+## Write Notes
+
+- [ ] Build the tab editor in `src/pages/app/editor.astro`
+- [ ] Build the sheet music editor from the same note data as the tabs
+- [ ] Highlight notes that fit the current chord and scale
+- [ ] Mark notes outside the scale with a symbol as well as a color, and never remove them
+- [ ] Show the reason for a note from `explainNote`
+- [ ] Let the songwriter keep, change or remove any note
+- [ ] Save notes through `setNotes` in `src/script/app/editor.astro`
+
+## Autofill
+
+- [ ] Build rule-based phrase proposals that use chord tones on strong beats
+- [ ] Add an autofill request for a bar in `src/pages/app/autofill.astro`
+- [ ] Show the theory behind each phrase from `explainPhrase`
+- [ ] Let the songwriter accept, edit or reject a phrase, and write it into the song only after acceptance
+- [ ] Save proposals and their status through `addPhraseSuggestion` and `setPhraseSuggestionStatus`
+- [ ] Test the autofill rules on the sample progressions
+
+## Suggestions Panel
+
+- [ ] Show suggestions in a side panel with a short reason beside each one
+- [ ] Track accepted and rejected suggestions through `setScaleSuggestionStatus`
+- [ ] Add a toggle to turn suggestions off for a session
+- [ ] Never present a suggestion as the only correct choice
+
+## Songs and Storage
+
+- [ ] Keep songs on the device by default
+- [ ] Sync songs to the account only when the songwriter chooses
+- [ ] Add a songs list and song creation, editing and deletion
+- [ ] Add an explicit export for sharing progressions and melodies
+- [ ] Remove synced copies within thirty days of account deletion
+- [ ] Link the app pages from `src/pages/app/index.astro` and the app header
+
+## Teacher
+
+- [ ] Let a teacher set sample progressions for a class
+- [ ] Show a teacher which sample progressions a student used and how many suggestions were accepted
+- [ ] Hide a student's melodies from the teacher unless the student shares them
+
+## Accessibility
+
+- [ ] Make every control work with a keyboard and a screen reader, including note entry and scale selection
+- [ ] Make every suggestion readable as text without the diagram
+- [ ] Place the main controls within reach for one-handed use on a phone
+
+## Metrics
+
+- [ ] Track the share of sessions that produce a saved progression
+- [ ] Track the share of suggestions accepted
+- [ ] Track the share of users who open the reason behind a suggestion
+- [ ] Track the median time from first chord to first scale view
+- [ ] Set metric targets after the pilot
+
+## Pilot
+
+- [ ] Pilot A: load a set of jazz standards into the app as sample progressions, with assisted scales and guide tones on each chord
+- [ ] Pilot A: show the printed chord chart beside the app's suggestions so students can compare them while they play along
+- [ ] Pilot B: start a new instrumental song from a blank progression in the app, with chord and scale suggestions as the student writes
+- [ ] Pilot B: add a review view in the app that shows which suggestions each student kept
+- [ ] Add an in-app survey asking students whether they can name a scale for a chord
+
+## Open Questions
+
+- [ ] Decide which genres the first version covers beyond jazz and instrumental writing
+- [ ] Decide whether the editor supports tabs, sheet music or both in v1
+- [ ] Decide how much theory a beginner sees by default
+- [ ] Decide whether a teacher can set a full course or only sample progressions
+- [ ] Decide who owns the progression library after the hackathon
+- [ ] Finish the competitive review

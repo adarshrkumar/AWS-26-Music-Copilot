@@ -140,9 +140,7 @@ Two pilots, as in the source draft:
 
 **Pilot A: jazz standards.** Copilot is used on a set of well-known jazz standards with assisted scales and guide tones. Students play along and compare the suggestions with the printed chord charts.
 
-**Pilot B: writing an instrumental song.** Students write a short instrumental piece from a blank progression. Copilot suggests chords and scales as they go, and the class reviews which suggestions they kept.
-
-Setting: one music class of about fifteen students for two weeks. Team names and student recordings are not part of the pilot record.
+**Pilot B: writing an instrumental song.** Students write a short instrumental piece from a blank progression. Copilot suggests chords and scales as they go, and students review which suggestions they kept.
 
 ## 13. Competitive Notes
 
