@@ -4,12 +4,12 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Theory Engine
 
-- [x] Build the rule-based theory engine for chord functions, scale membership, arpeggios and guide tones
-- [x] Label chords outside the chosen key as borrowed or outside, without correcting them
-- [x] Rank scale and arpeggio suggestions for each chord
-- [x] Generate a one or two sentence reason for each suggestion from the engine's output
-- [x] Test the engine against known progressions, including the jazz (Dm7, G7, Cmaj7, Am7) and instrumental (Am, F, C, G) examples
-- [x] Test the handling of borrowed chords on the sample progressions
+- [ ] Build the rule-based theory engine for chord functions, scale membership, arpeggios and guide tones
+- [ ] Label chords outside the chosen key as borrowed or outside, without correcting them
+- [ ] Rank scale and arpeggio suggestions for each chord
+- [ ] Generate a one or two sentence reason for each suggestion from the engine's output
+- [ ] Test the engine against known progressions, including the jazz (Dm7, G7, Cmaj7, Am7) and instrumental (Am, F, C, G) examples
+- [ ] Test the handling of borrowed chords on the sample progressions
 
 ## Build a Progression
 
@@ -33,13 +33,13 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Write Notes
 
-- [x] Build the tab editor in `src/pages/app/editor.astro`
-- [x] Build the sheet music editor from the same note data as the tabs
-- [x] Highlight notes that fit the current chord and scale
-- [x] Mark notes outside the scale with a symbol as well as a color, and never remove them
-- [x] Show the reason for a note from `explainNote`
-- [x] Let the songwriter keep, change or remove any note
-- [x] Save notes through `setNotes` in `src/script/app/editor.astro`
+- [ ] Build the tab editor in `src/pages/app/editor.astro`
+- [ ] Build the sheet music editor from the same note data as the tabs
+- [ ] Highlight notes that fit the current chord and scale
+- [ ] Mark notes outside the scale with a symbol as well as a color, and never remove them
+- [ ] Show the reason for a note from `explainNote`
+- [ ] Let the songwriter keep, change or remove any note
+- [ ] Save notes through `setNotes` in `src/script/app/editor.astro`
 
 ## Autofill
 
@@ -52,10 +52,10 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Suggestions Panel
 
-- [x] Show suggestions in a side panel with a short reason beside each one
-- [x] Track accepted and rejected suggestions through `setScaleSuggestionStatus`
-- [x] Add a toggle to turn suggestions off for a session
-- [x] Never present a suggestion as the only correct choice
+- [X] Show suggestions in a side panel with a short reason beside each one
+- [X] Track accepted and rejected suggestions through `setScaleSuggestionStatus`
+- [X] Add a toggle to turn suggestions off for a session
+- [X] Never present a suggestion as the only correct choice
 
 ## Songs and Storage
 
