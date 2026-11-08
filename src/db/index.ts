@@ -14,13 +14,15 @@ import type {
     QueryCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 
-const region = process.env.AWS_REGION ?? 'us-east-1';
-const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-const endpoint = process.env.DYNAMODB_ENDPOINT;
+const region = process.env.AWS_REGION || import.meta.env.AWS_REGION || 'us-east-1';
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID || import.meta.env.AWS_ACCESS_KEY_ID;
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || import.meta.env.AWS_SECRET_ACCESS_KEY;
+const endpoint = process.env.DYNAMODB_ENDPOINT || import.meta.env.DYNAMODB_ENDPOINT;
 
 const credentials =
-    accessKeyId && secretAccessKey ? { accessKeyId, secretAccessKey } : undefined;
+    accessKeyId && secretAccessKey
+        ? { accessKeyId, secretAccessKey, sessionToken: process.env.AWS_SESSION_TOKEN || import.meta.env.AWS_SESSION_TOKEN }
+        : undefined;
 
 export const dynamoClient = new DynamoDBClient({
     region,
@@ -32,7 +34,7 @@ export const docClient = DynamoDBDocumentClient.from(dynamoClient, {
     marshallOptions: { removeUndefinedValues: true },
 });
 
-export const tableName = process.env.DYNAMODB_TABLE_NAME ?? 'music-copilot';
+export const tableName = process.env.DYNAMODB_TABLE_NAME || import.meta.env.DYNAMODB_TABLE_NAME || 'music-copilot';
 
 export async function getItem(key: GetCommandInput['Key']): Promise<NativeAttributeValue> {
     return (await docClient.send(new GetCommand({ TableName: tableName, Key: key }))).Item ?? null;
