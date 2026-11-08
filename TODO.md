@@ -23,13 +23,13 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Find Scales and Notes
 
-- [ ] Add chord selection to `src/pages/app/scales.astro`
-- [ ] List the scales and arpeggios that fit the selected chord, with the feel of each from `getScaleFeel`
-- [ ] Show the reason for each scale from `explainScale`
-- [ ] Draw the scale on a keyboard diagram
-- [ ] Draw the scale on a fretboard diagram
-- [ ] Mark the guide tones for the selected chord and the next one
-- [ ] Add text descriptions for every diagram, such as "C major scale: C, D, E, F, G, A, B."
+- [x] Add chord selection to `src/pages/app/scales.astro`
+- [x] List the scales and arpeggios that fit the selected chord, with the feel of each from `getScaleFeel`
+- [x] Show the reason for each scale from `explainScale`
+- [x] Draw the scale on a keyboard diagram
+- [x] Draw the scale on a fretboard diagram
+- [x] Mark the guide tones for the selected chord and the next one
+- [x] Add text descriptions for every diagram, such as "C major scale: C, D, E, F, G, A, B."
 
 ## Write Notes
 
