@@ -172,7 +172,9 @@ export default [
                 DocumentFragment: 'readonly',
                 HTMLLIElement: 'readonly',
                 CSS: 'readonly',
-                FormData: 'readonly'
+                FormData: 'readonly',
+                AudioContext: 'readonly',
+                OscillatorType: 'readonly'
             }
         }
     },

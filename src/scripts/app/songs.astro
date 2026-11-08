@@ -4,9 +4,11 @@
     import { songInputSchema } from '@/db/validations';
     import { authClient } from '@/lib/auth/client';
     import songsConfig from '@/lib/songs.config';
+    import { getChordTones, getMidi } from '@/lib/theory';
 
     const songFormSchema = songInputSchema.pick({ title: true, key: true, tempo: true });
     const localSongsSchema = z.array(songInputSchema.extend({ syncedAt: z.string().max(40).nullable() }));
+    const remoteSongsSchema = z.object({ data: z.array(songInputSchema) });
 
     type LocalSong = z.infer<typeof localSongsSchema>[number];
 
@@ -147,6 +149,11 @@
         const exportButton = item.querySelector('.songs__export');
         exportButton?.setAttribute('aria-label', `Export ${song.title}`);
         exportButton?.addEventListener('click', () => exportSongs([song]));
+
+        const playButton = item.querySelector('.songs__play');
+        if (playButton) playButton.textContent = playingId === song.id ? 'Stop' : 'Play';
+        playButton?.setAttribute('aria-label', `${playingId === song.id ? 'Stop' : 'Play'} ${song.title}`);
+        playButton?.addEventListener('click', () => void playSong(song));
 
         const deleteButton = item.querySelector('.songs__delete');
         deleteButton?.setAttribute('aria-label', `Delete ${song.title}`);
@@ -306,6 +313,83 @@
         if (status) status.textContent = `Exported ${songs.length} ${songs.length === 1 ? 'song' : 'songs'} ${includeMelody ? 'with melodies' : 'without melodies'}.`;
     }
 
+    let audio: AudioContext | null = null;
+    let playingId: string | null = null;
+
+    function playTone(context: AudioContext, midi: number, start: number, length: number, type: OscillatorType, volume: number): void {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.value = 440 * 2 ** ((midi - 69) / 12);
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(volume, start + 0.02);
+        gain.gain.linearRampToValueAtTime(0, start + length);
+        oscillator.connect(gain).connect(context.destination);
+        oscillator.start(start);
+        oscillator.stop(start + length + 0.05);
+    }
+
+    function stopPlayback(): void {
+        void audio?.close();
+        audio = null;
+        playingId = null;
+        render();
+    }
+
+    async function playSong(song: LocalSong): Promise<void> {
+        const wasPlaying = playingId === song.id;
+        if (audio) stopPlayback();
+        if (wasPlaying) return;
+
+        let sections = song.sections;
+
+        try {
+            const parsed = remoteSongsSchema.safeParse(await (await fetch('/api/songs')).json());
+            const remote = parsed.success ? parsed.data.data.find(candidate => candidate.id === song.id) : undefined;
+            if (remote) sections = remote.sections;
+        } catch {
+            // The copy on this device is played when the account copy cannot be loaded
+        }
+
+        if (!sections.some(section => section.chords.length > 0 || section.notes.length > 0)) {
+            if (status) status.textContent = '';
+            if (errorMessage) errorMessage.textContent = `"${song.title}" has no chords or notes to play yet.`;
+            return;
+        }
+
+        const context = new AudioContext();
+        const beat = 60 / song.tempo;
+        let offset = context.currentTime + 0.1;
+
+        for (const section of sections) {
+            const chords = [...section.chords].sort((a, b) => a.bar - b.bar || a.beat - b.beat);
+
+            for (let index = 0; index < chords.length; index++) {
+                const start = ((chords[index].bar - 1) * 4 + chords[index].beat - 1) * beat;
+                const end = chords[index + 1] ? ((chords[index + 1].bar - 1) * 4 + chords[index + 1].beat - 1) * beat : section.bars * 4 * beat;
+
+                for (const tone of getChordTones(chords[index].name)) playTone(context, 48 + tone, offset + start, end - start, 'triangle', 0.08);
+            }
+
+            for (const note of section.notes) {
+                const midi = getMidi(note.pitch);
+                if (midi > 0) playTone(context, midi, offset + ((note.bar - 1) * 4 + note.beat - 1) * beat, note.duration * beat, 'sine', 0.2);
+            }
+
+            offset += section.bars * 4 * beat;
+        }
+
+        audio = context;
+        playingId = song.id;
+        render();
+        if (errorMessage) errorMessage.textContent = '';
+        if (status) status.textContent = `Playing "${song.title}".`;
+        window.setTimeout(() => {
+            if (audio === context) stopPlayback();
+        }, (offset - context.currentTime) * 1000 + 200);
+    }
+
     document.getElementById('export-all')?.addEventListener('click', () => exportSongs(getLocalSongs()));
 
     document.getElementById('song-create')?.addEventListener('click', () => openDialog(null));
@@ -335,5 +419,22 @@
         window.location.assign('/');
     });
 
+    async function pullAccountSongs(): Promise<void> {
+        try {
+            const parsed = remoteSongsSchema.safeParse(await (await fetch('/api/songs')).json());
+            if (!parsed.success) return;
+
+            const songs = getLocalSongs();
+            const missing = parsed.data.data.filter(remote => !songs.some(local => local.id === remote.id));
+            if (missing.length === 0) return;
+
+            localStorage.setItem(songsConfig.storageKey, JSON.stringify([...songs, ...missing.map(remote => ({ ...remote, syncedAt: remote.updatedAt }))]));
+            render();
+        } catch {
+            // Songs on this device stay listed when the account cannot be reached
+        }
+    }
+
     render();
+    void pullAccountSongs();
 </script>
