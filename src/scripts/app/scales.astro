@@ -90,29 +90,29 @@
     const fretboard = find<HTMLElement>('#scales-fretboard');
     const fretboardText = find<HTMLElement>('#scales-fretboard-text');
 
-    const answers = new Map<string, Promise<string | null>>();
+    const answers = new Map<string, string>();
     let state: ScaleFinderState | null = null;
     let renderId = 0;
 
-    function ask(kind: 'feel' | 'reason', chord: Chord, chordFunction: ChordFunction, option: ScaleOption): Promise<string | null> {
+    async function ask(kind: 'feel' | 'reason', chord: Chord, chordFunction: ChordFunction, option: ScaleOption): Promise<string | null> {
         const cacheKey = [kind, chord.name, chordFunction.label, option.id].join('|');
         const cached = answers.get(cacheKey);
         if (cached) return cached;
 
-        const request = fetch('/api/modules/scales', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ kind, chord: chord.name, chordFunction: chordFunction.label, scale: option.title, notes: option.notes.map(note => note.name) }),
-        })
-            .then(response => response.ok ? response.text() : null)
-            .catch(() => null)
-            .then(text => {
-                if (text === null) answers.delete(cacheKey);
-                return text;
+        try {
+            const response = await fetch('/api/modules/scales', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ kind, chord: chord.name, chordFunction: chordFunction.label, scale: option.title, notes: option.notes.map(note => note.name) }),
             });
+            if (!response.ok) return null;
 
-        answers.set(cacheKey, request);
-        return request;
+            const text = await response.text();
+            answers.set(cacheKey, text);
+            return text;
+        } catch {
+            return null;
+        }
     }
 
     function showError(message: string): void {

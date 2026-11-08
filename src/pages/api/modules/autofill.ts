@@ -4,7 +4,7 @@ import { getItem } from '@/db/helpers';
 import { songTable } from '@/db/schemas';
 import type { Song } from '@/db/types';
 import { getServerError, getUnauthorizedError } from '@/lib/status-responses';
-import { proposePhrases } from '@/lib/theory';
+import { getFretPosition, proposePhrases } from '@/lib/theory';
 import { addPhraseSuggestion, explainPhrase, getPhraseSuggestions, setPhraseSuggestionStatus } from '@/lib/modules/autofill';
 import { setNotes } from '@/lib/modules/editor';
 
@@ -98,7 +98,7 @@ export const PUT = async ({ locals, request }: APIContext): Promise<Response> =>
 
         phrase.data.notes.forEach((note, index) => {
             if (notes.some(existing => existing.bar === suggestion.bar && existing.beat === note.beat)) skipped += 1;
-            else notes.push({ bar: suggestion.bar, beat: note.beat, duration: note.duration, pitch: pitches?.[index] ?? note.pitch, string: null, fret: null });
+            else notes.push({ bar: suggestion.bar, beat: note.beat, duration: note.duration, pitch: pitches?.[index] ?? note.pitch, ...getFretPosition(pitches?.[index] ?? note.pitch) });
         });
 
         await setNotes(locals.user.id, songId, suggestion.sectionId, notes);

@@ -12,6 +12,7 @@ export const SCALE_DEFINITIONS: ScaleDefinition[] = [
     { name: 'Phrygian', formula: ['1', 'b2', 'b3', '4', '5', 'b6', 'b7'], families: { minor: 0.45, suspended: 0.3 }, character: 'The flat second adds a tense, dark color.' },
     { name: 'Minor pentatonic', formula: ['1', 'b3', '4', '5', 'b7'], families: { minor: 0.7, suspended: 0.6, power: 0.5 }, character: 'Five notes give a direct, familiar minor sound with no half steps.' },
     { name: 'Blues', formula: ['1', 'b3', '4', 'b5', '5', 'b7'], families: { minor: 0.55, power: 0.4 }, character: 'The added flat fifth is a blue note that brings a gritty, bluesy edge.' },
+    { name: 'Mixolydian blues', formula: ['1', '2', 'b3', '3', '4', '5', '6', 'b7'], families: { dominant: 0.7 }, character: 'Mixolydian with the flat third added as a blue note, which gives a dominant seventh chord the bluesy sound heard in a twelve-bar blues.' },
     { name: 'Harmonic minor', formula: ['1', '2', 'b3', '4', '5', 'b6', '7'], families: { minor: 0.4, minorMajor: 0.8 }, character: 'The gap between the flat sixth and the natural seventh gives it a dramatic, classical sound.' },
     { name: 'Melodic minor', formula: ['1', '2', 'b3', '4', '5', '6', '7'], families: { minorMajor: 1, minor: 0.4 }, character: 'It keeps the minor third but raises the sixth and seventh, so it sounds smooth and slightly bright.' },
     { name: 'Lydian dominant', formula: ['1', '2', '3', '#4', '5', '6', 'b7'], families: { dominant: 0.75 }, character: 'The raised fourth brightens the dominant sound.' },

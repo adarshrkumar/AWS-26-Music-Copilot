@@ -84,7 +84,7 @@ Music Copilot addresses these by keeping theory next to the writing. The songwri
 
 ## 7. AI Behavior
 
-Copilot uses a music-theory engine for the core suggestions. Chord functions, scale membership, and arpeggios come from fixed rules, not from a language model. A language model handles only the explanations and the genre and feel labels, and it works from the engine's output.
+Copilot uses a music-theory engine for the core suggestions. Chord functions, scale membership, and arpeggios come from fixed rules, not from a language model. A language model handles only the explanations and the feel labels, and it works from the chord, scale and note facts that the rule-based code has already worked out.
 
 The model is not allowed to:
 
@@ -94,7 +94,7 @@ The model is not allowed to:
 - Name a real artist's song as a template, or copy a melody from a recording.
 - Store or reuse a user's melody to build a profile.
 
-Suggestions are shown in a side panel with a short reason, such as "This is the dominant chord, so the mixolydian scale fits." The songwriter can turn suggestions off for a session.
+Suggestions are shown in a side panel with a short reason, such as "This is the dominant chord, so the mixolydian scale fits." On the scales page, the songwriter can turn suggestions off for a session.
 
 ## 8. Rules for the Idea
 
@@ -106,9 +106,9 @@ Suggestions are shown in a side panel with a short reason, such as "This is the 
 
 ## 9. Data Handling
 
-- **Songs:** kept on the device by default and synced only when the songwriter chooses an account.
+- **Songs:** the songs page keeps songs on the device and syncs them only when the songwriter chooses to. Saving a progression and writing notes in the editor or autofill need an account, and those songs are stored on the server.
 - **Melodies and progressions:** not used to train models, and not shared with other users without an explicit export.
-- **Retention:** songs kept until the songwriter deletes them. Account deletion removes synced copies within thirty days.
+- **Retention:** songs kept until the songwriter deletes them. Account deletion removes synced copies right away.
 - **Training:** songs are not used to train models without a separate opt-in.
 
 ## 10. Accessibility
@@ -142,14 +142,14 @@ Two pilots, as in the source draft:
 
 ## 13. Competitive Notes
 
-Notation software handles tabs and sheet music but does not explain theory. Online theory courses teach scales and chords in isolation, away from the writing. Chord-finder tools suggest chords but rarely show the scales or guide tones over them. The closest competitor, Hookpad, does put theory inside the writing, so Music Copilot's gap is narrower than "theory beside the notes": it is a written reason for every suggestion, guide tones between chords, and out-of-key chords labeled rather than hidden.
+Notation software handles tabs and sheet music but does not explain theory. Online theory courses teach scales and chords in isolation, away from the writing. Chord-finder tools suggest chords, and some, such as Scaler 3, show the scales that fit them, but they rarely show the guide tones that connect one chord to the next. The closest competitor, Hookpad, does put theory inside the writing, so Music Copilot's gap is narrower than "theory beside the notes": it is a written reason for every suggestion, guide tones between chords, and out-of-key chords labeled rather than hidden.
 
 Competitors were reviewed in November 2026 from each product's own documentation.
 
 | Product | Category | What it does | Where Music Copilot differs |
 | --- | --- | --- | --- |
-| [Hookpad](https://www.hooktheory.com/hookpad/a1) (Hooktheory) | Theory-aware sketchpad | Knows the song's key, offers chords that work in it and hides the others by default, suggests the next chord, and shows note guides for the melody ([FAQ](https://www.hooktheory.com/faq), [Hookpad 2 announcement](https://www.hooktheory.com/blog/introducing-hookpad-2-a-musical-sketchpad-with-music-theory-built-in/)). | Closest competitor. Music Copilot gives a one or two sentence reason with each suggestion, marks guide tones moving into the next chord, labels borrowed and outside chords instead of hiding them, and writes guitar tab as well as notation. |
-| [Scaler 3](https://www.kvraudio.com/product/scaler-3-by-scaler-music) (Scaler Music) | DAW plugin | Detects keys and chords, suggests chords and progressions, and groups chords by genre and feel such as dark or bright ([Plugin Boutique](https://help.pluginboutique.com/hc/en-us/articles/35864679857684)). | Aimed at producers inside a DAW, with playback. Music Copilot is a browser writing environment that explains the theory, and it has no audio in v1. |
+| [Hookpad](https://www.hooktheory.com/hookpad/a1) (Hooktheory) | Theory-aware sketchpad | Knows the song's key, offers chords that work in it and hides the others by default, suggests the next chord, and shows note guides for the melody ([FAQ](https://www.hooktheory.com/faq), [Hookpad 2 announcement](https://www.hooktheory.com/blog/introducing-hookpad-2-a-musical-sketchpad-with-music-theory-built-in/)). | Closest competitor. Music Copilot gives a one or two sentence reason with each suggestion, marks guide tones moving into the next chord, labels borrowed and outside chords instead of hiding them, and lets the songwriter edit guitar tab beside the notation while writing, where Hookpad exports a score and tab afterward ([forum](https://forum.hooktheory.com/t/score-tab-download-bugs/3044)). |
+| [Scaler 3](https://www.kvraudio.com/product/scaler-3-by-scaler-music) (Scaler Music) | DAW plugin and standalone app | Detects keys and chords, suggests chords and progressions, and groups chords by genre and feel such as dark or bright ([Plugin Boutique](https://help.pluginboutique.com/hc/en-us/articles/35864679857684)). | Aimed at producers, inside a DAW or as a standalone desktop and iPad app ([App Store](https://apps.apple.com/au/app/scaler-3/id6749147552)), with playback. Music Copilot is a browser writing environment that explains the theory, and it has no audio in v1. |
 | [Captain Chords](https://mixedinkey.com/captain-plugins/captain-chords/) (Mixed In Key) | DAW plugin | Generates chord progressions in a chosen key and scale, shows which next chords fit, and includes progressions from hit songs. | Its starting points come from famous songs. Music Copilot never uses a real artist's song as a template, and it explains why a chord fits. |
 | [Guitar Pro 8](https://www.guitar-pro.com/docs/gp8/basics/intro/overview) (Arobas) | Tab and notation editor | Writes tab and notation for many instruments, with a chord engine and a scale tool that shows scales in any key ([Scale tool](https://www.guitar-pro.com/docs/gp8/tools/scales)). | The scale tool is a separate reference. Music Copilot ties the scale to the chord under the cursor and gives a reason. |
 | [MuseScore Studio](https://musescore.org/en/4.7) (Muse Group) | Free notation editor | Full engraving with linked tablature staves for fretted instruments ([handbook](https://handbook.musescore.org/idiomatic-notation/guitar/entering-and-editing-tablature-notation)). | No theory guidance while writing. |
@@ -168,10 +168,10 @@ INPUT (chords, key, tempo, bars)
   → EDITOR (tabs and sheet music)
   → AUTOFILL (rule-based phrase proposals)
   → EXPLAIN (short language-model text from engine output)
-  → STORE (on device, with optional sync)
+  → STORE (on device, or on the server for an account)
 ```
 
-The theory engine is rule-based and tested against a set of known progressions. The language model writes only the explanation text and is given the engine's result as input. Audio playback is out of scope for v1 and would use a separate module.
+The theory engine is rule-based. It has no automated tests yet, and the sample progressions are the planned test set. The language model writes only the explanation and feel text, and it is given rule-based theory results as input. Audio playback is out of scope for v1 and would use a separate module.
 
 The riskiest parts are the theory engine's handling of borrowed chords and the autofill rules. Both are tested on the sample progressions before the editor is built.
 
@@ -184,13 +184,13 @@ The riskiest parts are the theory engine's handling of borrowed chords and the a
 | Songwriters copy a recording's melody | Medium | Autofill uses rules, not recordings. No artist melodies are used as templates. |
 | Notation is misread in the editor | Medium | Tabs and sheet music are checked against the same note data. |
 | A key is misidentified for a progression | Medium | The songwriter sets the key. Copilot only suggests one when asked. |
-| Songwriters rely on suggestions and skip learning | Low | Reasons are shown every time, and suggestions can be turned off. |
+| Songwriters rely on suggestions and skip learning | Low | Reasons are shown every time, and suggestions can be turned off on the scales page. |
 
 ## 16. Decisions on Open Questions
 
 These were open questions. They are now decided for v1.
 
-- **Genres:** v1 covers jazz, instrumental writing, pop and rock, and blues. The theory engine already handles their common harmony: diatonic progressions, borrowed chords, secondary dominants, dominant seventh chords and the blues scale. Other genres wait until after the pilot.
+- **Genres:** v1 covers jazz, instrumental writing, pop and rock, and blues. The theory engine behind the progression and scales pages already handles their common harmony: diatonic progressions, borrowed chords, secondary dominants (plain major triads and dominant chords), dominant seventh chords, the blues scale over minor and power chords, and a Mixolydian blues scale over dominant chords. The editor and autofill use a simpler rule set that does not yet label borrowed chords or secondary dominants. Other genres wait until after the pilot.
 - **Tabs or sheet music:** both. The editor draws guitar tab and sheet music from the same note data, so a note entered in one appears in the other.
 - **Beginner theory:** by default a beginner sees the chord name, whether it is in the key, borrowed or outside, the ranked scales and arpeggios, and a one or two sentence reason for each. Roman numerals, guide-tone movement and the language-model explanation sit one step deeper. Every suggestion still carries its reason, as the Explain rule requires.
 - **Library ownership:** the sample progression library lives in this repository and is maintained by the repository owner. Samples hold chord changes only, never a melody or recording. Progressions and melodies a songwriter writes belong to that songwriter and are shared only through an explicit export.
@@ -200,7 +200,7 @@ These were open questions. They are now decided for v1.
 - **Arpeggio:** the notes of a chord played in sequence.
 - **Chord function:** the role a chord plays in a key, such as tonic or dominant.
 - **Feel:** the mood of a scale or key, described in a short word.
-- **Guide tone:** the third or seventh of a chord, used to move smoothly between chords.
+- **Guide tone:** a chord tone used to move smoothly between chords: the third and seventh of a seventh chord, the third and fifth of a triad, the suspended note and fifth of a sus chord, and the fifth of a power chord.
 - **Progression:** an ordered set of chords with a tempo and bars.
 - **Scale:** an ordered set of notes that fits a key or a chord.
 - **Suggestion:** a proposed scale, arpeggio, chord, or note, with its reason.

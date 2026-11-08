@@ -93,7 +93,7 @@ export function classifyChord(key: Key, chord: Chord): ChordContext {
 
     let secondaryTarget: string | null = null;
 
-    if (chord.family === 'dominant') {
+    if (chord.family === 'dominant' || chord.formula.join(' ') === '1 3 5') {
         const intervals = key.scale.pitchClasses.map(pitchClass => (pitchClass - (parseNote(key.tonic)?.pitchClass ?? 0) + 12) % 12);
 
         for (let index = 1; index < intervals.length; index++) {
