@@ -5,6 +5,9 @@ import { defineConfig } from 'astro/config';
 
 export default defineConfig({
     output: 'server',
+    security: {
+        allowedDomains: [{ hostname: 'tonepilot.adarshrkumar.app', protocol: 'https' }],
+    },
     adapter: vercel({
         imageService: true,
     }),
