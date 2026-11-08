@@ -11,7 +11,7 @@ import {
     type UpdatePostInput,
 } from '@/db/validations';
 
-import type { APIRoute } from 'astro';
+import type { APIContext } from 'astro';
 
 // Demonstrates CRUD operations with DynamoDB, Zod validation, and NanoID
 
@@ -20,7 +20,7 @@ async function getPost(id: string): Promise<Post | null> {
 }
 
 // GET /api/posts - List posts with pagination and filtering
-export const GET: APIRoute = async ({ url }) => {
+export async function GET({ url }: APIContext): Promise<Response> {
     try {
         const validated = postQuerySchema.parse({
             page: url.searchParams.get('page'),
@@ -92,10 +92,10 @@ export const GET: APIRoute = async ({ url }) => {
             }
         );
     }
-};
+}
 
 // POST /api/posts - Create a new post
-export const POST: APIRoute = async ({ request }) => {
+export async function POST({ request }: APIContext): Promise<Response> {
     try {
         const validated: CreatePostInput = createPostSchema.parse(await request.json());
 
@@ -154,10 +154,10 @@ export const POST: APIRoute = async ({ request }) => {
             }
         );
     }
-};
+}
 
 // PUT /api/posts - Update an existing post
-export const PUT: APIRoute = async ({ request }) => {
+export async function PUT({ request }: APIContext): Promise<Response> {
     try {
         const { id, ...updateData }: UpdatePostInput = updatePostSchema.parse(await request.json());
 
@@ -247,10 +247,10 @@ export const PUT: APIRoute = async ({ request }) => {
             }
         );
     }
-};
+}
 
 // DELETE /api/posts - Delete a post
-export const DELETE: APIRoute = async ({ url }) => {
+export async function DELETE({ url }: APIContext): Promise<Response> {
     try {
         const id = url.searchParams.get('id');
 
@@ -324,4 +324,4 @@ export const DELETE: APIRoute = async ({ url }) => {
             }
         );
     }
-};
+}

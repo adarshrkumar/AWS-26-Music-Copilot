@@ -11,7 +11,7 @@ const signedIn = Boolean(Astro.locals.session);
 <App pageTitle="Songs">
     <section class="songs" data-signed-in={signedIn ? 'true' : 'false'}>
         <div class="songs__heading">
-            <h1 class="songs__title">Songs</h1>
+            <h1 class="songs__title" tabindex="-1">Songs</h1>
             <button class="btn" type="button" data-variant="primary" data-action="create">New song</button>
         </div>
 

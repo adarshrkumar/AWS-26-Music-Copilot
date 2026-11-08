@@ -114,6 +114,7 @@
 
     const root = find<HTMLElement>(document, '.songs');
     const signedIn = root.dataset.signedIn === 'true';
+    const pageTitle = find<HTMLElement>(root, '.songs__title');
     const list = find<HTMLUListElement>(root, '[data-role="list"]');
     const empty = find<HTMLElement>(root, '[data-role="empty"]');
     const status = find<HTMLElement>(root, '[data-role="status"]');
@@ -171,6 +172,14 @@
         list.replaceChildren(...songs.map(buildRow));
     }
 
+    function focusRow(id: string, action: string): void {
+        const row = list.querySelector<HTMLElement>(`[data-id="${id}"]`);
+        const target = row?.querySelector<HTMLButtonElement>(`[data-action="${action}"]:not([hidden])`) ?? row?.querySelector<HTMLButtonElement>('[data-action="edit"]');
+
+        if (target) target.focus();
+        else pageTitle.focus();
+    }
+
     async function request(method: 'PUT' | 'DELETE', url: string, body?: LocalSong): Promise<string | null> {
         try {
             const response = await fetch(url, {
@@ -212,10 +221,11 @@
         }
 
         const id = data.get('id');
+        let saved: LocalSong | null;
 
         try {
-            if (typeof id === 'string' && id) updateLocalSong(id, parsed.data);
-            else createLocalSong(parsed.data);
+            if (typeof id === 'string' && id) saved = updateLocalSong(id, parsed.data);
+            else saved = createLocalSong(parsed.data);
         } catch {
             formError.textContent = 'This device has no room left to store the song. Export or delete a song and try again.';
             return;
@@ -224,6 +234,7 @@
         dialog.close();
         render();
         say(`Saved "${parsed.data.title}" on this device.`);
+        if (saved) focusRow(saved.id, 'edit');
     }
 
     async function syncSong(song: LocalSong): Promise<void> {
@@ -233,6 +244,7 @@
         markLocalSongSynced(song.id, new Date().toISOString());
         render();
         say(`Synced "${song.title}" to your account.`);
+        focusRow(song.id, 'sync');
     }
 
     async function unsyncSong(song: LocalSong): Promise<void> {
@@ -243,6 +255,7 @@
         markLocalSongSynced(song.id, null);
         render();
         say(`Removed the synced copy of "${song.title}". It is now on this device only.`);
+        focusRow(song.id, 'sync');
     }
 
     async function removeSong(song: LocalSong): Promise<void> {
@@ -257,6 +270,7 @@
         deleteLocalSong(song.id);
         render();
         say(`Deleted "${song.title}".`);
+        pageTitle.focus();
     }
 
     function exportSongs(songs: LocalSong[]): void {

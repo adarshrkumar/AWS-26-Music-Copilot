@@ -1,6 +1,16 @@
 @use '../variables/system' as *;
 @use '../variables/tokens' as *;
 
+$app-nav-clearance: calc(#{$row-min-height} + #{space(2)} + env(safe-area-inset-bottom));
+
+html {
+    @include below(md) {
+        --app-nav-clearance: #{$app-nav-clearance};
+
+        scroll-padding-bottom: calc(#{$app-nav-clearance} + #{space(16)});
+    }
+}
+
 .app {
     margin-inline: auto;
     padding: space(6) space(4);
@@ -9,4 +19,8 @@
     align-content: start;
     gap: space(6);
     display: grid;
+
+    @include below(md) {
+        padding-bottom: calc(#{$app-nav-clearance} + #{space(16)} + #{space(6)});
+    }
 }

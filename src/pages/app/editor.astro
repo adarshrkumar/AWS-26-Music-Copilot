@@ -27,7 +27,7 @@ const section = song?.sections.find(candidate => candidate.id === Astro.url.sear
                     <span class="sign">Bar</span>
                     <h2 id="bar-heading" class="editor__heading">Choose a bar</h2>
                     <div class="editor__bars" role="group" aria-label="Bars">
-                        {Array.from({ length: section.bars }, (_, index) => index + 1).map(bar =><button class="chord" type="button" data-bar={bar} aria-pressed={bar === 1 ? 'true' : 'false'}>{bar}</button>)}
+                        {Array.from({ length: section.bars }, (_, index) => index + 1).map(bar =><button class="chord" type="button" data-bar={bar} aria-label={`Bar ${bar}`} aria-pressed={bar === 1 ? 'true' : 'false'}>{bar}</button>)}
                     </div>
                     <ul class="editor__chords" id="chord-readout" aria-live="polite"></ul>
                 </section>
@@ -95,7 +95,10 @@ const section = song?.sections.find(candidate => candidate.id === Astro.url.sear
                     <p class="indicative-note">Notes outside the scale are marked, never removed. Keep, change or remove any note you like.</p>
                 </section>
 
-                <section class="suggestion editor__reason" id="reason" aria-live="polite" hidden></section>
+                <section class="suggestion editor__reason" id="reason" aria-labelledby="reason-heading" hidden>
+                    <h2 class="editor__heading" id="reason-heading" tabindex="-1"></h2>
+                    <div class="editor__reason-body" id="reason-body" aria-live="polite"></div>
+                </section>
 
                 <EditorScript />
             </>

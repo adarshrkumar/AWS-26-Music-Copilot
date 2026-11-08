@@ -2,6 +2,7 @@
 @use '../variables/mixins' as *;
 @use '../variables/system' as *;
 @use '../variables/tokens' as *;
+@use 'sass:map';
 
 .editor {
     gap: space(6);
@@ -149,6 +150,22 @@
         flex-direction: row;
         justify-content: flex-start;
         gap: space(3);
+
+        @include below(md) {
+            position: sticky;
+            bottom: calc(var(--app-nav-clearance) + #{space(2)});
+            margin-inline: calc(-1 * #{space(2)});
+            padding: space(2);
+            background: $bg-secondary;
+            border-radius: radius(md);
+            flex-direction: row;
+            z-index: map.get($z-index, base);
+
+            .btn {
+                flex: 1;
+                min-height: $row-min-height;
+            }
+        }
     }
 
     &__error {
@@ -216,5 +233,10 @@
         p {
             margin: 0;
         }
+    }
+
+    &__reason-body {
+        gap: space(2);
+        display: grid;
     }
 }

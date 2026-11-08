@@ -119,7 +119,7 @@ $transition-base: var(--ease-3);  // Standard easing
 
 .chord {
     padding: padding(control);
-    min-height: sizing(control-height);
+    min-height: $control-height;
     color: $text-primary;
     background: $bg-secondary;
     border: $border-width-accent $border-style $text-primary;
@@ -177,7 +177,7 @@ $transition-base: var(--ease-3);  // Standard easing
 
 .btn {
     padding: padding(control);
-    min-height: sizing(control-height);
+    min-height: $control-height;
     color: $text-inverse;
     background: $primary-color;
     border: 0;
