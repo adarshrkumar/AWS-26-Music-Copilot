@@ -1,7 +1,7 @@
-@use '../../variables/colors' as *;
-@use '../../variables/mixins' as *;
-@use '../../variables/system' as *;
-@use '../../variables/tokens' as *;
+@use '../variables/colors' as *;
+@use '../variables/mixins' as *;
+@use '../variables/system' as *;
+@use '../variables/tokens' as *;
 
 .scales {
     gap: space(6);
@@ -15,8 +15,7 @@
         @include heading-3;
     }
 
-    &__intro,
-    &__note {
+    &__intro, &__note {
         margin: 0;
         color: $text-secondary;
     }
@@ -219,9 +218,7 @@
         fill: $text-primary;
     }
 
-    &__nut,
-    &__fret,
-    &__string {
+    &__nut, &__fret, &__string {
         stroke: $text-secondary;
     }
 
@@ -230,15 +227,13 @@
         stroke-width: 4;
     }
 
-    &__fret-number,
-    &__string-name {
+    &__fret-number, &__string-name {
         fill: $text-secondary;
         font-size: 12px;
     }
 
     &__marker {
-        circle,
-        rect {
+        circle, rect {
             fill: $bg-primary;
             stroke: $primary-color;
             stroke-width: 2;
@@ -266,17 +261,110 @@
             }
         }
 
-        &[data-guide="current"] circle,
-        &[data-guide="current"] rect,
-        &[data-guide="both"] circle,
-        &[data-guide="both"] rect {
+        &:is([data-guide="current"], [data-guide="both"], [data-guide="next"]) :is(circle, rect) {
             stroke-width: 4;
         }
 
-        &[data-guide="next"] circle,
-        &[data-guide="next"] rect {
+        &[data-guide="next"] :is(circle, rect) {
             stroke: $secondary-color;
-            stroke-width: 4;
         }
+    }
+}
+
+.suggestions {
+    margin-top: space(6);
+    padding: space(4);
+    border: 1px solid $border-color;
+    border-radius: radius(lg);
+    gap: space(3);
+
+    @include flex-column;
+
+    &__heading {
+        gap: space(2);
+
+        @include flex-column;
+    }
+
+    &__title {
+        @include heading-3;
+    }
+
+    &__toggle {
+        margin-bottom: 0;
+    }
+
+    &__intro, &__empty {
+        margin: 0;
+        color: $text-secondary;
+    }
+
+    &__status {
+        margin: 0;
+        color: $success-color;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__error {
+        margin: 0;
+        color: $error-color;
+
+        &:empty {
+            display: none;
+        }
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        gap: space(3);
+
+        @include flex-column;
+    }
+
+    &__item {
+        padding: space(3);
+        border: 1px solid $border-color;
+        border-radius: radius(lg);
+        gap: space(2);
+
+        @include flex-column;
+
+        &[data-status="accepted"] {
+            border-color: $success-color;
+        }
+
+        &[data-status="rejected"] {
+            border-style: dashed;
+        }
+    }
+
+    &__label, &__reason, &__state {
+        margin: 0;
+    }
+
+    &__label {
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: space(2);
+        display: flex;
+    }
+
+    &__bar, &__kind, &__state {
+        color: $text-secondary;
+    }
+
+    &__kind {
+        text-transform: capitalize;
+    }
+
+    &__actions {
+        flex-wrap: wrap;
+        gap: space(2);
+        display: flex;
     }
 }

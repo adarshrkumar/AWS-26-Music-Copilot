@@ -5,7 +5,7 @@ import App from '@/layouts/App.astro';
 import ScalesScript from '@/script/app/scales.astro';
 import '@/styles/components/button.scss';
 import '@/styles/components/form.scss';
-import '@/styles/pages/app/scales.scss';
+import '@/styles/pages/scales.scss';
 
 if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
 ---
@@ -76,6 +76,44 @@ if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
             </section>
         </div>
     </section>
+
+    <aside class="suggestions" aria-labelledby="suggestions-title">
+        <div class="suggestions__heading">
+            <h2 class="suggestions__title" id="suggestions-title">Suggestions</h2>
+            <div class="form-checkbox suggestions__toggle">
+                <input id="suggestions-off" type="checkbox" />
+                <label for="suggestions-off">Turn suggestions off for this session</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="suggestions-song">Song</label>
+            <select class="form-select" id="suggestions-song"></select>
+        </div>
+
+        <p class="suggestions__intro">These are options to try, not rules. Several choices can work over the same chord, and nothing changes in your song until you accept it.</p>
+        <p class="suggestions__status" id="suggestions-status" role="status"></p>
+        <p class="suggestions__error" id="suggestions-error" role="alert"></p>
+        <p class="suggestions__empty" id="suggestions-empty" hidden></p>
+        <ul class="suggestions__list" id="suggestions-list" aria-label="Suggestions for this song"></ul>
+    </aside>
+
+    <template id="suggestion-row">
+        <li class="suggestions__item">
+            <p class="suggestions__label">
+                <span class="suggestions__bar" data-field="bar"></span>
+                <span class="suggestions__kind" data-field="kind"></span>
+                <strong class="suggestions__value" data-field="value"></strong>
+            </p>
+            <p class="suggestions__reason" data-field="reason"></p>
+            <p class="suggestions__state" data-field="state"></p>
+            <div class="suggestions__actions">
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="accepted">Accept</button>
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="rejected">Reject</button>
+                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="pending">Undo</button>
+            </div>
+        </li>
+    </template>
 
     <ScalesScript />
 </App>

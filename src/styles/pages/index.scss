@@ -85,8 +85,7 @@ body {
         font-size: font-size(md);
     }
 
-    &__hero-actions,
-    &__closing-actions {
+    &__hero-actions, &__closing-actions {
         flex-wrap: wrap;
         gap: space(3);
         display: flex;
@@ -269,8 +268,7 @@ body {
         }
     }
 
-    &__rule-name,
-    &__rule-body {
+    &__rule-name, &__rule-body {
         margin: 0;
     }
 
@@ -468,8 +466,7 @@ body {
         @include flex-between;
     }
 
-    &__footer-brand,
-    &__footer-note {
+    &__footer-brand, &__footer-note {
         margin: 0;
         color: $bg-primary;
     }

@@ -32,9 +32,7 @@
         }
     }
 
-    &-input,
-    &-textarea,
-    &-select {
+    &-input, &-textarea, &-select {
         @include input-base;
 
         &[data-state="error"] {
@@ -157,8 +155,7 @@
         font-size: font-size(base);
     }
 
-    &-checkbox,
-    &-radio {
+    &-checkbox, &-radio {
         margin-bottom: space(4);
         align-items: center;
         gap: space(4);
@@ -181,8 +178,7 @@
             opacity: 0.5;
             cursor: not-allowed;
 
-            input,
-            label {
+            input, label {
                 cursor: not-allowed;
             }
         }
@@ -191,8 +187,7 @@
             opacity: 0.5;
             cursor: not-allowed;
 
-            input,
-            label {
+            input, label {
                 cursor: not-allowed;
             }
         }

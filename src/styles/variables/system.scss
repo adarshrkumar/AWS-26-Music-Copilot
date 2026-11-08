@@ -127,8 +127,7 @@ $transition-base: var(--ease-3); // Standard easing
     font: font-weight(bold) #{font-size(md)} / 1 $font-display;
     cursor: pointer;
 
-    &:hover,
-    &:focus-visible {
+    &:hover, &:focus-visible {
         outline: 3px solid $primary-color;
         outline-offset: 2px;
     }

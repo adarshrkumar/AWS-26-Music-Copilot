@@ -39,6 +39,15 @@ export interface ScaleOption {
     reason: string;
 }
 
+export interface ScaleFinderState {
+    key: Key;
+    chord: Chord;
+    next: Chord | null;
+    chordFunction: ChordFunction;
+    options: ScaleOption[];
+    selectedId: string;
+}
+
 interface Spelling {
     letter: number;
     pitch: number;

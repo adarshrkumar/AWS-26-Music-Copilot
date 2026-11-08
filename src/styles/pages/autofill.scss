@@ -11,8 +11,7 @@
         @include heading-2;
     }
 
-    &__intro,
-    &__empty {
+    &__intro, &__empty {
         color: $text-secondary;
     }
 
