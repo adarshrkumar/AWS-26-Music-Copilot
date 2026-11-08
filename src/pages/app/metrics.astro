@@ -42,7 +42,7 @@ const rows = [
 <App pageTitle="Metrics">
     <div class="metrics">
         <h1 class="metrics__title">Metrics</h1>
-        <p class="metrics__intro">These numbers count events only. They never include chords, notes or melodies, and they are not linked to an account. Targets are placeholders until the pilot runs.</p>
+        <p class="metrics__intro">These numbers count events only. They never include chords, notes or melodies, and they are not linked to an account.<span style="display: none;"> Targets are placeholders until the pilot runs.</span></p>
 
         <table class="metrics__table">
             <caption class="metrics__caption">Usage metrics, updated {report.generatedAt}</caption>
@@ -52,7 +52,7 @@ const rows = [
                     <th scope="col">What it shows</th>
                     <th scope="col">Now</th>
                     <th scope="col">Based on</th>
-                    <th scope="col">Target</th>
+                    <th scope="col" style="display: none;">Target</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,7 +62,7 @@ const rows = [
                         <td>{row.shows}</td>
                         <td>{row.value}</td>
                         <td>{row.detail}</td>
-                        <td>Placeholder</td>
+                        <td style="display: none;">Placeholder</td>
                     </tr>
                 ))}
             </tbody>
