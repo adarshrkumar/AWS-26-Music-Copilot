@@ -1,0 +1,7 @@
+---
+import App from '@/layouts/App.astro';
+
+if (!Astro.locals.session) return Astro.redirect('/');
+---
+
+<App />

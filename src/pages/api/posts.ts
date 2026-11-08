@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
-import { deleteItem, getItem, putItem, queryItems } from '@/db/helpers';
+import { deleteItem, getItem, queryItems, setItem } from '@/db/helpers';
 import { dataTable } from '@/db/schemas';
 import type { Post } from '@/db/types';
 import {
@@ -111,7 +111,7 @@ export const POST: APIRoute = async ({ request }) => {
             publishedAt: validated.published ? now : null,
         };
 
-        await putItem(dataTable, newPost);
+        await setItem(dataTable, newPost);
 
         return new Response(
             JSON.stringify({
@@ -204,7 +204,7 @@ export const PUT: APIRoute = async ({ request }) => {
                     : existingPost.publishedAt,
         };
 
-        await putItem(dataTable, updatedPost);
+        await setItem(dataTable, updatedPost);
 
         return new Response(
             JSON.stringify({

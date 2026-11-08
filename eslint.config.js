@@ -75,6 +75,14 @@ export default [
         }
     },
     {
+        files: ['src/lib/auth/helpers.ts'],
+        languageOptions: {
+            globals: {
+                Request: 'readonly'
+            }
+        }
+    },
+    {
         files: ['src/**/*.astro'],
         languageOptions: {
             parser: parsers.astroParser,
