@@ -33,13 +33,13 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Write Notes
 
-- [ ] Build the tab editor in `src/pages/app/editor.astro`
-- [ ] Build the sheet music editor from the same note data as the tabs
-- [ ] Highlight notes that fit the current chord and scale
-- [ ] Mark notes outside the scale with a symbol as well as a color, and never remove them
-- [ ] Show the reason for a note from `explainNote`
-- [ ] Let the songwriter keep, change or remove any note
-- [ ] Save notes through `setNotes` in `src/script/app/editor.astro`
+- [x] Build the tab editor in `src/pages/app/editor.astro`
+- [x] Build the sheet music editor from the same note data as the tabs
+- [x] Highlight notes that fit the current chord and scale
+- [x] Mark notes outside the scale with a symbol as well as a color, and never remove them
+- [x] Show the reason for a note from `explainNote`
+- [x] Let the songwriter keep, change or remove any note
+- [x] Save notes through `setNotes` in `src/script/app/editor.astro`
 
 ## Autofill
 
