@@ -33,10 +33,6 @@
         return getLocalSongs().find(song => song.id === id) ?? null;
     }
 
-    function saveLocalSongs(songs: LocalSong[]): void {
-        localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
-    }
-
     function setLocalSuggestionStatus(songId: string, suggestionId: string, status: Suggestion['status']): LocalSong | null {
         const songs = getLocalSongs();
         const index = songs.findIndex(song => song.id === songId);
@@ -50,7 +46,7 @@
         }
 
         songs[index] = { ...songs[index], suggestions, updatedAt: new Date().toISOString() };
-        saveLocalSongs(songs);
+        localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
         return songs[index];
     }
 
@@ -60,14 +56,8 @@
         if (index === -1) return null;
 
         songs[index] = { ...songs[index], syncedAt };
-        saveLocalSongs(songs);
+        localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
         return songs[index];
-    }
-
-    function find<T extends Element>(selector: string): T {
-        const element = document.querySelector<T>(selector);
-        if (!element) throw new Error(`Missing element: ${selector}`);
-        return element;
     }
 
     function prepare<T extends HTMLElement>(element: T, className?: string, text?: string): T {
@@ -76,19 +66,19 @@
         return element;
     }
 
-    const form = find<HTMLElement>('#scales-form');
-    const keyField = find<HTMLSelectElement>('#scales-key');
-    const chordField = find<HTMLInputElement>('#scales-chord');
-    const nextField = find<HTMLInputElement>('#scales-next');
-    const errorText = find<HTMLElement>('#scales-error');
-    const chordButtons = find<HTMLElement>('#scales-chords');
-    const chordInfo = find<HTMLElement>('#scales-chord-info');
-    const guideInfo = find<HTMLElement>('#scales-guide-info');
-    const optionsList = find<HTMLElement>('#scales-options');
-    const keyboard = find<HTMLElement>('#scales-keyboard');
-    const keyboardText = find<HTMLElement>('#scales-keyboard-text');
-    const fretboard = find<HTMLElement>('#scales-fretboard');
-    const fretboardText = find<HTMLElement>('#scales-fretboard-text');
+    const form = document.querySelector('#scales-form');
+    const keyField = document.querySelector('#scales-key');
+    const chordField = document.querySelector('#scales-chord');
+    const nextField = document.querySelector('#scales-next');
+    const errorText = document.querySelector('#scales-error');
+    const chordButtons = document.querySelector('#scales-chords');
+    const chordInfo = document.querySelector('#scales-chord-info');
+    const guideInfo = document.querySelector('#scales-guide-info');
+    const optionsList = document.querySelector('#scales-options');
+    const keyboard = document.querySelector('#scales-keyboard');
+    const keyboardText = document.querySelector('#scales-keyboard-text');
+    const fretboard = document.querySelector('#scales-fretboard');
+    const fretboardText = document.querySelector('#scales-fretboard-text');
 
     const answers = new Map<string, string>();
     let state: ScaleFinderState | null = null;
@@ -116,8 +106,8 @@
     }
 
     function showError(message: string): void {
-        errorText.textContent = message;
-        chordField.setAttribute('aria-invalid', message ? 'true' : 'false');
+        if (errorText) errorText.textContent = message;
+        chordField?.setAttribute('aria-invalid', message ? 'true' : 'false');
     }
 
     function drawDiagrams(): void {
@@ -132,10 +122,10 @@
         const keyboardDescription = `Keyboard, two octaves from C. ${description}`;
         const fretboardDescription = `Guitar fretboard in standard tuning, frets 0 to 12. ${description}`;
 
-        keyboard.replaceChildren(drawKeyboard(markers, keyboardDescription));
-        fretboard.replaceChildren(drawFretboard(markers, fretboardDescription));
-        keyboardText.textContent = keyboardDescription;
-        fretboardText.textContent = fretboardDescription;
+        keyboard?.replaceChildren(drawKeyboard(markers, keyboardDescription));
+        fretboard?.replaceChildren(drawFretboard(markers, fretboardDescription));
+        if (keyboardText) keyboardText.textContent = keyboardDescription;
+        if (fretboardText) fretboardText.textContent = fretboardDescription;
     }
 
     function selectOption(id: string): void {
@@ -143,7 +133,7 @@
 
         state.selectedId = id;
 
-        for (const button of optionsList.querySelectorAll('.scales__select')) {
+        for (const button of document.querySelectorAll('#scales-options .scales__select')) {
             if (!(button instanceof HTMLElement)) continue;
 
             const selected = button.dataset.id === id;
@@ -199,18 +189,20 @@
         const token = ++renderId;
         const status = current.chordFunction.status;
 
-        chordInfo.textContent = `${current.chord.name} is ${current.chordFunction.label}. Its notes are ${current.chord.notes.map(note => note.name).join(', ')}.${status === 'diatonic' ? '' : ' It is labeled, not corrected, because the chord choice is yours.'}`;
-        guideInfo.textContent = describeGuideTones(current.chord, current.next);
+        if (chordInfo) chordInfo.textContent = `${current.chord.name} is ${current.chordFunction.label}. Its notes are ${current.chord.notes.map(note => note.name).join(', ')}.${status === 'diatonic' ? '' : ' It is labeled, not corrected, because the chord choice is yours.'}`;
+        if (guideInfo) guideInfo.textContent = describeGuideTones(current.chord, current.next);
 
-        optionsList.replaceChildren(...current.options.map(option => buildOption(option, current, token)));
+        optionsList?.replaceChildren(...current.options.map(option => buildOption(option, current, token)));
         selectOption(current.selectedId);
 
-        for (const button of chordButtons.querySelectorAll('button')) {
-            button.setAttribute('aria-pressed', button.dataset.chord === current.chord.name ? 'true' : 'false');
+        for (const button of document.querySelectorAll('#scales-chords button')) {
+            button.setAttribute('aria-pressed', (button as HTMLButtonElement).dataset.chord === current.chord.name ? 'true' : 'false');
         }
     }
 
     function update(): void {
+        if (!(keyField instanceof HTMLSelectElement) || !(chordField instanceof HTMLInputElement) || !(nextField instanceof HTMLInputElement)) return;
+
         const key = parseKey(keyField.value);
         const chord = parseChord(chordField.value);
         const nextText = nextField.value.trim();
@@ -230,10 +222,12 @@
     }
 
     function buildChordButtons(): void {
+        if (!(keyField instanceof HTMLSelectElement)) return;
+
         const key = parseKey(keyField.value);
         if (!key) return;
 
-        chordButtons.replaceChildren(...getDiatonicChords(key).map(name => {
+        chordButtons?.replaceChildren(...getDiatonicChords(key).map(name => {
             const button = prepare(document.createElement('button'), 'btn', name);
 
             button.type = 'button';
@@ -242,7 +236,7 @@
             button.dataset.size = 'small';
             button.setAttribute('aria-pressed', 'false');
             button.addEventListener('click', () => {
-                chordField.value = name;
+                if (chordField instanceof HTMLInputElement) chordField.value = name;
                 update();
             });
 
@@ -250,13 +244,13 @@
         }));
     }
 
-    keyField.addEventListener('change', () => {
+    keyField?.addEventListener('change', () => {
         buildChordButtons();
         update();
     });
-    chordField.addEventListener('change', update);
-    nextField.addEventListener('change', update);
-    form.addEventListener('submit', event => {
+    chordField?.addEventListener('change', update);
+    nextField?.addEventListener('change', update);
+    form?.addEventListener('submit', event => {
         event.preventDefault();
         update();
     });
@@ -264,28 +258,26 @@
     const params = new URLSearchParams(window.location.search);
     const linkedKey = parseKey(params.get('key') ?? '');
 
-    if (linkedKey) {
+    if (linkedKey && keyField instanceof HTMLSelectElement) {
         for (const option of keyField.options) {
             const candidate = parseKey(option.value);
             if (candidate?.root.pitch === linkedKey.root.pitch && candidate.minor === linkedKey.minor) keyField.value = option.value;
         }
     }
 
-    if (params.has('chord')) {
-        chordField.value = params.get('chord') ?? '';
-        nextField.value = params.get('next') ?? '';
-    }
+    if (params.has('chord') && chordField instanceof HTMLInputElement) chordField.value = params.get('chord') ?? '';
+    if (params.has('chord') && nextField instanceof HTMLInputElement) nextField.value = params.get('next') ?? '';
 
     buildChordButtons();
     update();
 
-    const songSelect = find<HTMLSelectElement>('#suggestions-song');
-    const suggestionsToggle = find<HTMLInputElement>('#suggestions-off');
-    const suggestionList = find<HTMLElement>('#suggestions-list');
-    const suggestionsEmpty = find<HTMLElement>('#suggestions-empty');
-    const suggestionsStatus = find<HTMLElement>('#suggestions-status');
-    const suggestionsError = find<HTMLElement>('#suggestions-error');
-    const rowTemplate = find<HTMLTemplateElement>('#suggestion-row');
+    const songSelect = document.querySelector('#suggestions-song');
+    const suggestionsToggle = document.querySelector('#suggestions-off');
+    const suggestionList = document.querySelector('#suggestions-list');
+    const suggestionsEmpty = document.querySelector('#suggestions-empty');
+    const suggestionsStatus = document.querySelector('#suggestions-status');
+    const suggestionsError = document.querySelector('#suggestions-error');
+    const rowTemplate = document.querySelector('#suggestion-row');
     const stateLabels: Record<Suggestion['status'], string> = { pending: '○ Waiting for your decision', accepted: '✓ Accepted', rejected: '✕ Rejected' };
     const decisionLabels: Record<Suggestion['status'], string> = { pending: 'Cleared your decision for', accepted: 'Accepted', rejected: 'Rejected' };
 
@@ -320,11 +312,13 @@
         if (index === -1) return song;
 
         songs[index] = { ...songs[index], suggestions: [...songs[index].suggestions, ...added.slice(0, scalesConfig.maxSuggestions - song.suggestions.length)], updatedAt: now };
-        saveLocalSongs(songs);
+        localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
         return songs[index];
     }
 
     function renderSuggestions(): void {
+        if (!(songSelect instanceof HTMLSelectElement) || !(suggestionsToggle instanceof HTMLInputElement) || !(suggestionList instanceof HTMLElement) || !(suggestionsEmpty instanceof HTMLElement) || !(rowTemplate instanceof HTMLTemplateElement)) return;
+
         const stored = getLocalSong(songSelect.value);
 
         suggestionsToggle.checked = sessionStorage.getItem(scalesConfig.suggestionsOffKey) === 'true';
@@ -347,8 +341,8 @@
         try {
             song = addEngineSuggestions(stored);
         } catch {
-            suggestionsStatus.textContent = '';
-            suggestionsError.textContent = 'This device has no room left to store new suggestions. Export or delete a song and try again.';
+            if (suggestionsStatus) suggestionsStatus.textContent = '';
+            if (suggestionsError) suggestionsError.textContent = 'This device has no room left to store new suggestions. Export or delete a song and try again.';
         }
 
         if (song.suggestions.length === 0) {
@@ -371,12 +365,20 @@
             item.querySelector('[data-field="reason"]')?.replaceChildren(suggestion.reason);
             item.querySelector('[data-field="state"]')?.replaceChildren(stateLabels[suggestion.status]);
 
-            for (const button of item.querySelectorAll('[data-action]')) {
-                if (!(button instanceof HTMLElement)) continue;
+            const acceptButton = item.querySelector('.suggestions__accept');
+            acceptButton?.setAttribute('aria-label', `Accept ${suggestion.kind} ${suggestion.value} in bar ${suggestion.bar}`);
+            if (acceptButton instanceof HTMLElement) acceptButton.hidden = suggestion.status === 'accepted';
+            acceptButton?.addEventListener('click', () => void decide(suggestion.id, 'accepted'));
 
-                button.setAttribute('aria-label', `${button.textContent} ${suggestion.kind} ${suggestion.value} in bar ${suggestion.bar}`);
-                button.hidden = button.dataset.action === suggestion.status;
-            }
+            const rejectButton = item.querySelector('.suggestions__reject');
+            rejectButton?.setAttribute('aria-label', `Reject ${suggestion.kind} ${suggestion.value} in bar ${suggestion.bar}`);
+            if (rejectButton instanceof HTMLElement) rejectButton.hidden = suggestion.status === 'rejected';
+            rejectButton?.addEventListener('click', () => void decide(suggestion.id, 'rejected'));
+
+            const undoButton = item.querySelector('.suggestions__undo');
+            undoButton?.setAttribute('aria-label', `Undo ${suggestion.kind} ${suggestion.value} in bar ${suggestion.bar}`);
+            if (undoButton instanceof HTMLElement) undoButton.hidden = suggestion.status === 'pending';
+            undoButton?.addEventListener('click', () => void decide(suggestion.id, 'pending'));
 
             suggestionList.append(fragment);
         }
@@ -399,6 +401,8 @@
     }
 
     async function decide(suggestionId: string, nextStatus: Suggestion['status']): Promise<void> {
+        if (!(songSelect instanceof HTMLSelectElement) || !suggestionsStatus || !suggestionsError) return;
+
         const before = getLocalSong(songSelect.value);
         const target = before?.suggestions.find(suggestion => suggestion.id === suggestionId);
         if (!before || !target) return;
@@ -428,25 +432,17 @@
         if (before.updatedAt <= before.syncedAt) markLocalSongSynced(before.id, new Date().toISOString());
     }
 
-    suggestionList.addEventListener('click', event => {
-        const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('button[data-action]') : null;
-        const id = button?.closest<HTMLElement>('[data-id]')?.dataset.id;
-        const action = button?.dataset.action;
-
-        if (!id || (action !== 'accepted' && action !== 'rejected' && action !== 'pending')) return;
-        void decide(id, action);
-    });
-
-    songSelect.addEventListener('change', () => {
-        suggestionsError.textContent = '';
-        suggestionsStatus.textContent = '';
+    songSelect?.addEventListener('change', () => {
+        if (suggestionsError) suggestionsError.textContent = '';
+        if (suggestionsStatus) suggestionsStatus.textContent = '';
         renderSuggestions();
     });
 
-    suggestionsToggle.addEventListener('change', () => {
-        sessionStorage.setItem(scalesConfig.suggestionsOffKey, suggestionsToggle.checked.toString());
-        suggestionsError.textContent = '';
-        suggestionsStatus.textContent = suggestionsToggle.checked ? 'Suggestions are off for this session.' : 'Suggestions are on.';
+    suggestionsToggle?.addEventListener('change', () => {
+        const off = suggestionsToggle instanceof HTMLInputElement && suggestionsToggle.checked;
+        sessionStorage.setItem(scalesConfig.suggestionsOffKey, off.toString());
+        if (suggestionsError) suggestionsError.textContent = '';
+        if (suggestionsStatus) suggestionsStatus.textContent = off ? 'Suggestions are off for this session.' : 'Suggestions are on.';
         renderSuggestions();
     });
 
@@ -454,7 +450,7 @@
         const option = document.createElement('option');
         option.value = song.id;
         option.textContent = `${song.title} (${song.key})`;
-        songSelect.append(option);
+        songSelect?.append(option);
     }
 
     renderSuggestions();

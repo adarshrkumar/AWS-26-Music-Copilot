@@ -11,7 +11,7 @@ const signedIn = Boolean(Astro.locals.session);
     <section class="songs" data-signed-in={signedIn ? 'true' : 'false'}>
         <div class="songs__heading">
             <h1 class="songs__title" id="songs-title" tabindex="-1">Songs</h1>
-            <button class="btn songs__create" type="button" data-variant="primary" data-action="create">New song</button>
+            <button class="btn songs__create" id="song-create" type="button" data-variant="primary">New song</button>
         </div>
 
         <p class="songs__intro">
@@ -32,7 +32,7 @@ const signedIn = Boolean(Astro.locals.session);
                 <input id="export-melody" type="checkbox" data-role="export-melody" />
                 <label for="export-melody">Include melodies. Leave this off to share chord progressions only.</label>
             </div>
-            <button class="btn" type="button" data-variant="secondary" data-action="export-all">Export all songs</button>
+            <button class="btn" id="export-all" type="button" data-variant="secondary">Export all songs</button>
         </section>
 
         {signedIn && (
@@ -55,7 +55,7 @@ const signedIn = Boolean(Astro.locals.session);
         <form class="form songs__form" method="dialog" data-role="song-form">
             <h2 class="songs__subtitle" id="song-dialog-title" data-role="dialog-title">New song</h2>
             <p class="form-error" role="alert" data-role="form-error"></p>
-            <input type="hidden" name="id" />
+            <input id="song-id" type="hidden" name="id" />
             <div class="form-group">
                 <label class="form-label" for="song-title" data-required="true">Title</label>
                 <input class="form-input" id="song-title" name="title" type="text" maxlength="120" required />
@@ -72,7 +72,7 @@ const signedIn = Boolean(Astro.locals.session);
                 <input class="form-input" id="song-tempo" name="tempo" type="number" min="20" max="300" step="1" value="100" required />
             </div>
             <div class="songs__dialog-actions">
-                <button class="btn songs__dialog-action" type="button" data-variant="secondary" data-action="cancel">Cancel</button>
+                <button class="btn songs__dialog-action" id="song-cancel" type="button" data-variant="secondary">Cancel</button>
                 <button class="btn songs__dialog-action" type="submit" data-variant="primary">Save song</button>
             </div>
         </form>
@@ -89,11 +89,11 @@ const signedIn = Boolean(Astro.locals.session);
                 <a class="btn" data-variant="secondary" data-size="small" data-link="progression">Chords</a>
                 <a class="btn" data-variant="secondary" data-size="small" data-link="editor">Notes</a>
                 <a class="btn" data-variant="secondary" data-size="small" data-link="autofill">Autofill</a>
-                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="edit">Edit</button>
-                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="sync">Sync to account</button>
-                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="unsync">Remove synced copy</button>
-                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="export">Export</button>
-                <button class="btn" type="button" data-variant="danger" data-size="small" data-action="delete">Delete</button>
+                <button class="btn songs__edit" type="button" data-variant="secondary" data-size="small">Edit</button>
+                <button class="btn songs__sync-button" type="button" data-variant="secondary" data-size="small">Sync to account</button>
+                <button class="btn songs__unsync" type="button" data-variant="secondary" data-size="small">Remove synced copy</button>
+                <button class="btn songs__export" type="button" data-variant="secondary" data-size="small">Export</button>
+                <button class="btn songs__delete" type="button" data-variant="danger" data-size="small">Delete</button>
             </div>
         </li>
     </template>

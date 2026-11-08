@@ -25,14 +25,6 @@
         return [];
     }
 
-    function getLocalSong(id: string): LocalSong | null {
-        return getLocalSongs().find(song => song.id === id) ?? null;
-    }
-
-    function saveLocalSongs(songs: LocalSong[]): void {
-        localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
-    }
-
     function createLocalSong(form: z.infer<typeof songFormSchema>): LocalSong {
         const now = new Date().toISOString();
         const song: LocalSong = {
@@ -46,7 +38,7 @@
             syncedAt: null,
         };
 
-        saveLocalSongs([...getLocalSongs(), song]);
+        localStorage.setItem(songsConfig.storageKey, JSON.stringify([...getLocalSongs(), song]));
         return song;
     }
 
@@ -57,7 +49,7 @@
 
         const song: LocalSong = { ...songs[index], ...form, updatedAt: new Date().toISOString() };
         songs[index] = song;
-        saveLocalSongs(songs);
+        localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
         return song;
     }
 
@@ -68,12 +60,12 @@
 
         const song: LocalSong = { ...songs[index], syncedAt };
         songs[index] = song;
-        saveLocalSongs(songs);
+        localStorage.setItem(songsConfig.storageKey, JSON.stringify(songs));
         return song;
     }
 
     function deleteLocalSong(id: string): void {
-        saveLocalSongs(getLocalSongs().filter(song => song.id !== id));
+        localStorage.setItem(songsConfig.storageKey, JSON.stringify(getLocalSongs().filter(song => song.id !== id)));
     }
 
     function hasUnsyncedChanges(song: LocalSong): boolean {
@@ -104,33 +96,26 @@
         URL.revokeObjectURL(url);
     }
 
-    function find<T extends Element>(root: ParentNode, selector: string): T {
-        const element = root.querySelector<T>(selector);
-        if (!element) throw new Error(`Missing element: ${selector}`);
-        return element;
-    }
-
-    const root = find<HTMLElement>(document, '.songs');
-    const signedIn = root.dataset.signedIn === 'true';
-    const list = find<HTMLUListElement>(root, '[data-role="list"]');
-    const empty = find<HTMLElement>(root, '[data-role="empty"]');
-    const status = find<HTMLElement>(root, '[data-role="status"]');
-    const errorMessage = find<HTMLElement>(root, '[data-role="error"]');
-    const exportMelody = find<HTMLInputElement>(root, '[data-role="export-melody"]');
-    const dialog = find<HTMLDialogElement>(document, '[data-role="dialog"]');
-    const form = find<HTMLFormElement>(dialog, '[data-role="song-form"]');
-    const formError = find<HTMLElement>(dialog, '[data-role="form-error"]');
-    const dialogTitle = find<HTMLElement>(dialog, '[data-role="dialog-title"]');
-    const rowTemplate = find<HTMLTemplateElement>(document, '#song-row');
+    const signedIn = document.querySelector('.songs')?.getAttribute('data-signed-in') === 'true';
+    const list = document.querySelector('[data-role="list"]');
+    const empty = document.querySelector('[data-role="empty"]');
+    const status = document.querySelector('[data-role="status"]');
+    const errorMessage = document.querySelector('[data-role="error"]');
+    const exportMelody = document.querySelector('[data-role="export-melody"]');
+    const dialog = document.querySelector('[data-role="dialog"]');
+    const form = document.querySelector('[data-role="song-form"]');
+    const formError = document.querySelector('[data-role="form-error"]');
+    const dialogTitle = document.querySelector('[data-role="dialog-title"]');
+    const rowTemplate = document.querySelector('#song-row');
 
     function say(message: string): void {
-        errorMessage.textContent = '';
-        status.textContent = message;
+        if (errorMessage) errorMessage.textContent = '';
+        if (status) status.textContent = message;
     }
 
     function fail(message: string): void {
-        status.textContent = '';
-        errorMessage.textContent = message;
+        if (status) status.textContent = '';
+        if (errorMessage) errorMessage.textContent = message;
     }
 
     function syncLabel(song: LocalSong): string {
@@ -140,26 +125,43 @@
     }
 
     function buildRow(song: LocalSong): DocumentFragment {
-        const fragment = document.importNode(rowTemplate.content, true);
-        const item = find<HTMLLIElement>(fragment, 'li');
+        const fragment = rowTemplate instanceof HTMLTemplateElement ? document.importNode(rowTemplate.content, true) : new DocumentFragment();
+        const item = fragment.querySelector('li');
         const bars = song.sections.reduce((total, section) => total + section.bars, 0);
 
+        if (!item) return fragment;
+
         item.dataset.id = song.id;
-        find<HTMLElement>(item, '[data-field="title"]').textContent = song.title;
-        find<HTMLElement>(item, '[data-field="meta"]').textContent = `${song.key}, ${song.tempo} BPM, ${bars} ${bars === 1 ? 'bar' : 'bars'}`;
-        find<HTMLElement>(item, '[data-field="sync"]').textContent = syncLabel(song);
+        const title = item.querySelector('[data-field="title"]');
+        const meta = item.querySelector('[data-field="meta"]');
+        const sync = item.querySelector('[data-field="sync"]');
+        if (title) title.textContent = song.title;
+        if (meta) meta.textContent = `${song.key}, ${song.tempo} BPM, ${bars} ${bars === 1 ? 'bar' : 'bars'}`;
+        if (sync) sync.textContent = syncLabel(song);
 
-        for (const button of item.querySelectorAll('[data-action]')) {
-            if (!(button instanceof HTMLElement)) continue;
+        const editButton = item.querySelector('.songs__edit');
+        editButton?.setAttribute('aria-label', `Edit ${song.title}`);
+        editButton?.addEventListener('click', () => openDialog(song));
 
-            const action = button.dataset.action;
-            const labels: Record<string, string> = { edit: 'Edit', sync: song.syncedAt ? 'Sync changes' : 'Sync to account', unsync: 'Remove synced copy', export: 'Export', delete: 'Delete' };
+        const syncButton = item.querySelector('.songs__sync-button');
+        const syncLabelText = song.syncedAt ? 'Sync changes' : 'Sync to account';
+        if (syncButton) syncButton.textContent = syncLabelText;
+        syncButton?.setAttribute('aria-label', `${syncLabelText} ${song.title}`);
+        if (syncButton instanceof HTMLElement) syncButton.hidden = !signedIn || (song.syncedAt !== null && !hasUnsyncedChanges(song));
+        syncButton?.addEventListener('click', () => void syncSong(song));
 
-            button.textContent = labels[action ?? ''] ?? button.textContent;
-            button.setAttribute('aria-label', `${button.textContent} ${song.title}`);
-            if (action === 'sync') button.hidden = !signedIn || (song.syncedAt !== null && !hasUnsyncedChanges(song));
-            if (action === 'unsync') button.hidden = !signedIn || song.syncedAt === null;
-        }
+        const unsyncButton = item.querySelector('.songs__unsync');
+        unsyncButton?.setAttribute('aria-label', `Remove synced copy of ${song.title}`);
+        if (unsyncButton instanceof HTMLElement) unsyncButton.hidden = !signedIn || song.syncedAt === null;
+        unsyncButton?.addEventListener('click', () => void unsyncSong(song));
+
+        const exportButton = item.querySelector('.songs__export');
+        exportButton?.setAttribute('aria-label', `Export ${song.title}`);
+        exportButton?.addEventListener('click', () => exportSongs([song]));
+
+        const deleteButton = item.querySelector('.songs__delete');
+        deleteButton?.setAttribute('aria-label', `Delete ${song.title}`);
+        deleteButton?.addEventListener('click', () => void removeSong(song));
 
         for (const link of item.querySelectorAll('a[data-link]')) {
             if (!(link instanceof HTMLAnchorElement)) continue;
@@ -175,8 +177,10 @@
     function render(): void {
         const songs = getLocalSongs();
 
-        empty.hidden = songs.length > 0;
-        list.replaceChildren(...songs.map(buildRow));
+        if (empty instanceof HTMLElement) empty.hidden = songs.length > 0;
+        if (!list) return;
+        list.textContent = '';
+        list.append(...songs.map(buildRow));
     }
 
     async function request(method: 'PUT' | 'DELETE', url: string, body?: LocalSong): Promise<string | null> {
@@ -195,27 +199,32 @@
     }
 
     function openDialog(song: LocalSong | null): void {
-        form.reset();
-        formError.textContent = '';
-        dialogTitle.textContent = song ? 'Edit song' : 'New song';
-        find<HTMLInputElement>(form, '[name="id"]').value = song?.id ?? '';
+        const idInput = document.getElementById('song-id');
+        const titleInput = document.getElementById('song-title');
+        const keyInput = document.getElementById('song-key');
+        const tempoInput = document.getElementById('song-tempo');
 
-        if (song) {
-            find<HTMLInputElement>(form, '[name="title"]').value = song.title;
-            find<HTMLInputElement>(form, '[name="key"]').value = song.key;
-            find<HTMLInputElement>(form, '[name="tempo"]').value = song.tempo.toString();
-        }
+        if (form instanceof HTMLFormElement) form.reset();
+        if (formError) formError.textContent = '';
+        if (dialogTitle) dialogTitle.textContent = song ? 'Edit song' : 'New song';
+        if (idInput instanceof HTMLInputElement) idInput.value = song?.id ?? '';
 
-        dialog.showModal();
-        find<HTMLInputElement>(form, '[name="title"]').focus();
+        if (song && titleInput instanceof HTMLInputElement) titleInput.value = song.title;
+        if (song && keyInput instanceof HTMLInputElement) keyInput.value = song.key;
+        if (song && tempoInput instanceof HTMLInputElement) tempoInput.value = song.tempo.toString();
+
+        if (dialog instanceof HTMLDialogElement) dialog.showModal();
+        titleInput?.focus();
     }
 
     function saveForm(): void {
+        if (!(form instanceof HTMLFormElement)) return;
+
         const data = new FormData(form);
         const parsed = songFormSchema.safeParse({ title: data.get('title'), key: data.get('key'), tempo: parseInt(data.get('tempo')?.toString() ?? '', 10) });
 
         if (!parsed.success) {
-            formError.textContent = parsed.error.issues[0]?.message ?? 'Check the song details.';
+            if (formError) formError.textContent = parsed.error.issues[0]?.message ?? 'Check the song details.';
             return;
         }
 
@@ -225,14 +234,15 @@
             if (typeof id === 'string' && id) updateLocalSong(id, parsed.data);
             else createLocalSong(parsed.data);
         } catch {
-            formError.textContent = 'This device has no room left to store the song. Export or delete a song and try again.';
+            if (formError) formError.textContent = 'This device has no room left to store the song. Export or delete a song and try again.';
             return;
         }
 
-        dialog.close();
+        if (dialog instanceof HTMLDialogElement) dialog.close();
         render();
         say(`Saved "${parsed.data.title}" on this device.`);
-        for (const button of list.querySelectorAll('li:first-child [data-action="edit"]')) if (button instanceof HTMLElement) button.focus();
+        const editButton = list?.querySelector('li:first-child .songs__edit');
+        if (editButton instanceof HTMLElement) editButton.focus();
     }
 
     async function syncSong(song: LocalSong): Promise<void> {
@@ -242,7 +252,8 @@
         markLocalSongSynced(song.id, new Date().toISOString());
         render();
         say(`Synced "${song.title}" to your account.`);
-        for (const button of list.querySelectorAll(`[data-id="${CSS.escape(song.id)}"] [data-action="sync"]`)) if (button instanceof HTMLElement) button.focus();
+        const unsyncButton = list?.querySelector(`[data-id="${CSS.escape(song.id)}"] .songs__unsync`);
+        if (unsyncButton instanceof HTMLElement) unsyncButton.focus();
     }
 
     async function unsyncSong(song: LocalSong): Promise<void> {
@@ -253,7 +264,8 @@
         markLocalSongSynced(song.id, null);
         render();
         say(`Removed the synced copy of "${song.title}". It is now on this device only.`);
-        for (const button of list.querySelectorAll(`[data-id="${CSS.escape(song.id)}"] [data-action="sync"]`)) if (button instanceof HTMLElement) button.focus();
+        const syncButton = list?.querySelector(`[data-id="${CSS.escape(song.id)}"] .songs__sync-button`);
+        if (syncButton instanceof HTMLElement) syncButton.focus();
     }
 
     async function removeSong(song: LocalSong): Promise<void> {
@@ -273,35 +285,25 @@
 
     function exportSongs(songs: LocalSong[]): void {
         if (songs.length === 0) return fail('There are no songs to export.');
-        downloadSongExport(songs, exportMelody.checked);
-        say(`Exported ${songs.length} ${songs.length === 1 ? 'song' : 'songs'} ${exportMelody.checked ? 'with melodies' : 'without melodies'}.`);
+        const includeMelody = exportMelody instanceof HTMLInputElement && exportMelody.checked;
+        downloadSongExport(songs, includeMelody);
+        say(`Exported ${songs.length} ${songs.length === 1 ? 'song' : 'songs'} ${includeMelody ? 'with melodies' : 'without melodies'}.`);
     }
 
-    root.addEventListener('click', event => {
-        const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('button[data-action]') : null;
-        if (!button) return;
+    document.getElementById('export-all')?.addEventListener('click', () => exportSongs(getLocalSongs()));
 
-        const action = button.dataset.action;
-        const song = getLocalSong(button.closest<HTMLElement>('[data-id]')?.dataset.id ?? '');
+    document.getElementById('song-create')?.addEventListener('click', () => openDialog(null));
 
-        if (action === 'create') openDialog(null);
-        else if (action === 'export-all') exportSongs(getLocalSongs());
-        else if (!song) return;
-        else if (action === 'edit') openDialog(song);
-        else if (action === 'sync') void syncSong(song);
-        else if (action === 'unsync') void unsyncSong(song);
-        else if (action === 'export') exportSongs([song]);
-        else if (action === 'delete') void removeSong(song);
-    });
-
-    form.addEventListener('submit', event => {
+    form?.addEventListener('submit', event => {
         event.preventDefault();
         saveForm();
     });
 
-    find<HTMLButtonElement>(dialog, '[data-action="cancel"]').addEventListener('click', () => dialog.close());
+    document.getElementById('song-cancel')?.addEventListener('click', () => {
+        if (dialog instanceof HTMLDialogElement) dialog.close();
+    });
 
-    root.querySelector('[data-role="delete-account"]')?.addEventListener('submit', async event => {
+    document.querySelector('[data-role="delete-account"]')?.addEventListener('submit', async event => {
         event.preventDefault();
         if (!window.confirm('Delete your account? Every synced song is removed. Songs on this device stay.')) return;
 

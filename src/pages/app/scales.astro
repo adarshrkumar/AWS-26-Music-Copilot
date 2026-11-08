@@ -107,9 +107,9 @@ if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
             <p class="suggestions__reason" data-field="reason"></p>
             <p class="suggestions__state" data-field="state"></p>
             <div class="suggestions__actions">
-                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="accepted">Accept</button>
-                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="rejected">Reject</button>
-                <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="pending">Undo</button>
+                <button class="btn suggestions__accept" type="button" data-variant="secondary" data-size="small">Accept</button>
+                <button class="btn suggestions__reject" type="button" data-variant="secondary" data-size="small">Reject</button>
+                <button class="btn suggestions__undo" type="button" data-variant="secondary" data-size="small">Undo</button>
             </div>
         </li>
     </template>
