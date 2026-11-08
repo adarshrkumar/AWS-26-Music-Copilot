@@ -1,6 +1,6 @@
 {
-  "name": "ATSDC Stack App",
-  "short_name": "ATSDC",
+  "name": "TonePilot",
+  "short_name": "TonePilot",
   "description": "Progressive Web App built with the ATSDC Stack",
   "start_url": "/",
   "display": "standalone",

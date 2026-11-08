@@ -22,8 +22,8 @@ export default defineConfig({
                 registerType: 'autoUpdate',
                 includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
                 manifest: {
-                    name: 'ATSDC Stack App',
-                    short_name: 'ATSDC',
+                    name: 'TonePilot',
+                    short_name: 'TonePilot',
                     description: 'Progressive Web App built with the ATSDC Stack',
                     theme_color: '#ffffff',
                     background_color: '#ffffff',
