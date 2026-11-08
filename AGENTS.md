@@ -35,7 +35,7 @@ The first audience is music hobbyists and music students. The full product spec 
 
 - **Framework**: Astro 5.x with SSR (server-side rendering)
 - **Deployment**: Vercel adapter (`@astrojs/vercel`)
-- **Authentication**: Better Auth with a custom DynamoDB adapter (`src/db/auth-adapter.ts`), configured in `src/lib/auth.ts` and served from `src/pages/api/auth/[...all].ts`
+- **Authentication**: Better Auth with a custom DynamoDB adapter (`src/lib/auth/adapter.ts`), configured in `src/lib/auth/index.ts`, served from `src/pages/api/auth/[...all].ts`, with the browser client in `src/lib/auth/client.ts` and pages under `src/pages/user/`
 - **Database**: PostgreSQL via Neon with Drizzle ORM
 - **AI Integration**: Vercel AI SDK (`ai` package) through the Vercel AI Gateway
 - **Search**: Exa (`exa-js`)
