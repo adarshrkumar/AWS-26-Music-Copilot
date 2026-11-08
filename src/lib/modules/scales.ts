@@ -41,7 +41,7 @@ export async function setScaleSuggestionStatus(userId: string, songId: string, s
 
 export async function explainScale(chord: string, chordFunction: string, scale: string, notes: string[]): Promise<string> {
     return (await generateText({
-        system: 'You explain music theory to students. Explain only the facts you are given in one or two plain sentences. Never say a choice is the only correct one, and never name a real artist or song.',
+        system: 'You explain music theory to songwriters. Explain only the facts you are given in one or two plain sentences. Never say a choice is the only correct one, and never name a real artist or song.',
         messages: [{ role: 'user', content: [{ text: `Chord: ${chord}. Function in the key: ${chordFunction}. Scale: ${scale} (${notes.join(', ')}). Explain why this scale fits over this chord.` }] }],
     })).text;
 }

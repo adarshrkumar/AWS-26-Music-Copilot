@@ -2,7 +2,7 @@
 
 ## The problem
 
-Coming up with original ideas in music is hard, and students often struggle to apply music theory. It is one thing to play and another to consider scales, keys, and chords. To improvise with other people, you have to memorize a lot about keys and scales, and know which chords belong in a key and what specific feel a key or scale gives.
+Coming up with original ideas in music is hard, and songwriters often struggle to apply music theory. It is one thing to play and another to consider scales, keys, and chords. To improvise with other people, you have to memorize a lot about keys and scales, and know which chords belong in a key and what specific feel a key or scale gives.
 
 ## The idea
 

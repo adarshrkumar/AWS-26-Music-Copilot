@@ -32,7 +32,7 @@ export async function setNotes(userId: string, songId: string, sectionId: string
 
 export async function explainNote(chord: string, scale: string, pitch: string, inScale: boolean): Promise<string> {
     return (await generateText({
-        system: 'You explain music theory to students. Explain only the facts you are given in one or two plain sentences. Never tell the student to remove or change a note, never say a choice is the only correct one, and never name a real artist or song.',
+        system: 'You explain music theory to songwriters. Explain only the facts you are given in one or two plain sentences. Never tell the songwriter to remove or change a note, never say a choice is the only correct one, and never name a real artist or song.',
         messages: [{ role: 'user', content: [{ text: `Chord: ${chord}. Scale: ${scale}. Note: ${pitch}, which is ${inScale ? 'inside' : 'outside'} the scale. Explain how this note sounds over the chord.` }] }],
     })).text;
 }

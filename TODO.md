@@ -87,10 +87,10 @@
 ## Pilot
 
 - [ ] Pilot A: load a set of jazz standards into the app as sample progressions, with assisted scales and guide tones on each chord
-- [ ] Pilot A: show the printed chord chart beside the app's suggestions so students can compare them while they play along
-- [ ] Pilot B: start a new instrumental song from a blank progression in the app, with chord and scale suggestions as the student writes
-- [ ] Pilot B: add a review view in the app that shows which suggestions each student kept
-- [ ] Add an in-app survey asking students whether they can name a scale for a chord
+- [ ] Pilot A: show the printed chord chart beside the app's suggestions so songwriters can compare them while they play along
+- [ ] Pilot B: start a new instrumental song from a blank progression in the app, with chord and scale suggestions as the songwriter writes
+- [ ] Pilot B: add a review view in the app that shows which suggestions each songwriter kept
+- [ ] Add an in-app survey asking songwriters whether they can name a scale for a chord
 
 ## Open Questions
 

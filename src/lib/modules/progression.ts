@@ -52,7 +52,7 @@ export async function deleteProgression(userId: string, songId: string, sectionI
 
 export async function explainChord(key: string, chord: string, chordFunction: string): Promise<string> {
     return (await generateText({
-        system: 'You explain music theory to students. Explain only the facts you are given in one or two plain sentences. Never say a choice is the only correct one, and never name a real artist or song.',
+        system: 'You explain music theory to songwriters. Explain only the facts you are given in one or two plain sentences. Never say a choice is the only correct one, and never name a real artist or song.',
         messages: [{ role: 'user', content: [{ text: `Key: ${key}. Chord: ${chord}. Function in the key: ${chordFunction}. Explain the role this chord plays in the progression.` }] }],
     })).text;
 }

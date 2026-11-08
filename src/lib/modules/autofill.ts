@@ -41,7 +41,7 @@ export async function setPhraseSuggestionStatus(userId: string, songId: string, 
 
 export async function explainPhrase(chord: string, scale: string, phrase: string, chordTones: string[]): Promise<string> {
     return (await generateText({
-        system: 'You explain music theory to students. Explain only the facts you are given in one or two plain sentences. Never say a choice is the only correct one, and never name a real artist or song.',
+        system: 'You explain music theory to songwriters. Explain only the facts you are given in one or two plain sentences. Never say a choice is the only correct one, and never name a real artist or song.',
         messages: [{ role: 'user', content: [{ text: `Chord: ${chord}. Scale: ${scale}. Chord tones: ${chordTones.join(', ')}. Phrase: ${phrase}. Explain why this phrase fits the chord and scale.` }] }],
     })).text;
 }

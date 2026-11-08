@@ -10,15 +10,15 @@ The first setting is an educational environment for music hobbyists and music st
 
 ## 2. Problem
 
-Writing original music is hard, and applying theory is harder. A student may know a scale by name without knowing which chords it fits over or what feel it gives a progression. Improvising with other people needs a working memory of keys, scales, and the chord types that belong in each key. Most players learn this slowly, through repeated trial, or by copying what they hear.
+Writing original music is hard, and applying theory is harder. A songwriter may know a scale by name without knowing which chords it fits over or what feel it gives a progression. Improvising with other people needs a working memory of keys, scales, and the chord types that belong in each key. Most players learn this slowly, through repeated trial, or by copying what they hear.
 
 Three problems stand out:
 
-- **Theory stays abstract.** Lessons explain scales and chords in isolation. Students struggle to connect them to a progression they are actually writing.
-- **Improvising needs memory.** Choosing notes over a chord change requires knowing which scale fits, and most students do not have that knowledge ready when they play.
-- **Feel is hard to name.** A key or scale carries a mood, but students often cannot say what that mood is or how to use it.
+- **Theory stays abstract.** Lessons explain scales and chords in isolation. Songwriters struggle to connect them to a progression they are actually writing.
+- **Improvising needs memory.** Choosing notes over a chord change requires knowing which scale fits, and most songwriters do not have that knowledge ready when they play.
+- **Feel is hard to name.** A key or scale carries a mood, but songwriters often cannot say what that mood is or how to use it.
 
-Music Copilot addresses these by keeping theory next to the writing. The student sees the scale, the chord function, and the guide tones at the moment they need them.
+Music Copilot addresses these by keeping theory next to the writing. The songwriter sees the scale, the chord function, and the guide tones at the moment they need them.
 
 ## 3. Goals and Non-Goals
 
@@ -117,7 +117,7 @@ Suggestions are shown in a side panel with a short reason, such as "This is the 
 
 - Every control works with a keyboard and a screen reader, including note entry and scale selection.
 - Scale and chord diagrams have text descriptions, such as "C major scale: C, D, E, F, G, A, B."
-- Suggestions are readable in text, so a student who cannot see the diagram still gets the reason.
+- Suggestions are readable in text, so a songwriter who cannot see the diagram still gets the reason.
 - Color is never the only way to show a note's status. Notes in and out of scale also carry a symbol.
 - Playback, if added later, has a visible stop control and an option for slower tempo.
 - Main controls sit within reach for one-handed use on a phone.
@@ -130,7 +130,7 @@ Suggestions are shown in a side panel with a short reason, such as "This is the 
 | Suggestions accepted | Share of suggestions the songwriter accepts | placeholder |
 | Theory checks | Share of users who open the reason behind a suggestion | placeholder |
 | Time to first scale | Median time from first chord to first scale view | placeholder |
-| Student confidence | Share of students who say they can name a scale for a chord | placeholder |
+| Theory confidence | Share of songwriters who say they can name a scale for a chord | placeholder |
 
 All targets are placeholders until the pilot runs.
 
@@ -138,9 +138,9 @@ All targets are placeholders until the pilot runs.
 
 Two pilots, as in the source draft:
 
-**Pilot A: jazz standards.** Copilot is used on a set of well-known jazz standards with assisted scales and guide tones. Students play along and compare the suggestions with the printed chord charts.
+**Pilot A: jazz standards.** Copilot is used on a set of well-known jazz standards with assisted scales and guide tones. Songwriters play along and compare the suggestions with the printed chord charts.
 
-**Pilot B: writing an instrumental song.** Students write a short instrumental piece from a blank progression. Copilot suggests chords and scales as they go, and students review which suggestions they kept.
+**Pilot B: writing an instrumental song.** Songwriters write a short instrumental piece from a blank progression. Copilot suggests chords and scales as they go, and songwriters review which suggestions they kept.
 
 ## 13. Competitive Notes
 
@@ -170,10 +170,10 @@ The riskiest parts are the theory engine's handling of borrowed chords and the a
 | --- | --- | --- |
 | A suggestion is presented as the only right answer | Medium | Explain rule. Every suggestion names its reason and allows other options. |
 | The language model invents a theory claim | High | The model explains only engine output. Claims are checked against the engine's rules. |
-| Students copy a recording's melody | Medium | Autofill uses rules, not recordings. No artist melodies are used as templates. |
+| Songwriters copy a recording's melody | Medium | Autofill uses rules, not recordings. No artist melodies are used as templates. |
 | Notation is misread in the editor | Medium | Tabs and sheet music are checked against the same note data. |
 | A key is misidentified for a progression | Medium | The songwriter sets the key. Copilot only suggests one when asked. |
-| Students rely on suggestions and skip learning | Low | Reasons are shown every time, and suggestions can be turned off. |
+| Songwriters rely on suggestions and skip learning | Low | Reasons are shown every time, and suggestions can be turned off. |
 
 ## 16. Open Questions
 
@@ -195,8 +195,8 @@ The riskiest parts are the theory engine's handling of borrowed chords and the a
 
 ## 18. Appendix: Example Jazz Progression
 
-A student enters a common jazz progression in C major: Dm7, G7, Cmaj7, Am7. They set the tempo to a medium swing and the progression to four bars. Copilot labels Dm7 as a supertonic minor chord and G7 as the dominant. It suggests the dorian scale over Dm7 and the mixolydian scale over G7, with a short reason for each. It marks the third of G7 and the seventh of Dm7 as guide tones, because they move by step into the next chord. The student views the scales on a keyboard diagram and writes a short melody. Copilot marks two notes outside the mixolydian scale, which the student keeps as a deliberate chromatic approach.
+A songwriter enters a common jazz progression in C major: Dm7, G7, Cmaj7, Am7. They set the tempo to a medium swing and the progression to four bars. Copilot labels Dm7 as a supertonic minor chord and G7 as the dominant. It suggests the dorian scale over Dm7 and the mixolydian scale over G7, with a short reason for each. It marks the third of G7 and the seventh of Dm7 as guide tones, because they move by step into the next chord. The songwriter views the scales on a keyboard diagram and writes a short melody. Copilot marks two notes outside the mixolydian scale, which the songwriter keeps as a deliberate chromatic approach.
 
 ## 19. Appendix: Example Instrumental Writing Session
 
-A student starts a new instrumental piece with a blank eight-bar section in A minor. They enter Am, F, C, and G, one chord per two bars. Copilot labels each chord and suggests the natural minor scale over Am, and the major scale over C. It explains that F and C share notes with A minor, which makes the progression smooth. The student asks for autofill on bar five. Copilot proposes a short phrase in A minor with a clear resolution, and shows that it uses the chord tones on the strong beats. The student edits the last note, accepts the phrase, and keeps the progression.
+A songwriter starts a new instrumental piece with a blank eight-bar section in A minor. They enter Am, F, C, and G, one chord per two bars. Copilot labels each chord and suggests the natural minor scale over Am, and the major scale over C. It explains that F and C share notes with A minor, which makes the progression smooth. The songwriter asks for autofill on bar five. Copilot proposes a short phrase in A minor with a clear resolution, and shows that it uses the chord tones on the strong beats. The songwriter edits the last note, accepts the phrase, and keeps the progression.
