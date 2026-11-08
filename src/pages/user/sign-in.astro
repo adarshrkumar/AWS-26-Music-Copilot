@@ -45,7 +45,7 @@ import '@/styles/pages/user/sign-in.scss';
         const { error } = await authClient.signIn.email({ email: field('email'), password: field('password') });
 
         button?.removeAttribute('data-state');
-        if (!error) return window.location.assign('/');
+        if (!error) return window.location.assign('/app');
         if (message) message.textContent = error.message ?? 'Sign in failed. Check your email and password.';
     });
 </script>

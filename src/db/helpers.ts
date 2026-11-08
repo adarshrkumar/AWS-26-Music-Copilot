@@ -39,7 +39,7 @@ export async function getItem(table: CreateTableCommandInput, key: GetCommandInp
     return (await docClient.send(new GetCommand({ TableName: table.TableName, Key: key }))).Item ?? null;
 }
 
-export async function putItem(table: CreateTableCommandInput, item: PutCommandInput['Item']): Promise<void> {
+export async function setItem(table: CreateTableCommandInput, item: PutCommandInput['Item']): Promise<void> {
     await docClient.send(new PutCommand({ TableName: table.TableName, Item: item }));
 }
 
