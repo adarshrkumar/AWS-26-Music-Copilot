@@ -44,6 +44,10 @@ body {
         gap: space(3);
 
         @include flex-column;
+
+        .btn {
+            border: $border-width $border-style $text-primary;
+        }
     }
 
     &__switch {
