@@ -9,11 +9,6 @@ const region = process.env.AWS_REGION || import.meta.env.AWS_REGION || 'us-east-
 
 const bedrockClient = new BedrockRuntimeClient({ region });
 
-type ChatMessage = {
-    role: NonNullable<Message['role']> | 'system';
-    content: string;
-};
-
 type ToolStatus = NonNullable<ToolResultBlock['status']>;
 
 type BedrockTool = {
@@ -30,8 +25,7 @@ type ToolCallLogEntry = {
 
 type GenerateOptions = {
     system?: string;
-    prompt: string;
-    history?: ChatMessage[];
+    messages: Message[];
     modelId?: string;
     tools?: BedrockTool[];
     maxSteps?: number;
@@ -40,25 +34,15 @@ type GenerateOptions = {
     requestId?: string;
 };
 
-function buildMessages(prompt: string, history: ChatMessage[] = []): Message[] {
-    const messages: Message[] = [];
-
-    for (const { role, content } of history) if (role !== 'system') messages.push({ role, content: [{ text: content }] });
-
-    return [...messages, { role: 'user', content: [{ text: prompt }] }];
-}
-
-function buildRequest(options: GenerateOptions, messages: Message[], tools: BedrockTool[] = []) {
-    console.log(`[${options.requestId ?? nanoid()}] Bedrock request: model=${options.modelId ?? DEFAULT_MODEL_ID}, messages=${messages.length}, tools=${tools.length}`);
-
-    const system = [options.system, ...(options.history ?? []).map(({ role, content }) => role === 'system' ? content : '')].flatMap(text => text ? [{ text }] : []);
+function buildRequest(options: GenerateOptions) {
+    console.log(`[${options.requestId ?? nanoid()}] Bedrock request: model=${options.modelId ?? DEFAULT_MODEL_ID}, messages=${options.messages.length}, tools=${options.tools?.length ?? 0}`);
 
     return {
         modelId: options.modelId ?? DEFAULT_MODEL_ID,
-        messages,
-        system: system.length > 0 ? system : undefined,
+        messages: options.messages,
+        system: options.system ? [{ text: options.system }] : undefined,
         inferenceConfig: { maxTokens: options.maxTokens ?? 1024, temperature: options.temperature ?? 0.7 },
-        toolConfig: tools.length > 0 ? { tools: tools.map(tool => ({ toolSpec: tool.spec })) } : undefined,
+        toolConfig: options.tools?.length ? { tools: options.tools.map(tool => ({ toolSpec: tool.spec })) } : undefined,
     };
 }
 
@@ -83,33 +67,31 @@ async function runTools(content: ContentBlock[], tools: BedrockTool[], toolCallL
 }
 
 export async function generateText(options: GenerateOptions): Promise<{ text: string; toolCallLog: ToolCallLogEntry[] }> {
-    const messages = buildMessages(options.prompt, options.history);
     const toolCallLog: ToolCallLogEntry[] = [];
     let text = '';
 
     for (let step = 0; step < (options.maxSteps ?? 25); step++) {
-        const response = await bedrockClient.send(new ConverseCommand(buildRequest(options, messages, options.tools)));
+        const response = await bedrockClient.send(new ConverseCommand(buildRequest(options)));
         const message = response.output?.message;
 
         if (!message) break;
 
-        messages.push(message);
+        options.messages.push(message);
         text = message.content?.map(block => block.text ?? '').join('') ?? '';
 
         if (response.stopReason !== 'tool_use') break;
 
-        messages.push({ role: 'user', content: await runTools(message.content ?? [], options.tools ?? [], toolCallLog) });
+        options.messages.push({ role: 'user', content: await runTools(message.content ?? [], options.tools ?? [], toolCallLog) });
     }
 
     return { text, toolCallLog };
 }
 
 export async function* streamText(options: GenerateOptions): AsyncGenerator<string, ToolCallLogEntry[]> {
-    const messages = buildMessages(options.prompt, options.history);
     const toolCallLog: ToolCallLogEntry[] = [];
 
     for (let step = 0; step < (options.maxSteps ?? 25); step++) {
-        const response = await bedrockClient.send(new ConverseStreamCommand(buildRequest(options, messages, options.tools)));
+        const response = await bedrockClient.send(new ConverseStreamCommand(buildRequest(options)));
         const blocks = new Map<number, ContentBlock>();
         const inputs = new Map<number, string>();
         let stopReason: StopReason | undefined;
@@ -137,11 +119,11 @@ export async function* streamText(options: GenerateOptions): AsyncGenerator<stri
         }
 
         const content = [...blocks.values()];
-        messages.push({ role: 'assistant', content });
+        options.messages.push({ role: 'assistant', content });
 
         if (stopReason !== 'tool_use') break;
 
-        messages.push({ role: 'user', content: await runTools(content, options.tools ?? [], toolCallLog) });
+        options.messages.push({ role: 'user', content: await runTools(content, options.tools ?? [], toolCallLog) });
     }
 
     return toolCallLog;
@@ -149,7 +131,7 @@ export async function* streamText(options: GenerateOptions): AsyncGenerator<stri
 
 export async function generateObject<T extends z.ZodType>(options: GenerateOptions & { schema: T }): Promise<z.infer<T>> {
     const response = await bedrockClient.send(new ConverseCommand({
-        ...buildRequest(options, buildMessages(options.prompt, options.history)),
+        ...buildRequest(options),
         toolConfig: {
             tools: [{ toolSpec: { name: 'respond', description: 'Respond with the structured result.', inputSchema: { json: JSON.parse(JSON.stringify(z.toJSONSchema(options.schema))) } } }],
             toolChoice: { tool: { name: 'respond' } },
@@ -159,11 +141,10 @@ export async function generateObject<T extends z.ZodType>(options: GenerateOptio
     return options.schema.parse(response.output?.message?.content?.find(block => block.toolUse)?.toolUse?.input);
 }
 
-export async function generateTitle(history: ChatMessage[], modelId?: string): Promise<string> {
+export async function generateTitle(history: Message[], modelId?: string): Promise<string> {
     return (await generateText({
         system: 'You are a helpful assistant that generates concise, descriptive titles for conversations.',
-        prompt: 'Please generate a concise title for this conversation.',
-        history,
+        messages: [...history, { role: 'user', content: [{ text: 'Please generate a concise title for this conversation.' }] }],
         modelId,
     })).text;
 }
