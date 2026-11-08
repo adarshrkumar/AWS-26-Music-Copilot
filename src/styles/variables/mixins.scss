@@ -59,7 +59,7 @@
 
 // Button mixin
 @mixin button-base {
-    padding: space(4) space(6);
+    padding: space(2) space(4);
     border: none;
     border-radius: radius(lg);
     justify-content: center;
@@ -124,7 +124,7 @@
 
 // Input mixin
 @mixin input-base {
-    padding: space(4) space(5);
+    padding: space(2) space(3);
     width: 100%;
     color: $text-primary;
     background-color: $bg-primary;
