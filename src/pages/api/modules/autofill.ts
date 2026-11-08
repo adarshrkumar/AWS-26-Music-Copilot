@@ -7,7 +7,7 @@ import { proposePhrases } from '@/lib/theory';
 import { addPhraseSuggestion, explainPhrase, getPhraseSuggestions, setPhraseSuggestionStatus } from '@/lib/modules/autofill';
 import { setNotes } from '@/lib/modules/editor';
 
-import type { APIRoute } from 'astro';
+import type { APIContext } from 'astro';
 
 type Section = Song['sections'][number];
 type Note = Section['notes'][number];
@@ -67,16 +67,16 @@ function errorResponse(error: Error): Response {
     return getServerError();
 }
 
-export const GET: APIRoute = async ({ locals, url }) => {
+export async function GET({ locals, url }: APIContext): Promise<Response> {
     if (!locals.user) return getUnauthorizedError();
 
     const parsed = querySchema.safeParse(Object.fromEntries(url.searchParams));
     if (!parsed.success) return errorResponse(parsed.error);
 
     return json({ suggestions: await getPhraseSuggestions(locals.user.id, parsed.data.songId, parsed.data.sectionId, parsed.data.bar) });
-};
+}
 
-export const POST: APIRoute = async ({ locals, request }) => {
+export async function POST({ locals, request }: APIContext): Promise<Response> {
     if (!locals.user) return getUnauthorizedError();
 
     const parsed = proposeSchema.safeParse(await request.json());
@@ -122,9 +122,9 @@ export const POST: APIRoute = async ({ locals, request }) => {
     }
 
     return json({ suggestions: created }, 201);
-};
+}
 
-export const PUT: APIRoute = async ({ locals, request }) => {
+export async function PUT({ locals, request }: APIContext): Promise<Response> {
     if (!locals.user) return getUnauthorizedError();
 
     const parsed = statusSchema.safeParse(await request.json());
@@ -159,4 +159,4 @@ export const PUT: APIRoute = async ({ locals, request }) => {
 
     await setPhraseSuggestionStatus(locals.user.id, songId, suggestionId, status);
     return json({ status, skipped });
-};
+}

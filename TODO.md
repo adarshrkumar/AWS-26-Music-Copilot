@@ -96,9 +96,9 @@ These features of the app should be placed within their existing `src/pages` ast
 
 ## Open Questions
 
-- [ ] Decide which genres the first version covers beyond jazz and instrumental writing
-- [ ] Decide whether the editor supports tabs, sheet music or both in v1
-- [ ] Decide how much theory a beginner sees by default
-- [ ] Decide whether a teacher can set a full course or only sample progressions
-- [ ] Decide who owns the progression library after the hackathon
-- [ ] Finish the competitive review
+- [x] Decide which genres the first version covers beyond jazz and instrumental writing
+- [x] Decide whether the editor supports tabs, sheet music or both in v1
+- [x] Decide how much theory a beginner sees by default
+- [x] Decide whether a teacher can set a full course or only sample progressions
+- [x] Decide who owns the progression library after the hackathon
+- [x] Finish the competitive review
