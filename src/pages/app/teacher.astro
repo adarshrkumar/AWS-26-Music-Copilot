@@ -1,0 +1,104 @@
+---
+import { SAMPLE_PROGRESSIONS } from '@/lib/theory/samples';
+
+import App from '@/layouts/App.astro';
+import TeacherScript from '@/script/app/teacher.astro';
+import '@/styles/components/button.scss';
+import '@/styles/components/form.scss';
+import '@/styles/pages/teacher.scss';
+
+if (!Astro.locals.session) return Astro.redirect('/user/sign-in');
+---
+
+<App pageTitle="Teacher">
+    <section class="teacher">
+        <h1 class="teacher__title">Teacher</h1>
+        <p class="teacher__intro">
+            Set sample progressions for a class and see how your students use them. You see counts of accepted suggestions, never a student's melody unless the student shares it. Only songs a student has synced to their account appear here.
+        </p>
+
+        <p class="teacher__status" role="status" data-role="status"></p>
+        <p class="teacher__error" role="alert" data-role="error"></p>
+
+        <section class="teacher__panel" aria-labelledby="teaching-title">
+            <h2 class="teacher__subtitle" id="teaching-title">Classes you teach</h2>
+            <form class="form teacher__form" data-role="create-class">
+                <div class="form-group">
+                    <label class="form-label" for="class-name" data-required="true">New class name</label>
+                    <input class="form-input" id="class-name" name="name" type="text" maxlength="80" required />
+                </div>
+                <fieldset class="teacher__choices">
+                    <legend class="form-label">Sample progressions for this class</legend>
+                    {SAMPLE_PROGRESSIONS.map(progression => (
+                        <div class="form-checkbox">
+                            <label>
+                                <input type="checkbox" name="progression" value={progression.id} />
+                                {progression.title}, {progression.key}, {progression.chords.map(chord => chord.name).join(' ')}
+                            </label>
+                        </div>
+                    ))}
+                </fieldset>
+                <button class="btn" type="submit" data-variant="primary">Create class</button>
+            </form>
+
+            <p class="teacher__empty" data-role="teaching-empty" hidden>You do not teach a class yet.</p>
+            <ul class="teacher__list" data-role="teaching-list" aria-label="Classes you teach"></ul>
+        </section>
+
+        <section class="teacher__panel" aria-labelledby="joined-title">
+            <h2 class="teacher__subtitle" id="joined-title">Classes you joined</h2>
+            <p>Joining a class lets its teacher see which sample progressions you used and how many suggestions you accepted. Your melodies stay private unless you share them in the song's settings.</p>
+            <form class="form teacher__form" data-role="join-class">
+                <div class="form-group">
+                    <label class="form-label" for="join-code" data-required="true">Join code</label>
+                    <input class="form-input" id="join-code" name="joinCode" type="text" maxlength="8" autocomplete="off" required />
+                </div>
+                <button class="btn" type="submit" data-variant="primary">Join class</button>
+            </form>
+
+            <p class="teacher__empty" data-role="joined-empty" hidden>You have not joined a class.</p>
+            <ul class="teacher__list" data-role="joined-list" aria-label="Classes you joined"></ul>
+        </section>
+    </section>
+
+    <template id="teaching-class">
+        <li class="teacher__item">
+            <h3 class="teacher__name" data-field="name"></h3>
+            <p class="teacher__meta" data-field="code"></p>
+            <form class="form teacher__form" data-role="edit-class">
+                <div class="form-group">
+                    <input class="form-input" name="name" type="text" maxlength="80" aria-label="Class name" required />
+                </div>
+                <fieldset class="teacher__choices">
+                    <legend class="form-label">Sample progressions</legend>
+                    {SAMPLE_PROGRESSIONS.map(progression => (
+                        <div class="form-checkbox">
+                            <label>
+                                <input type="checkbox" name="progression" value={progression.id} />
+                                {progression.title}, {progression.key}, {progression.chords.map(chord => chord.name).join(' ')}
+                            </label>
+                        </div>
+                    ))}
+                </fieldset>
+                <div class="teacher__actions">
+                    <button class="btn" type="submit" data-variant="secondary" data-size="small">Save class</button>
+                    <button class="btn" type="button" data-variant="danger" data-size="small" data-action="delete-class">Delete class</button>
+                </div>
+            </form>
+            <h4 class="teacher__heading" data-field="students-heading">Students</h4>
+            <p class="teacher__empty" data-field="students-empty" hidden>No students have joined yet. Share the join code.</p>
+            <ul class="teacher__students" data-field="students"></ul>
+        </li>
+    </template>
+
+    <template id="joined-class">
+        <li class="teacher__item">
+            <h3 class="teacher__name" data-field="name"></h3>
+            <p class="teacher__meta" data-field="teacher"></p>
+            <p class="teacher__meta" data-field="progressions"></p>
+            <button class="btn" type="button" data-variant="secondary" data-size="small" data-action="leave-class">Leave class</button>
+        </li>
+    </template>
+
+    <TeacherScript />
+</App>

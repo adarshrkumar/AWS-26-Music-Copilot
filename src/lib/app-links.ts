@@ -10,4 +10,5 @@ export const appLinks: AppLink[] = [
     { href: '/app/scales', label: 'Scales', description: 'See the scales, arpeggios and guide tones that fit each chord.' },
     { href: '/app/editor', label: 'Editor', description: 'Write tabs and sheet music in one place.' },
     { href: '/app/autofill', label: 'Autofill', description: 'Review phrase proposals and accept the ones you want.' },
+    { href: '/app/teacher', label: 'Teacher', description: 'Set sample progressions for a class, see how students use them, or join a class.' },
 ];

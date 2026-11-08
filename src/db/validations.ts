@@ -190,6 +190,17 @@ export const songInputSchema = z.object({
 
 export const songIdSchema = songInputSchema.shape.id;
 
+export const classInputSchema = z.object({
+    name: z.string().trim().min(1, 'Class name is required').max(80, 'Class name must be 80 characters or less'),
+    sampleProgressionIds: z.array(z.string().min(1).max(40)).max(50),
+});
+
+export const joinClassSchema = z.object({
+    joinCode: z.string().trim().toUpperCase().length(8, 'A join code has eight characters'),
+});
+
+export const classIdSchema = z.string().length(21, 'Invalid class ID');
+
 // Type exports for use in application
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;

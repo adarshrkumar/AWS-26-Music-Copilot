@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { deleteUserClasses } from '@/lib/classes';
 import { deleteSongs } from '@/lib/songs';
 import { dynamoAdapter } from '@/lib/auth/adapter';
 
@@ -10,7 +11,10 @@ export default betterAuth({
     user: {
         deleteUser: {
             enabled: true,
-            beforeDelete: async user => deleteSongs(user.id),
+            beforeDelete: async user => {
+                await deleteSongs(user.id);
+                await deleteUserClasses(user.id);
+            },
         },
     },
     socialProviders: {

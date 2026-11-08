@@ -48,6 +48,60 @@ export interface Song {
     updatedAt: string;
 }
 
+export interface ClassRoom {
+    teacherId: string;
+    id: string;
+    name: string;
+    joinCode: string;
+    sampleProgressionIds: string[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface ClassMember {
+    classId: string;
+    studentId: string;
+    joinedAt: string;
+}
+
+export interface StudentSongReport {
+    title: string;
+    sampleProgressionId: string | null;
+    acceptedCount: number;
+    totalCount: number;
+    melody: Song['sections'] | null;
+}
+
+export interface StudentReport {
+    studentId: string;
+    studentName: string;
+    songs: StudentSongReport[];
+}
+
+export interface TeachingClass {
+    id: string;
+    name: string;
+    joinCode: string;
+    sampleProgressionIds: string[];
+    students: StudentReport[];
+}
+
+export interface JoinedClass {
+    id: string;
+    name: string;
+    teacherName: string;
+    sampleProgressionIds: string[];
+}
+
+export interface TeacherData {
+    teaching: TeachingClass[];
+    joined: JoinedClass[];
+}
+
+export interface ApiProblem {
+    error?: string;
+}
+
 export interface Comment {
     pk: `POST#${string}`;
     sk: `COMMENT#${string}`;

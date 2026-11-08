@@ -1,0 +1,198 @@
+<script>
+    import { SAMPLE_PROGRESSIONS } from '@/lib/theory/samples';
+    import type { ApiProblem, JoinedClass, StudentReport, TeacherData, TeachingClass } from '@/db/types';
+
+    const endpoint = '/api/modules/teacher';
+
+    function find<T extends Element>(root: ParentNode, selector: string): T {
+        const element = root.querySelector<T>(selector);
+        if (!element) throw new Error(`Missing element: ${selector}`);
+        return element;
+    }
+
+    const root = find<HTMLElement>(document, '.teacher');
+    const status = find<HTMLElement>(root, '[data-role="status"]');
+    const errorMessage = find<HTMLElement>(root, '[data-role="error"]');
+    const createForm = find<HTMLFormElement>(root, '[data-role="create-class"]');
+    const joinForm = find<HTMLFormElement>(root, '[data-role="join-class"]');
+    const teachingList = find<HTMLUListElement>(root, '[data-role="teaching-list"]');
+    const teachingEmpty = find<HTMLElement>(root, '[data-role="teaching-empty"]');
+    const joinedList = find<HTMLUListElement>(root, '[data-role="joined-list"]');
+    const joinedEmpty = find<HTMLElement>(root, '[data-role="joined-empty"]');
+    const teachingTemplate = find<HTMLTemplateElement>(document, '#teaching-class');
+    const joinedTemplate = find<HTMLTemplateElement>(document, '#joined-class');
+
+    function say(message: string): void {
+        errorMessage.textContent = '';
+        status.textContent = message;
+    }
+
+    function fail(message: string): void {
+        status.textContent = '';
+        errorMessage.textContent = message;
+    }
+
+    function progressionTitle(id: string | null): string {
+        if (!id) return 'no sample progression';
+        return SAMPLE_PROGRESSIONS.find(progression => progression.id === id)?.title ?? 'a progression that is no longer in the list';
+    }
+
+    function selectedProgressions(form: HTMLFormElement): string[] {
+        return Array.from(form.querySelectorAll<HTMLInputElement>('input[name="progression"]:checked'), input => input.value);
+    }
+
+    function describeStudent(student: StudentReport): HTMLLIElement {
+        const item = document.createElement('li');
+        const name = document.createElement('strong');
+        const songs = document.createElement('ul');
+
+        item.className = 'teacher__student';
+        name.textContent = student.studentName;
+        songs.className = 'teacher__songs';
+
+        if (student.songs.length === 0) {
+            const none = document.createElement('li');
+
+            none.textContent = 'No synced songs yet.';
+            songs.append(none);
+        }
+
+        for (const song of student.songs) {
+            const row = document.createElement('li');
+            const melody = song.melody
+                ? `Melody shared by the student: ${song.melody.reduce((total, section) => total + section.notes.length, 0)} notes.`
+                : 'Melody not shared.';
+
+            row.textContent = `${song.title}: used ${progressionTitle(song.sampleProgressionId)}. ${song.acceptedCount} of ${song.totalCount} suggestions accepted. ${melody}`;
+            songs.append(row);
+        }
+
+        item.append(name, songs);
+        return item;
+    }
+
+    function buildTeaching(classRoom: TeachingClass): DocumentFragment {
+        const fragment = document.importNode(teachingTemplate.content, true);
+        const item = find<HTMLLIElement>(fragment, 'li');
+        const form = find<HTMLFormElement>(item, '[data-role="edit-class"]');
+        const students = find<HTMLUListElement>(item, '[data-field="students"]');
+        const count = classRoom.students.length;
+
+        item.dataset.id = classRoom.id;
+        find<HTMLElement>(item, '[data-field="name"]').textContent = classRoom.name;
+        find<HTMLElement>(item, '[data-field="code"]').textContent = `Join code: ${classRoom.joinCode}. ${count} ${count === 1 ? 'student' : 'students'}.`;
+        find<HTMLInputElement>(form, '[name="name"]').value = classRoom.name;
+        find<HTMLElement>(item, '[data-field="students-empty"]').hidden = count > 0;
+        students.replaceChildren(...classRoom.students.map(describeStudent));
+
+        for (const input of form.querySelectorAll<HTMLInputElement>('input[name="progression"]')) input.checked = classRoom.sampleProgressionIds.includes(input.value);
+
+        return fragment;
+    }
+
+    function buildJoined(classRoom: JoinedClass): DocumentFragment {
+        const fragment = document.importNode(joinedTemplate.content, true);
+        const item = find<HTMLLIElement>(fragment, 'li');
+        const titles = classRoom.sampleProgressionIds.map(progressionTitle);
+
+        item.dataset.id = classRoom.id;
+        find<HTMLElement>(item, '[data-field="name"]').textContent = classRoom.name;
+        find<HTMLElement>(item, '[data-field="teacher"]').textContent = `Teacher: ${classRoom.teacherName}`;
+        find<HTMLElement>(item, '[data-field="progressions"]').textContent = titles.length > 0 ? `Sample progressions: ${titles.join(', ')}` : 'The teacher has not set sample progressions yet.';
+        find<HTMLButtonElement>(item, '[data-action="leave-class"]').setAttribute('aria-label', `Leave ${classRoom.name}`);
+
+        return fragment;
+    }
+
+    function render(data: TeacherData): void {
+        teachingEmpty.hidden = data.teaching.length > 0;
+        joinedEmpty.hidden = data.joined.length > 0;
+        teachingList.replaceChildren(...data.teaching.map(buildTeaching));
+        joinedList.replaceChildren(...data.joined.map(buildJoined));
+    }
+
+    async function load(): Promise<void> {
+        try {
+            const response = await fetch(endpoint);
+
+            if (!response.ok) return fail('Could not load your classes.');
+            const body: Record<'data', TeacherData> = await response.json();
+
+            render(body.data);
+        } catch {
+            fail('Could not reach the server.');
+        }
+    }
+
+    async function send(method: 'POST' | 'PUT' | 'DELETE', url: string, body?: object): Promise<string | null> {
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: body ? { 'Content-Type': 'application/json' } : undefined,
+                body: body ? JSON.stringify(body) : undefined,
+            });
+
+            if (response.ok) return null;
+            const problem: ApiProblem = await response.json().catch(() => ({}));
+
+            return problem.error ?? 'The server could not save this change.';
+        } catch {
+            return 'Could not reach the server.';
+        }
+    }
+
+    createForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        const name = new FormData(createForm).get('name');
+        const problem = await send('POST', endpoint, { action: 'create', name, sampleProgressionIds: selectedProgressions(createForm) });
+
+        if (problem) return fail(problem);
+        createForm.reset();
+        say('Class created. Share its join code with your students.');
+        await load();
+    });
+
+    joinForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        const problem = await send('POST', endpoint, { action: 'join', joinCode: new FormData(joinForm).get('joinCode') });
+
+        if (problem) return fail(problem);
+        joinForm.reset();
+        say('Joined the class. Its teacher now sees your sample progressions and accepted suggestion counts, not your melodies.');
+        await load();
+    });
+
+    root.addEventListener('submit', async event => {
+        const form = event.target instanceof HTMLFormElement ? event.target : null;
+        const id = form?.closest<HTMLElement>('[data-id]')?.dataset.id;
+
+        if (!form || !id || form.dataset.role !== 'edit-class') return;
+        event.preventDefault();
+        const problem = await send('PUT', `${endpoint}?id=${encodeURIComponent(id)}`, { name: new FormData(form).get('name'), sampleProgressionIds: selectedProgressions(form) });
+
+        if (problem) return fail(problem);
+        say('Class saved.');
+        await load();
+    });
+
+    async function removeClass(id: string, role: 'teacher' | 'student'): Promise<void> {
+        const question = role === 'teacher' ? 'Delete this class? Students keep their songs. This cannot be undone.' : 'Leave this class? The teacher will no longer see your sample progressions or counts.';
+        if (!window.confirm(question)) return;
+        const problem = await send('DELETE', `${endpoint}?id=${encodeURIComponent(id)}&as=${role}`);
+
+        if (problem) return fail(problem);
+        say(role === 'teacher' ? 'Class deleted.' : 'You left the class.');
+        await load();
+    }
+
+    root.addEventListener('click', event => {
+        const button = event.target instanceof Element ? event.target.closest<HTMLButtonElement>('button[data-action]') : null;
+        const id = button?.closest<HTMLElement>('[data-id]')?.dataset.id;
+        if (!button || !id) return;
+
+        if (button.dataset.action === 'delete-class') void removeClass(id, 'teacher');
+        if (button.dataset.action === 'leave-class') void removeClass(id, 'student');
+    });
+
+    void load();
+</script>
