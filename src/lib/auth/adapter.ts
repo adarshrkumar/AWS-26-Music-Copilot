@@ -3,8 +3,8 @@ import { DeleteCommand, GetCommand, PutCommand, QueryCommand, ScanCommand } from
 import type { NativeAttributeValue } from '@aws-sdk/lib-dynamodb';
 import { createAdapterFactory } from 'better-auth/adapters';
 import type { CleanedWhere, CustomAdapter } from 'better-auth/adapters';
-import { accountTable, sessionTable, userTable, verificationTable } from '@/db';
 import { docClient } from '@/db/helpers';
+import { accountTable, sessionTable, userTable, verificationTable } from '@/db/schemas';
 
 type Row = Record<string, NativeAttributeValue>;
 type Scalar = string | number | boolean | null;

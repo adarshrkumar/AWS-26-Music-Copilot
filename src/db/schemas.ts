@@ -68,3 +68,16 @@ export const verificationTable: CreateTableCommandInput = {
         { IndexName: 'identifier', KeySchema: [{ AttributeName: 'identifier', KeyType: 'HASH' }], Projection: { ProjectionType: 'ALL' } },
     ],
 };
+
+export const songTable: CreateTableCommandInput = {
+    TableName: 'song',
+    BillingMode: 'PAY_PER_REQUEST',
+    AttributeDefinitions: [
+        { AttributeName: 'userId', AttributeType: 'S' },
+        { AttributeName: 'id', AttributeType: 'S' },
+    ],
+    KeySchema: [
+        { AttributeName: 'userId', KeyType: 'HASH' },
+        { AttributeName: 'id', KeyType: 'RANGE' },
+    ],
+};

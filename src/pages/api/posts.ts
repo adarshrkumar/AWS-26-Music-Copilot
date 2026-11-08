@@ -1,8 +1,8 @@
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
-import { dataTable } from '@/db';
 import { deleteItem, getItem, putItem, queryItems } from '@/db/helpers';
-import type { Post } from '@/db/schema';
+import { dataTable } from '@/db/schemas';
+import type { Post } from '@/db/types';
 import {
     createPostSchema,
     updatePostSchema,

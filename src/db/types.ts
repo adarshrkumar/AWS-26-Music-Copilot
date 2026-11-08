@@ -19,6 +19,35 @@ export interface Post {
     publishedAt: string | null;
 }
 
+export interface Song {
+    userId: string;
+    id: string;
+    title: string;
+    key: string;
+    tempo: number;
+    sampleProgressionId: string | null;
+    melodyShared: boolean;
+    sections: {
+        id: string;
+        name: string;
+        bars: number;
+        chords: { bar: number; beat: number; name: string }[];
+        notes: { bar: number; beat: number; duration: number; pitch: string; string: number | null; fret: number | null }[];
+    }[];
+    suggestions: {
+        id: string;
+        sectionId: string;
+        bar: number;
+        kind: 'scale' | 'arpeggio' | 'chord' | 'note' | 'phrase';
+        value: string;
+        reason: string;
+        status: 'pending' | 'accepted' | 'rejected';
+        createdAt: string;
+    }[];
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface Comment {
     pk: `POST#${string}`;
     sk: `COMMENT#${string}`;
