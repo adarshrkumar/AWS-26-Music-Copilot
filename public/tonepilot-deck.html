@@ -306,6 +306,37 @@
             font-weight: 700
         }
 
+        .bar.dense {
+            gap: 12px
+        }
+
+        .bar.dense h2 {
+            font-size: clamp(30px, 3.4vw, 46px)
+        }
+
+        .bar.dense table {
+            border-spacing: 0 6px;
+            font-size: 15px;
+            line-height: 1.4
+        }
+
+        .bar.dense td {
+            padding: 8px 12px
+        }
+
+        .bar.fit {
+            padding: clamp(24px, 4.5vh, 44px) 52px;
+            gap: clamp(10px, 1.8vh, 18px)
+        }
+
+        .bar.fit h2 {
+            font-size: clamp(32px, min(5vw, 6vh), 66px)
+        }
+
+        .bar.fit ul.rules li {
+            padding: clamp(8px, 1.3vh, 12px) 16px clamp(8px, 1.3vh, 12px) 22px
+        }
+
         .shots {
             margin: 0;
             padding: 0;
@@ -525,7 +556,7 @@
       </ul></div></section>` },
             {
                 title: "Competitive landscape", html: `
-    <section class="slide"><div class="bar"><span class="sign">Landscape</span><span class="num">08</span>
+    <section class="slide"><div class="bar dense"><span class="sign">Landscape</span><span class="num">08</span>
       <h2>The gap is the reason, not the theory</h2>
       <table><thead><tr><th>Product</th><th>What it does</th><th>Where TonePilot differs</th></tr></thead><tbody>
         <tr><td>Hookpad</td><td>Knows the key, hides out-of-key chords by default, and shows note guides.</td><td>Gives a reason with each suggestion, guide tones into the next chord, and labels out-of-key chords instead of hiding them. Edits tab beside notation.</td></tr>
@@ -548,7 +579,7 @@
       </ul></div></section>` },
             {
                 title: "Tech stack", html: `
-    <section class="slide"><div class="bar"><span class="sign">Tech stack</span><span class="num">10</span>
+    <section class="slide"><div class="bar fit"><span class="sign">Tech stack</span><span class="num">10</span>
       <h2>A rule-based engine, with a text layer</h2>
       <div class="staff">INPUT → THEORY ENGINE → SUGGESTIONS → EDITOR → AUTOFILL → EXPLAIN → STORE</div>
       <ul class="rules">
@@ -576,7 +607,7 @@
       </div></div></section>` },
             {
                 title: "Hackathon scope", html: `
-    <section class="slide"><div class="bar"><span class="sign">Scope</span><span class="num">13</span>
+    <section class="slide"><div class="bar dense"><span class="sign">Scope</span><span class="num">13</span>
       <h2>What the build covers</h2>
       <table><thead><tr><th>Piece</th><th>Status</th></tr></thead><tbody>
         <tr><td>Progression builder for chords, key, tempo, and bars</td><td>built</td></tr>
@@ -665,6 +696,7 @@
         function setCurrent(i) {
             current = i;
             count.textContent = (i + 1) + " / " + slides.length;
+            history.replaceState(null, "", "#slide-" + (i + 1));
             menuPrev.disabled = i === 0;
             menuNext.disabled = i === slides.length - 1;        }
         function step(d) {
@@ -708,8 +740,10 @@
                 }
             });
         }, { root: deck, threshold: 0.6 });
+        const start = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.replace("#slide-", ""), 10) || 1) - 1));
+        slides[start].scrollIntoView({ behavior: "instant", inline: "start", block: "nearest" });
+        setCurrent(start);
         slides.forEach(function (s) { io.observe(s); });
-        setCurrent(0);
     </script>
 </body>
 
